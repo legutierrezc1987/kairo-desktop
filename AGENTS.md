@@ -40,6 +40,35 @@ All agents align with:
 
 Rule: skills cannot override governance, active DEB/RFC, or user decisions.
 
+## Persona File Schema (Mandatory)
+
+Each agent persona file (`CODEX.md`, `CLAUDE.md`, `GEMINI.md`) must contain:
+
+Required sections (all 6):
+1. Role / mission
+2. Responsibilities and ownership boundaries
+3. Personality and tone directives
+4. Forbidden actions (negative prompting)
+5. Output format requirements
+6. Startup protocol aligned with `00_TRIBUNAL_START_HERE.md`
+
+Allowed optional sections (static, role-scoped only):
+- Team Position
+- Project Context Pointers
+- Session Close Duty
+- Role-specific operational rules (for agents with unique execution domains)
+
+Hard prohibition (unchanged):
+- Project description, stack, architecture, DECs
+- Roadmap, phases, timelines
+- Active risks and mitigations
+- File indexes and document tables
+- Any state that changes over time
+
+For live project state, use `docs/00-governance/01_PROJECT_MEMORY.md`.
+For architecture and frozen decisions, use `00_KAIRO_MASTER_GOVERNANCE.md`.
+For canonical map, use `docs/INDEX.md`.
+
 ## Collaboration Contract
 - Codex orchestrates, challenges assumptions, synthesizes outcomes, and promotes accepted decisions.
 - Claude owns production code implementation and technical defense.

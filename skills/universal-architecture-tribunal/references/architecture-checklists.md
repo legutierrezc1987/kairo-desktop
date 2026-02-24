@@ -48,3 +48,16 @@
 - Framework Coupling: domain rules depend on framework/ORM/transport
 - Fat Controllers: business logic placed in interface adapters
 - Over-Engineering: strict DDD/Clean for trivial CRUD scope
+- Flat Error Handling: treating all errors identically without operational/programmer/validation distinction
+- Resource Starvation Vectors: synchronous or unbounded O(N) operations in critical paths that can block execution or exhaust pools
+
+## Execution Resilience & Production-Readiness
+
+When vetting architectures for production delivery, ensure criteria for:
+
+- Boundary Validation: strict schema validation at the earliest API boundary (fail-fast)
+- Error Taxonomy: explicit distinction between operational vs programmer/panic errors with standardized response shapes
+- Lifecycle Control: startup/shutdown order, graceful drain, and explicit cleanup
+- Resource Protection: bounded pools, endpoint rate limiting, and prevention of starvation vectors (e.g., unbounded O(N) operations in hot paths)
+- Environment Integrity: secrets/config loaded and validated at startup (fail-fast on missing/invalid)
+- Deep Observability: health endpoints must validate downstream dependencies, not only HTTP 200

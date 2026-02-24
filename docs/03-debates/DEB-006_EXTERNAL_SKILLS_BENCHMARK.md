@@ -49,6 +49,18 @@ Ingerir skills externas de arquitectura, extraer patrones de alto valor y consol
   - `skills/universal-architecture-tribunal/references/architecture-checklists.md` (pattern evaluation + antipattern triggers)
 - REJECT: runtime tutorial code, Python-specific examples, ghost references/assets.
 
+### Intake Result - `nodejs-backend-patterns` (second external skill)
+- Status: GO CON CAMBIOS (very high reject ratio, selective extraction).
+- KEEP: none as direct canonical text.
+- ADAPT:
+  - `skills/universal-architecture-tribunal/references/architecture-checklists.md`
+  - Added `Execution Resilience & Production-Readiness` section.
+  - Added antipattern triggers:
+    - `Flat Error Handling`
+    - `Resource Starvation Vectors`
+- REJECT: Node/Express/Fastify runtime tutorial content and framework-specific implementation blocks.
+- Policy: trigger-based loading only (not always-on).
+
 ### Decision on "read every interaction"
 - Rejected.
 - Reason: guaranteed context bloat and lower signal-to-noise ratio.
@@ -105,3 +117,11 @@ Salida requerida:
 
 ## Decision
 Pendiente de cierre final tras intake externo (GO / GO CON CAMBIOS / NO-GO)
+
+## Phase B Cutoff Rule (agreed)
+
+- Target sample size: 4 external skills total for Phase B.
+- Completed so far: 2 (`architecture-patterns`, `nodejs-backend-patterns`).
+- Remaining capacity: up to 2 additional external skills.
+- If the next 2 skills both contribute <20% reusable governance signal and introduce no new P1/P0 heuristics, close DEB-006 Phase B.
+- User may close Phase B early at any time if ROI is judged insufficient.

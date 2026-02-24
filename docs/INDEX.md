@@ -33,6 +33,7 @@ Fecha: 2026-02-24
       DEB-004_METHOD_HARDENING_PATCHSET.md
       DEB-005_UNIVERSAL_SKILL_FINALIZATION.md
       DEB-006_EXTERNAL_SKILLS_BENCHMARK.md
+      DEB-007_PERSONA_SCHEMA_ALIGNMENT.md
     /06-rfcs
       RFC-TEMPLATE.md
   /skills
@@ -45,6 +46,14 @@ Fecha: 2026-02-24
     /tribunal-collaboration
       SKILL.md (legacy)
 ```
+
+## Layout Note (Target vs Current)
+
+The canonical tree above is the target layout for governance and collaboration.
+Current filesystem may still include legacy or pre-tribunal artifacts pending migration.
+Treat canonical governance files as source of truth and track migration deltas in:
+- `docs/MIGRATION_STATE.md`
+- `docs/03-debates/DEB-001_DOC_STRUCTURE_ALIGNMENT.md`
 
 ## Canonical Status
 
