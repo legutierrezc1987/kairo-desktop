@@ -41,6 +41,19 @@ Ingerir skills externas de arquitectura, extraer patrones de alto valor y consol
 - Ingerir skills externas reales compartidas por el usuario y ejecutar matriz KEEP/ADAPT/REJECT sobre evidencia concreta.
 - Validar propuesta de "questioning loop" para detectar si agrega valor o ruido antes de promoverla.
 
+### CQL Consensus Outcome (Claude + Gemini + Codex)
+- Decision: APPROVED WITH GUARDRAILS (integrated as v1.2 candidate).
+- Guardrails adopted:
+  - Planning-mode only
+  - material ambiguity threshold (decision/risk impacting)
+  - max 3 open items per round
+  - Open-only persistence in live memory
+  - full history in DEB/RFC
+  - close before readiness unless explicit user waiver
+- Schema decision:
+  - mandatory: `Question | Why it matters | Status`
+  - optional: `QREF` assigned by Codex when needed (not mandatory to avoid overhead)
+
 ## Marco de Evaluacion (KEEP / ADAPT / REJECT)
 1. Trigger quality
 2. Workflow repeatability

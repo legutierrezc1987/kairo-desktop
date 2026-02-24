@@ -1,6 +1,6 @@
 # PROJECT MEMORY (Single Living Context)
 
-Version: 1.9
+Version: 2.0
 Last Updated: 2026-02-24
 Status: ACTIVE
 
@@ -24,7 +24,7 @@ Do not duplicate full DEC or long rationale content.
 ## Current Snapshot
 
 - Active phase: Phase 0 (Setup Base) - governance hardening.
-- Current objective: run DEB-006 Phase B (external skill benchmark) for v1.2 improvements.
+- Current objective: run DEB-006 Phase B external benchmark with CQL guardrails integrated for v1.2.
 - Active debates:
   - `DEB-006_EXTERNAL_SKILLS_BENCHMARK` (OPEN)
 - Open RFCs: none.
@@ -39,12 +39,13 @@ Do not duplicate full DEC or long rationale content.
 - Kept final name: `universal-architecture-tribunal`.
 - Added route-control and attribution policies to skill baseline.
 - Git baseline hardened: `.gitignore` created + initial governance lock commit (`f118149`).
+- CQL (Critical Question Loop) integrated with anti-noise guardrails (Planning-only, max 3, Open-only persistence).
 
 ## Pending (Priority Ordered)
 
 1. Ingest external skills from user into DEB-006.
 2. Run KEEP/ADAPT/REJECT synthesis with Claude and Gemini on real external inputs.
-3. Apply final v1.2 patches from external benchmark evidence.
+3. Apply final v1.2 patches from external benchmark evidence and close DEB-006.
 4. Resume DEB-001 file migration after methodology lock.
 
 ## Known Risks
@@ -59,9 +60,9 @@ Do not duplicate full DEC or long rationale content.
 
 ## Next Step (Exact)
 
-User shares external architecture skills (files/paths/content). Codex runs DEB-006 synthesis with Claude and Gemini and returns accepted patchset for universal skill v1.1.
+User shares external architecture skills (files/paths/content). Codex runs DEB-006 synthesis with Claude and Gemini under KEEP/ADAPT/REJECT and returns final v1.2 patchset.
 
 ## Next Owner
 
 - User (messenger): provide external skills and route packets.
-- Codex (orchestrator): synthesize and apply v1.1 patchset.
+- Codex (orchestrator): synthesize and apply v1.2 patchset.

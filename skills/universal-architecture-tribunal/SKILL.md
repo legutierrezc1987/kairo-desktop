@@ -53,6 +53,19 @@ Use the project name as prefix for domain-specific governance files.
 
 1. Zero assumptions
 - Ask for missing facts before freezing architecture.
+- Critical Question Loop (CQL):
+  - Activate only in Planning mode when:
+    - ambiguity blocks a GO/NO-GO decision, or
+    - unanswered ambiguity creates business-impact technical risk.
+  - Limit: maximum 3 open CQL questions per round.
+  - Format per question:
+    - `Question | Why it matters | Status (Open / Answered / Accepted-Risk / Escalated-RFC)`
+  - Optional reference (`QREF`) can be assigned by Codex during synthesis when needed.
+  - Keep only `Open` CQL items in live memory (one-line summary each).
+  - Store full CQL resolution history in active DEB/RFC files.
+  - Resolved CQL items must be purged from live memory snapshot.
+  - All Open CQL items must be closed before Readiness Gate unless user explicitly waives:
+    - `[Waived: CQL - reason: <reason>]`
 
 2. Debate discipline
 - Every proposal must include:
@@ -155,6 +168,7 @@ Codex must always provide a copy/paste-ready routing block:
 - accepted actions (owner + validation condition)
 - rejected actions (with reason)
 - active risks + mitigations
+- open CQL items (if any)
 - exact next step + next owner
 - copy/paste packet for next model
 - `ROUTE_INSTRUCTIONS` block

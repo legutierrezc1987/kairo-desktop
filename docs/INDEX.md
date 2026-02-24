@@ -48,6 +48,7 @@ Fecha: 2026-02-24
 - `skills/universal-architecture-tribunal/SKILL.md` -> ACTIVA (baseline aprobada)
 - `skills/tribunal-collaboration/SKILL.md` -> LEGACY
 - `docs/00-governance/01_PROJECT_MEMORY.md` -> ACTIVO (Option B live snapshot)
+- `CQL` -> INTEGRADO COMO GUARDRAIL V1.2 CANDIDATE (DEB-006)
 
 ## Startup Minimal
 

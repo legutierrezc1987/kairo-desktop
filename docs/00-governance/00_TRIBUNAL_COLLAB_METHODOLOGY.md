@@ -72,6 +72,20 @@ Every promoted decision must include:
 - `[Synthesized: Codex]`
 - `[Approved: User]`
 
+## Critical Question Loop (CQL)
+- Activation: Planning mode only, when ambiguity blocks GO/NO-GO or creates business-impact technical risk.
+- Governance: maximum 3 open CQL questions per round.
+- Format:
+  - `Question | Why it matters | Status (Open / Answered / Accepted-Risk / Escalated-RFC)`
+- Optional `QREF` can be assigned by Codex during synthesis when needed.
+- Retention:
+  - `PROJECT_MEMORY` keeps only Open CQL summaries.
+  - DEB/RFC files keep full CQL resolution history.
+  - Resolved CQL entries are purged from live memory.
+- Gate:
+  - Open CQL items must be closed before implementation/readiness unless user explicitly waives:
+    - `[Waived: CQL - reason: <reason>]`
+
 ## Project Memory Boundary (Critical)
 `01_PROJECT_MEMORY.md` stores only live state:
 - current objective
@@ -92,6 +106,7 @@ Historical rationale belongs to:
 - Accepted actions (owner + validation).
 - Rejected actions (with reason).
 - Risks and mitigations.
+- Open CQL items (if any).
 - Next exact step + next owner.
 - Copy/paste packet for next model (if round continues).
 - `ROUTE_INSTRUCTIONS` block (when dispatching to multiple models).
@@ -205,3 +220,4 @@ MEMORY_PATCH:
 - Reopening a frozen DEC requires RFC.
 - Blocking ambiguity must be resolved before implementation.
 - Two consecutive NO-GO outcomes trigger user-level final decision.
+- Escalated CQL items become RFC candidates when they challenge frozen decisions or scope boundaries.
