@@ -1,6 +1,6 @@
 # DEB-006 - External Skills Benchmark Assimilation
 
-Estado: OPEN (FASE A CONSOLIDADA)
+Estado: OPEN (FASE B ONLY - baseline v1.1 locked)
 Fecha apertura: 2026-02-24
 Owner: Orchestrator (Codex/ChatGPT)
 
@@ -39,6 +39,7 @@ Ingerir skills externas de arquitectura, extraer patrones de alto valor y consol
 
 ### Pendiente para cerrar DEB-006
 - Ingerir skills externas reales compartidas por el usuario y ejecutar matriz KEEP/ADAPT/REJECT sobre evidencia concreta.
+- Validar propuesta de "questioning loop" para detectar si agrega valor o ruido antes de promoverla.
 
 ## Marco de Evaluacion (KEEP / ADAPT / REJECT)
 1. Trigger quality

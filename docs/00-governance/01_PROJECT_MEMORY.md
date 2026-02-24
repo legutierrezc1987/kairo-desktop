@@ -1,6 +1,6 @@
 # PROJECT MEMORY (Single Living Context)
 
-Version: 1.8
+Version: 1.9
 Last Updated: 2026-02-24
 Status: ACTIVE
 
@@ -24,7 +24,7 @@ Do not duplicate full DEC or long rationale content.
 ## Current Snapshot
 
 - Active phase: Phase 0 (Setup Base) - governance hardening.
-- Current objective: ingest external skills and finish DEB-006 final lock for universal skill v1.1.
+- Current objective: run DEB-006 Phase B (external skill benchmark) for v1.2 improvements.
 - Active debates:
   - `DEB-006_EXTERNAL_SKILLS_BENCHMARK` (OPEN)
 - Open RFCs: none.
@@ -38,24 +38,22 @@ Do not duplicate full DEC or long rationale content.
 - Applied fine-audit addenda FA-01/FA-02/FA-03 from Claude+Gemini synthesis.
 - Kept final name: `universal-architecture-tribunal`.
 - Added route-control and attribution policies to skill baseline.
+- Git baseline hardened: `.gitignore` created + initial governance lock commit (`f118149`).
 
 ## Pending (Priority Ordered)
 
 1. Ingest external skills from user into DEB-006.
 2. Run KEEP/ADAPT/REJECT synthesis with Claude and Gemini on real external inputs.
 3. Apply final v1.2 patches from external benchmark evidence.
-4. Define baseline commit strategy and `.gitignore`.
-5. Resume DEB-001 file migration after methodology lock.
+4. Resume DEB-001 file migration after methodology lock.
 
 ## Known Risks
 
-- Git baseline is not hardened yet (`.gitignore` + first governance commit pending).
 - Duplicate PRD versions may still produce contradictory references.
 - User-bus operational load may increase if packets are not concise.
 
 ## Mitigations
 
-- Complete Git baseline hardening (`.gitignore` + initial governance commit + commit convention).
 - Keep `v3-1` as active PRD until RFC says otherwise.
 - Keep packet templates concise and copy/paste-ready.
 
