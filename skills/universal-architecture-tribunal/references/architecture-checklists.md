@@ -26,3 +26,25 @@
 - owners assigned for next actions
 - validation strategy defined
 - rollback strategy defined for high-impact moves
+- promoted decisions include attribution tags when applicable
+
+## Pattern Evaluation Checklist
+
+- Dependencies flow toward domain/core, not toward infrastructure
+- Interfaces are focused and small enough for substitution/testing
+- Business logic is independent from framework/transport/ORM details
+- Controllers/adapters remain thin and delegate business rules
+- Pattern complexity is proportional to problem complexity (avoid over-engineering)
+
+## Macro-Patterns (Hypothesis Guidance)
+
+- Clean Architecture: layered separation with inward dependencies
+- Hexagonal (Ports & Adapters): interchangeable infrastructure around a stable core
+- DDD: bounded contexts, ubiquitous language, rich domain behavior
+
+## Antipattern Triggers (Audit)
+
+- Anemic Domain: entities are data containers without behavior
+- Framework Coupling: domain rules depend on framework/ORM/transport
+- Fat Controllers: business logic placed in interface adapters
+- Over-Engineering: strict DDD/Clean for trivial CRUD scope

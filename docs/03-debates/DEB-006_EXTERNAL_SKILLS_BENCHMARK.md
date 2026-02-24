@@ -41,6 +41,19 @@ Ingerir skills externas de arquitectura, extraer patrones de alto valor y consol
 - Ingerir skills externas reales compartidas por el usuario y ejecutar matriz KEEP/ADAPT/REJECT sobre evidencia concreta.
 - Validar propuesta de "questioning loop" para detectar si agrega valor o ruido antes de promoverla.
 
+### Intake Result - `architecture-patterns` (first external skill)
+- Status: GO CON CAMBIOS (high reject ratio, selective extraction).
+- KEEP: conceptual taxonomy (Clean/Hex/DDD), pitfalls/best-practice heuristics.
+- ADAPT: moved distilled decision heuristics to:
+  - `docs/04-research/external-skills/architecture-patterns.md`
+  - `skills/universal-architecture-tribunal/references/architecture-checklists.md` (pattern evaluation + antipattern triggers)
+- REJECT: runtime tutorial code, Python-specific examples, ghost references/assets.
+
+### Decision on "read every interaction"
+- Rejected.
+- Reason: guaranteed context bloat and lower signal-to-noise ratio.
+- Approved policy: load by trigger only (Hypothesis disagreement, pattern-fit CQL, readiness mismatch).
+
 ### CQL Consensus Outcome (Claude + Gemini + Codex)
 - Decision: APPROVED WITH GUARDRAILS (integrated as v1.2 candidate).
 - Guardrails adopted:

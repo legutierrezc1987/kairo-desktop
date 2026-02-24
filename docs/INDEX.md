@@ -20,6 +20,9 @@ Fecha: 2026-02-24
     INDEX.md
     MIGRATION_STATE.md
     PLAN_INFALIBLE_v1.md (draft controlado)
+    /04-research
+      /external-skills
+        architecture-patterns.md
     /00-governance
       00_TRIBUNAL_COLLAB_METHODOLOGY.md
       01_PROJECT_MEMORY.md

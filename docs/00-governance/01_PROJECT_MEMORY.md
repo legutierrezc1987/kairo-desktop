@@ -1,6 +1,6 @@
 # PROJECT MEMORY (Single Living Context)
 
-Version: 2.0
+Version: 2.1
 Last Updated: 2026-02-24
 Status: ACTIVE
 
@@ -40,13 +40,15 @@ Do not duplicate full DEC or long rationale content.
 - Added route-control and attribution policies to skill baseline.
 - Git baseline hardened: `.gitignore` created + initial governance lock commit (`f118149`).
 - CQL (Critical Question Loop) integrated with anti-noise guardrails (Planning-only, max 3, Open-only persistence).
+- External skill `architecture-patterns` benchmarked (high-noise tutorial profile); distilled output created.
 
 ## Pending (Priority Ordered)
 
 1. Ingest external skills from user into DEB-006.
 2. Run KEEP/ADAPT/REJECT synthesis with Claude and Gemini on real external inputs.
-3. Apply final v1.2 patches from external benchmark evidence and close DEB-006.
-4. Resume DEB-001 file migration after methodology lock.
+3. Continue DEB-006 with next external skill inputs.
+4. Apply final v1.2 patchset from benchmark evidence and close DEB-006.
+5. Resume DEB-001 file migration after methodology lock.
 
 ## Known Risks
 
@@ -60,7 +62,7 @@ Do not duplicate full DEC or long rationale content.
 
 ## Next Step (Exact)
 
-User shares external architecture skills (files/paths/content). Codex runs DEB-006 synthesis with Claude and Gemini under KEEP/ADAPT/REJECT and returns final v1.2 patchset.
+User shares next external architecture skill (files/paths/content). Codex runs DEB-006 synthesis with Claude and Gemini under KEEP/ADAPT/REJECT and updates v1.2 candidate patchset.
 
 ## Next Owner
 
