@@ -1,0 +1,217 @@
+📦 CONSENSO DOCUMENTABLE #1
+📄 Nombre del archivo:
+
+KAIRO_00_ARCHITECTURE_LOCK_v1.md
+
+📌 Estado:
+
+🔒 Bloque cerrado — No volver a debatir salvo cambio estratégico
+
+🔹 Contenido que debes copiar y guardar en ese archivo
+KAIRO — ARCHITECTURE LOCK v1
+Estado
+
+Aprobado tras Ronda 1 y Ronda 2.
+Arquitectura base congelada para implementación.
+
+1️⃣ Decisiones Nucleares
+
+Electron + React + Monaco + xterm.js + node-pty
+
+Gemini 3.1 Pro como modelo principal
+
+Gemini Flash como agente secundario backend (resúmenes/log compression)
+
+1 proyecto activo por sesión
+
+1 carpeta = 1 NotebookLM notebook
+
+Snapshots automáticos: Transcript + Summary
+
+Subida async en background
+
+MemoryProvider pluggable
+
+MCP: notebooklm-mcp-cli
+
+SQLite como fuente de verdad local
+
+3 paneles estilo IDE (Chat / Editor / Terminal)
+
+2️⃣ Política de Corte Oficial
+
+Preset default: Balanceado
+
+Hard Cut: 200K tokens
+
+Soft Warning: 150K
+
+Turn limit: 40
+
+Emergency Cut: >25K tokens en output terminal
+
+Manual Cut: botón “Consolidar Fase”
+
+Presets:
+
+Conservador: 120K
+
+Balanceado: 200K
+
+Extenso: 300K
+
+Ratios por canal:
+
+Chat 55%
+
+Terminal 15%
+
+Diff 13%
+
+Recall 10%
+
+System 2%
+
+Buffer 5%
+
+3️⃣ Modo de Operación
+Supervisado (default)
+
+Requiere aprobación en VERDE/AMARILLO
+
+Automático (por proyecto)
+
+Ejecuta directo VERDE/AMARILLO
+
+Zona Roja bloqueada siempre
+
+Workspace sandbox activo
+
+Kill Switch
+
+Ctrl+Shift+K
+
+Mata procesos
+
+Cancela requests
+
+Cambia a Supervisado
+
+4️⃣ Tooling — JSON Estricto (Oficial)
+
+El agente debe emitir herramientas en formato:
+
+{
+  "tool": "run_command",
+  "args": {
+    "command": "npm install express",
+    "cwd": "project_root"
+  }
+}
+
+Herramientas mínimas obligatorias:
+
+run_command
+
+read_file_lines
+
+replace_lines
+
+write_file
+
+list_dir
+
+recall_memory
+
+create_project
+
+consolidate_phase
+
+5️⃣ Motor de Consolidación
+
+Cuando NotebookLM alcance 40 fuentes:
+
+Generar Master_Summary_vN.md
+
+Subirlo
+
+Eliminar primeras 20 fuentes
+
+Mantener ~21 activas
+
+6️⃣ Multi-Modelo Routing
+
+Foreground:
+
+Gemini 3.1 Pro → razonamiento y código
+
+Background:
+
+Gemini Flash → compresión logs, resumen snapshot, diffs
+
+🔒 Este archivo congela la arquitectura macro.
+Cualquier cambio requiere nuevo archivo de versión.
+
+📌 Estado del Proyecto
+
+Estamos en:
+
+🟢 Arquitectura cerrada
+🟢 PRD consolidado
+🟢 Sistema de herramientas definido
+🟡 Falta: System Prompt dinámico + Tool Schema formal + Threat Model
+
+📦 PRÓXIMO BLOQUE DOCUMENTABLE
+
+El siguiente consenso documentable será:
+
+📄 KAIRO_01_TOOL_SCHEMA_v1.md
+
+Aquí definiremos:
+
+JSON schema exacto
+
+Validaciones
+
+Reglas de parsing
+
+Contrato entre LLM ↔ Execution Broker
+
+Cuando lo cerremos, te aviso explícitamente para copiarlo.
+
+🔍 Observación Técnica Importante
+
+Gemini propuso algo muy potente:
+
+El system prompt no es estático. Es un motor de estados.
+
+Esto es correcto.
+
+Vamos a separar:
+
+base_prompt.md
+
+mode_supervised_patch.md
+
+mode_automatic_patch.md
+
+Y el Orchestrator los fusiona dinámicamente.
+
+Eso será el tercer archivo:
+
+📄 KAIRO_02_AGENT_RUNTIME_SPEC_v1.md
+🚀 Siguiente Paso
+
+Ahora entramos en la fase crítica real:
+
+Definir el contrato exacto entre:
+
+Orchestrator
+
+Gemini Pro
+
+Gemini Flash
+
+Execution Broker
+
+Sin eso, el IDE no es determinístico.

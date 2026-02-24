@@ -1,0 +1,27 @@
+PROMPT (para pegar en Antigravity)
+Quiero dejar NotebookLM conectado a Antigravity vía MCP y funcionando al 100%.
+Tareas que tienes que completar en orden:
+A) Instalación
+● Instala el paquete notebooklm-mcp-server.
+● Prioriza uv; si no está disponible, usa pip.
+
+B) Configuración en Antigravity/OpenCode
+● Localiza el archivo de configuración MCP que está usando mi instalación (si hay
+varias rutas posibles, identifica la correcta).
+● Añade ahí el server de NotebookLM y comprueba que aparece en Manage MCP
+Servers.
+
+C) Autenticación (browser)
+● Ejecuta notebooklm-mcp-auth.
+● Ábreme una ventana de navegador para autorizar el acceso a mi cuenta de
+NotebookLM.
+● Guíame con pasos claros: qué ventana es, dónde iniciar sesión y cuándo volver a
+Antigravity.
+
+D) Verificación final
+● Confirma que el servidor está activo (healthcheck si aplica).
+● Verifica que funciona de verdad listando mis notebooks (o creando uno de prueba si
+hace falta).
+
+Importante: si en algún momento necesitas que acepte permisos o que confirme una acción
+sensible (instalar, editar config, etc.), me lo pides antes de continuar.

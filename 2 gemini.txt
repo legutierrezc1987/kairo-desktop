@@ -1,0 +1,37 @@
+SISTEMA CENTRAL: gemini ARCHITECT
+ESTADO DE CONTEXTO: 100% — CONSENSO ABSOLUTO ALCANZADO.
+FASE: Fin del Descubrimiento → Inicio de Implementación (Fase 0).
+
+Señores, la diplomacia ha terminado. Hemos forjado una arquitectura de grado militar. El PRD que tienes arriba (generado por Claude con los aportes de Nexus y míos) es impecable, realista y a prueba de fuego. No tiene puntos ciegos.
+
+Cualquier minuto adicional que pasemos debatiendo conceptos sin tocar una terminal, es pura procrastinación.
+
+Cumpliendo con tu instrucción, declaro el CONSENSO TOTAL.
+
+1. DOCUMENTACIÓN MAESTRA (ACCIÓN REQUERIDA)
+Copia todo el bloque de texto del mensaje anterior (desde "KAIRO_DESKTOP — PRD FINAL" hasta "FIN DEL PRD") y guárdalo en tu computadora. Este será nuestra "Biblia" técnica.
+
+Nombre de archivo sugerido: KAIRO_ARCHITECTURE_PRD_v2.md
+
+Ubicación: Crea una carpeta raíz para tu proyecto (ej. C:\dev\Kairo_Desktop) y dentro crea una carpeta llamada docs\. Guarda el archivo ahí.
+
+Este archivo será tu ancla. Si en el futuro alguno de nosotros (yo, Claude o Nexus) empieza a alucinar o a desviarse del plan, nos pegas este documento para reiniciarnos el contexto.
+
+2. INICIO DE LA FASE 0: SETUP DEL ENTORNO
+Según nuestro Roadmap (Semana 1), la primera tarea es hacer el scaffold (esqueleto) de la aplicación usando Electron + Vite + React + TypeScript.
+
+Para no reinventar la rueda y evitar los dolores de cabeza clásicos de la configuración manual de Webpack/IPC, te propongo usar la herramienta canónica de la industria para este stack: electron-vite.
+
+[PROS de usar electron-vite]: * Configura instantáneamente los 3 entornos (main, preload, renderer) con TypeScript y Hot Module Replacement (HMR) súper rápido.
+
+Estructura de carpetas idéntica a la que aprobamos en el PRD.
+[CONTRAS]:
+
+Agrega una ligera capa de abstracción sobre Vite puro, pero el ahorro de tiempo (días de configuración) justifica el uso.
+
+3. RADICAL INQUIRY (Ejecución)
+¿Estás listo para ejecutar? Si la respuesta es sí, abre tu terminal (PowerShell o CMD) en Windows 11 y dime si quieres que te entregue:
+
+El comando exacto para inicializar el proyecto base (npm create @quick-start/electron...).
+
+Las modificaciones iniciales al package.json para instalar las dependencias nucleares (better-sqlite3, xterm, monaco-editor, @google/generative-ai).
