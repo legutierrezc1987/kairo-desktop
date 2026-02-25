@@ -1,6 +1,7 @@
 import { classifyCommand } from './command-classifier'
 import { CommandLog } from './command-log'
 import { PendingQueue } from './pending-queue'
+import { validateCommandPaths } from './workspace-sandbox'
 import { DEFAULT_BROKER_MODE } from '../../shared/constants'
 import type {
   ClassificationResult,
@@ -78,7 +79,7 @@ export class ExecutionBroker {
 
   // ── Core evaluation (called by TerminalService on Enter) ──
 
-  evaluate(command: string, terminalId: string, _workspacePath?: string): BrokerDecision {
+  evaluate(command: string, terminalId: string, workspacePath?: string): BrokerDecision {
     const classification = classifyCommand(command)
 
     let allowed: boolean
@@ -93,7 +94,18 @@ export class ExecutionBroker {
         reason = 'GREEN zone — allowed'
         break
 
-      case 'yellow':
+      case 'yellow': {
+        // SECURITY: Validate command paths against workspace boundary (DEC-025)
+        if (workspacePath) {
+          const pathCheck = validateCommandPaths(command, workspacePath)
+          if (!pathCheck.valid) {
+            allowed = false
+            action = 'blocked'
+            reason = `DEC-025 sandbox: ${pathCheck.reason}`
+            break
+          }
+        }
+
         if (this.mode === 'auto') {
           allowed = true
           action = 'executed'
@@ -108,6 +120,7 @@ export class ExecutionBroker {
           this.onPendingAdded?.(pending)
         }
         break
+      }
 
       case 'red':
         // RED: ALWAYS blocked, in BOTH modes, no exceptions — DEC-024
@@ -221,6 +234,19 @@ export class ExecutionBroker {
 
   getLog(): CommandLog {
     return this.commandLog
+  }
+
+  /**
+   * Emergency reset — kill switch handler.
+   * Clears pending queue but keeps broker operational (sweep timer alive).
+   */
+  emergencyReset(): void {
+    this.pendingQueue.reset()
+    this.commandLog.log(
+      'SYSTEM', 'KILL_SWITCH', 'red', 'blocked',
+      'Emergency kill switch activated — all pending commands cleared',
+      this.mode, 'system'
+    )
   }
 
   destroy(): void {

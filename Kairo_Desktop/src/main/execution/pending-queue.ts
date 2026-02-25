@@ -113,6 +113,14 @@ export class PendingQueue {
     return expired
   }
 
+  /**
+   * Soft reset — clears all pending commands but keeps the sweep timer alive.
+   * Used by kill switch: broker remains operational after emergency stop.
+   */
+  reset(): void {
+    this.commands.clear()
+  }
+
   destroy(): void {
     if (this.cleanupTimer) {
       clearInterval(this.cleanupTimer)

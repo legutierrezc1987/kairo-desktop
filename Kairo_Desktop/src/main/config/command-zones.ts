@@ -71,6 +71,26 @@ export const RED_PATTERNS: readonly string[] = Object.freeze([
   'powershell -executionpolicy bypass', 'set-executionpolicy',
   // System environment (machine scope)
   '[system.environment]::setenvironmentvariable',
+  // Privilege escalation
+  'sudo',
+])
+
+/**
+ * Allowed shell binaries — DEC-025.
+ * SECURITY: Only these shells may be spawned by TerminalService.
+ * Matched against basename (case-insensitive) of the shell path.
+ */
+export const ALLOWED_SHELLS: readonly string[] = Object.freeze([
+  'cmd.exe', 'powershell.exe', 'pwsh.exe',
+  'bash', 'sh', 'zsh', 'fish',
+])
+
+/**
+ * YELLOW commands that mutate files — DEC-025.
+ * Path arguments for these commands are validated against workspace boundary.
+ */
+export const YELLOW_FILE_COMMANDS: readonly string[] = Object.freeze([
+  'rm', 'del', 'rmdir', 'cp', 'mv', 'chmod',
 ])
 
 /** Maximum lines of terminal output before truncation (PRD §10) */

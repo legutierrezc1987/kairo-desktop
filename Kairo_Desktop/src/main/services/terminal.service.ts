@@ -1,7 +1,9 @@
 import * as pty from 'node-pty'
 import { randomUUID } from 'node:crypto'
+import { basename } from 'node:path'
 import { ExecutionBroker } from '../execution/execution-broker'
 import { validateWorkspaceCwd } from '../execution/workspace-sandbox'
+import { ALLOWED_SHELLS } from '../config/command-zones'
 import type {
   TerminalSpawnRequest,
   TerminalSpawnResponse,
@@ -53,8 +55,16 @@ export class TerminalService {
       return { success: false, error: `[KAIRO_SECURITY] ${cwdCheck.reason}` }
     }
 
+    // SECURITY: Validate shell binary against allowlist (DEC-025)
+    const shellPath = request.shell ?? this.getDefaultShell()
+    const shellName = basename(shellPath).toLowerCase()
+    if (!ALLOWED_SHELLS.includes(shellName)) {
+      console.error(`[KAIRO_SECURITY] Shell "${shellPath}" not in allowlist.`)
+      return { success: false, error: `[KAIRO_SECURITY] Shell "${shellName}" is not allowed.` }
+    }
+
     const terminalId = randomUUID()
-    const shell = request.shell ?? this.getDefaultShell()
+    const shell = shellPath
     const cols = request.cols ?? 80
     const rows = request.rows ?? 24
 
@@ -111,7 +121,7 @@ export class TerminalService {
       this.lineBuffers.set(terminalId, '')
 
       if (command.length > 0) {
-        const decision = this.broker.evaluate(command, terminalId, instance.cwd)
+        const decision = this.broker.evaluate(command, terminalId, this.workspacePath)
         if (!decision.allowed) {
           if (decision.action === 'pending_approval') {
             // Supervised mode: command queued for approval
@@ -151,6 +161,14 @@ export class TerminalService {
       console.error(`[KAIRO_BROKER] Cannot execute approved command: terminal ${terminalId} not found`)
       return
     }
+
+    // SECURITY: Re-validate CWD at execution time (DEC-025)
+    const cwdCheck = validateWorkspaceCwd(instance.cwd, this.workspacePath)
+    if (!cwdCheck.valid) {
+      console.error(`[KAIRO_SECURITY] executeApproved rejected: ${cwdCheck.reason}`)
+      return
+    }
+
     // Write command + Enter to PTY
     instance.process.write(command + '\r')
   }
@@ -175,12 +193,14 @@ export class TerminalService {
     return { success: true }
   }
 
-  killAll(): void {
+  killAll(): number {
+    const count = this.terminals.size
     for (const [, instance] of this.terminals) {
       instance.process.kill()
     }
     this.terminals.clear()
     this.lineBuffers.clear()
+    return count
   }
 
   private getDefaultShell(): string {

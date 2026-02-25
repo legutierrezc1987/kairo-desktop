@@ -45,3 +45,8 @@ import type { BrokerMode } from './types'
 
 export const DEFAULT_BROKER_MODE: BrokerMode = 'supervised'
 export const PENDING_COMMAND_TTL_MS = 5 * 60 * 1000 // 5 minutes
+
+// ─── Kill Switch Configuration (DEC-025) ────────────────────
+
+export const KILL_SWITCH_ACCELERATOR = 'Ctrl+Shift+K'
+export const KILL_SWITCH_BANNER_DURATION_MS = 4000

@@ -163,6 +163,13 @@ export interface CommandLogEntry {
   actor: ApprovalActor
 }
 
+// ─── Kill Switch Domain ─────────────────────────────────────
+
+export interface KillSwitchNotification {
+  timestamp: number
+  killedCount: number
+}
+
 // ─── IPC Envelope ────────────────────────────────────────────
 
 export interface IpcResult<T> {

@@ -6,10 +6,13 @@ import CodeEditor from '@renderer/components/Editor/CodeEditor'
 import TerminalPanel from '@renderer/components/Terminal/TerminalPanel'
 import ChatPanel from '@renderer/components/Chat/ChatPanel'
 import ModeToggle from '@renderer/components/Layout/ModeToggle'
+import KillSwitch from '@renderer/components/Layout/KillSwitch'
 
 export default function MainLayout(): React.JSX.Element {
   return (
     <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column' }}>
+      {/* Kill switch emergency banner (renders as fixed overlay) */}
+      <KillSwitch />
       {/* Status bar — mode toggle */}
       <div style={{
         height: '32px',

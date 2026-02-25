@@ -1,4 +1,4 @@
-import { app, shell, BrowserWindow, ipcMain } from 'electron'
+import { app, shell, BrowserWindow, ipcMain, globalShortcut } from 'electron'
 import { join } from 'path'
 import { Orchestrator } from './core/orchestrator'
 import { registerChatHandlers } from './ipc/chat.handlers'
@@ -9,6 +9,7 @@ import { initGeminiGateway } from './services/gemini-gateway'
 import { ExecutionBroker } from './execution/execution-broker'
 import { TerminalService } from './services/terminal.service'
 import { IPC_CHANNELS } from '../shared/ipc-channels'
+import { KILL_SWITCH_ACCELERATOR } from '../shared/constants'
 
 const icon = join(__dirname, '../../resources/icon.png')
 
@@ -73,6 +74,21 @@ app.whenReady().then(() => {
   registerTerminalHandlers(terminalService, () => mainWindow)
   registerBrokerHandlers(broker, () => mainWindow)
 
+  // Kill switch — Ctrl+Shift+K emergency stop (DEC-025)
+  const registered = globalShortcut.register(KILL_SWITCH_ACCELERATOR, () => {
+    console.log('[KAIRO_KILLSWITCH] Emergency stop activated!')
+    const killedCount = terminalService.killAll()
+    broker.emergencyReset()
+    mainWindow?.webContents.send(IPC_CHANNELS.KILLSWITCH_ACTIVATED, {
+      timestamp: Date.now(),
+      killedCount,
+    })
+    console.log(`[KAIRO_KILLSWITCH] Killed ${killedCount} terminals, pending queue cleared.`)
+  })
+  if (!registered) {
+    console.warn(`[KAIRO_KILLSWITCH] Failed to register ${KILL_SWITCH_ACCELERATOR} — shortcut may be in use.`)
+  }
+
   // App CWD handler (renderer needs this for terminal spawn)
   ipcMain.handle(IPC_CHANNELS.APP_GET_CWD, (event) => {
     try {
@@ -116,6 +132,10 @@ app.whenReady().then(() => {
     broker.destroy()
     terminalService.killAll()
   })
+})
+
+app.on('will-quit', () => {
+  globalShortcut.unregisterAll()
 })
 
 app.on('window-all-closed', () => {

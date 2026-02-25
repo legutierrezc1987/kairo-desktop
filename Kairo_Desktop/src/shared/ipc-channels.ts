@@ -39,6 +39,9 @@ export const IPC_CHANNELS = {
   BROKER_PENDING_ADDED: 'broker:pending-added',
   BROKER_PENDING_RESOLVED: 'broker:pending-resolved',
 
+  // Kill switch domain
+  KILLSWITCH_ACTIVATED: 'killswitch:activated',
+
   // App domain
   APP_GET_CWD: 'app:get-cwd',
 } as const
