@@ -1,6 +1,6 @@
 # DEB-006 - External Skills Benchmark Assimilation
 
-Estado: OPEN (FASE B ONLY - baseline v1.1 locked)
+Estado: CLOSED (baseline v1.1 locked, Phase B closed by evidence)
 Fecha apertura: 2026-02-24
 Owner: Orchestrator (Codex/ChatGPT)
 
@@ -37,9 +37,8 @@ Ingerir skills externas de arquitectura, extraer patrones de alto valor y consol
 - FA-02: ACEPTADO (wrappers por modelo en templates para eliminar edicion manual del usuario-bus).
 - FA-03: ACEPTADO (limpieza de referencias huerfanas: `workflow.md` y `canonical-artifacts.md` eliminados).
 
-### Pendiente para cerrar DEB-006
-- Ingerir skills externas reales compartidas por el usuario y ejecutar matriz KEEP/ADAPT/REJECT sobre evidencia concreta.
-- Validar propuesta de "questioning loop" para detectar si agrega valor o ruido antes de promoverla.
+### Cierre de pendiente DEB-006
+- Pendiente historico resuelto por cierre Phase B y regla de cutoff de ROI.
 
 ### Intake Result - `architecture-patterns` (first external skill)
 - Status: GO CON CAMBIOS (high reject ratio, selective extraction).
@@ -116,7 +115,7 @@ Salida requerida:
 ```
 
 ## Decision
-Pendiente de cierre final tras intake externo (GO / GO CON CAMBIOS / NO-GO)
+GO CON CAMBIOS -> CLOSED (Phase B closed by evidence and ROI cutoff)
 
 ## Phase B Cutoff Rule (agreed)
 
@@ -125,3 +124,19 @@ Pendiente de cierre final tras intake externo (GO / GO CON CAMBIOS / NO-GO)
 - Remaining capacity: up to 2 additional external skills.
 - If the next 2 skills both contribute <20% reusable governance signal and introduce no new P1/P0 heuristics, close DEB-006 Phase B.
 - User may close Phase B early at any time if ROI is judged insufficient.
+
+## Phase B Closure
+- Closed: 2026-02-24
+- Reason: 2/2 evaluated external skills produced low reusable governance signal and high rejection ratio.
+- ROI: insufficient to justify additional user-bus load.
+- Extraction achieved: execution resilience checklist reinforcement + antipattern triggers.
+- Decision: stop benchmark expansion and proceed to implementation readiness.
+
+Attribution:
+- [Proposed: Claude]
+- [Audited: Gemini]
+- [Synthesized: Codex]
+- [Approved: User]
+
+
+

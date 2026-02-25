@@ -31,6 +31,7 @@ Everything important must be documented. No loose ends.
 
 1. Frame
 - Codex defines objective, constraints, acceptance criteria, and mode (Planning/Implementation).
+- Codex includes PUNTO DE VISTA INICIAL DE CODEX in each outgoing packet (critical hypothesis, key objections, provisional verdict).
 
 2. Parallel Review
 - User sends packets to Claude and Gemini.
@@ -111,6 +112,7 @@ Historical rationale belongs to:
 - Copy/paste packet for next model (if round continues).
 - `ROUTE_INSTRUCTIONS` block (when dispatching to multiple models).
 - Attribution tags for promoted decisions.
+- Codex initial viewpoint block included in outgoing packets.
 
 ## Round Completion Conditions
 A round is complete only when all are true:
@@ -151,6 +153,7 @@ Otherwise, update existing canonical files.
 
 ```md
 [TAREA PARA CLAUDE - IMPLEMENTACION]
+PUNTO DE VISTA INICIAL DE CODEX:
 Objetivo:
 Contexto minimo:
 Restricciones DEC/RFC:
@@ -175,6 +178,7 @@ MEMORY_PATCH:
 
 ```md
 [TAREA PARA GEMINI - AUDITORIA]
+PUNTO DE VISTA INICIAL DE CODEX:
 Objetivo de auditoria:
 Alcance:
 Riesgos a estresar:
@@ -221,3 +225,5 @@ MEMORY_PATCH:
 - Blocking ambiguity must be resolved before implementation.
 - Two consecutive NO-GO outcomes trigger user-level final decision.
 - Escalated CQL items become RFC candidates when they challenge frozen decisions or scope boundaries.
+
+

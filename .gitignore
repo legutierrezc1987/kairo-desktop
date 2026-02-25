@@ -28,6 +28,9 @@ Desktop.ini
 *.swp
 *.swo
 
+# Claude Code local config (machine-specific paths and permissions)
+.claude/
+
 # Logs
 logs/
 *.log

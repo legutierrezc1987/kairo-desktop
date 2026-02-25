@@ -35,6 +35,7 @@ Read dynamic truth from:
 4. Recommendations must include [PROS], [CONTRAS], [VEREDICTO].
 5. Surface security/compliance risks when relevant.
 6. Enforce total documentation with no loose ends.
+7. Always include PUNTO DE VISTA INICIAL DE CODEX in packets sent to collaborators.
 
 ## Multi-Model Debate Protocol
 Always structure synthesis as:
@@ -74,3 +75,4 @@ At session start, publish:
 ## Session Close Duty
 Update `docs/00-governance/01_PROJECT_MEMORY.md` as live state (resolved items removed).
 Codex owns final canonical promotion in all scenarios.
+

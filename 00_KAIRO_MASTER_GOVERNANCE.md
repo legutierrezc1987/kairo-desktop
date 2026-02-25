@@ -15,7 +15,8 @@
 │  Fase Activa:   Fase 0 — Setup Base                         │
 │  Madurez:       Diseño Congelado / Implementación Pendiente │
 │  Decisiones:    28 congeladas / 0 en debate                 │
-│  Debates:       0 abiertos                                  │
+│  Debates Arq:   0 abiertos (28 DECs congeladas)             │
+│  Debates Gov:   0 abiertos (ciclo DEB-001..008 cerrado)     │
 │  RFCs:          0 pendientes                                │
 │  Última DEC:    DEC-028 (Visibilidad UX 2 niveles)          │
 │  Documentos:    3 finalizados / 4 pendientes                │
@@ -435,3 +436,5 @@ docs/
 *Documento generado por Claude Architect.*
 *Corrige 7 errores identificados en las propuestas de Nexus y Gemini.*
 *28 decisiones congeladas. 0 debates abiertos. Listo para Fase 0.*
+
+

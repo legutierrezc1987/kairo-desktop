@@ -8,7 +8,7 @@
 # ESTADO: ✅ ARQUITECTURA APROBADA — LISTO PARA IMPLEMENTAR
 
 **Nivel de Contexto: 100%**
-**Debates cerrados: TODOS**
+**Debates de arquitectura del producto: CERRADOS**
 **Decisiones del usuario: 17/17 confirmadas**
 **Consenso entre 3 modelos: Total**
 **Versión: 3.0 (FINAL — incorpora Multi-Model Routing, Tool Schema, Workspace Sandbox)**
@@ -1295,3 +1295,4 @@ Para considerar el MVP "terminado" y listo para beta:
 *- Gemini: Multi-Model Routing, terminal truncation, turn limit 40, file sliding window, testing pragmatism*
 *- Nexus: Token Budgeter, MemoryProvider, Tool Schema JSON, recall triggers, Workspace Sandbox, kill switch*
 *Aprobado para implementación. Fase 1 puede comenzar.*
+

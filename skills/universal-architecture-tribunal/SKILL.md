@@ -152,6 +152,7 @@ If one model response is missing:
 ## Delivery Control (User-Bus Traffic)
 
 Codex must always provide a copy/paste-ready routing block:
+- Codex must include PUNTO DE VISTA INICIAL DE CODEX in every outgoing packet (critical hypothesis, key objections, provisional verdict).
 
 ```md
 [ROUTE_INSTRUCTIONS]
@@ -173,6 +174,7 @@ Codex must always provide a copy/paste-ready routing block:
 - copy/paste packet for next model
 - `ROUTE_INSTRUCTIONS` block
 - attribution tags for promoted decisions
+- codex initial viewpoint block included in outgoing packets
 
 ## Round Completion Conditions
 
@@ -191,6 +193,7 @@ If any condition is missing, the round remains open.
 
 ```md
 [TAREA PARA CLAUDE - IMPLEMENTACION]
+PUNTO DE VISTA INICIAL DE CODEX:
 Objetivo:
 Contexto minimo:
 Restricciones DEC/RFC:
@@ -215,6 +218,7 @@ MEMORY_PATCH:
 
 ```md
 [TAREA PARA GEMINI - AUDITORIA]
+PUNTO DE VISTA INICIAL DE CODEX:
 Objetivo de auditoria:
 Alcance:
 Riesgos a estresar:
@@ -258,3 +262,5 @@ Load references only when needed (do not load all by default):
 
 Maintenance reference (do not load in normal rounds):
 - `references/external-skill-benchmark.md`
+
+
