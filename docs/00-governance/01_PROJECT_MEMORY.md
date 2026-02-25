@@ -1,6 +1,6 @@
 # PROJECT MEMORY (Single Living Context)
 
-Version: 3.4
+Version: 3.5
 Last Updated: 2026-02-25
 Status: ACTIVE
 
@@ -23,56 +23,51 @@ Do not duplicate full DEC or long rationale content.
 
 ## Current Snapshot
 
-- Active phase: Phase 2 (OS + Security) — Sprint B completed.
-- Current objective: execute Fase 2 items 2.5-2.6 (kill switch + sandbox full-path enforcement).
+- Active phase: Phase 2 (OS + Security) — Sprint C completed, hardening C.1 in progress.
+- Current objective: execute Sprint C.1 hardening (kill-tree robustness + interpreter path guard).
 - Active debates: none.
 - Open RFCs: none.
 
 ## Completed This Session
 
-- Fase 1 formally closed with 3 atomic commits:
-  - `15425e5` — security hardening (IPC gate + main services).
-  - `80ee298` — UI skeleton (items 1.1-1.4).
-  - `36d61bb` — governance update (memory closure).
-- Fase 2 Sprint A (2.1-2.2) implemented and hardened:
-  - xterm.js + node-pty terminal path wired through secure IPC.
-  - Execution Broker classifier implemented with deny-by-default.
-  - P0 bypass closed: chaining/injection operators force RED.
-  - YELLOW commands moved to `pending_approval` until supervised flow.
-  - Terminal spawn validates workspace path via DEC-025 sandbox checks.
-- Fase 2 Sprint B (2.3-2.4) implemented:
-  - Mode toggle Auto/Supervised with default `supervised`.
-  - Approval flow: YELLOW queues in supervised, auto-executes in auto.
-  - RED hard block absolute in both modes — even on manual approve attempt.
-  - Re-classification at approval time prevents stale attack.
-  - Double-submit prevention via PendingQueue status check.
-  - PendingQueue with 5-minute TTL and 30s sweep timer.
-  - Audit log extended with `mode` and `actor` fields.
-  - IPC channels: 14 → 21 (7 broker channels added).
-  - Renderer: ModeToggle component, CommandApproval cards, Zustand broker store.
-  - P0 PTY fix: blocked branch sends `\x03` (Ctrl+C), not `\r` (Enter).
-  - PTY integration test validates blocked commands produce no side-effects.
+- Fase 2 Sprint C (2.5-2.6) implemented:
+  - Kill switch `Ctrl+Shift+K` via Electron `globalShortcut` — system-wide.
+  - `killAll()` returns count; `emergencyReset()` soft resets pending queue (timer alive).
+  - Push event `killswitch:activated` to renderer; KillSwitch banner with 4s auto-dismiss.
+  - `will-quit` handler unregisters all global shortcuts.
+  - `sudo` added to RED_PATTERNS — privilege escalation always blocked.
+  - `ALLOWED_SHELLS` allowlist — `spawn()` rejects non-listed shell binaries.
+  - `tokenizeCommand()`, `isLikelyPath()`, `validateCommandPaths()` in workspace-sandbox.ts.
+  - YELLOW file-mutation commands (`rm`, `del`, `rmdir`, `cp`, `mv`, `chmod`) path-validated against workspace.
+  - Path validation wired into `broker.evaluate()` for YELLOW commands.
+  - `executeApproved()` re-validates CWD before writing to PTY.
+  - `write()` passes `this.workspacePath` to broker (not `instance.cwd`).
+  - IPC channels: 21 → 22 (`killswitch:activated` added).
 
 ## Validation Ledger (Latest)
 
 | Check | Command | Result |
 |-------|---------|--------|
 | Broker adversarial test | `node test_broker.mjs` | 57/57 PASS |
-| IPC parity test | `node test_ipc_negative.mjs` | 40/40 PASS |
+| IPC parity test | `node test_ipc_negative.mjs` | 41/41 PASS |
 | Approval flow test | `node test_approval.mjs` | 74/74 PASS |
 | PTY blocked execution test | `node test_terminal_blocked_execution.mjs` | 8/8 PASS |
+| Kill switch test | `node test_kill_switch.mjs` | 60/60 PASS |
+| Sandbox path test | `node test_sandbox_paths.mjs` | 46/46 PASS |
 | TypeScript strict | `npx tsc --noEmit` | exit 0 |
-| Electron-vite build | `npx electron-vite build` | PASS (main 78KB, preload 2KB, renderer 1039KB) |
+| Electron-vite build | `npx electron-vite build` | PASS (main 83KB, preload 2KB, renderer 1041KB) |
 
 ## Pending (Priority Ordered)
 
-1. Implement Fase 2 item 2.5: kill switch (`Ctrl+Shift+K`) with immediate PTY/process stop.
-2. Implement Fase 2 item 2.6: workspace sandbox validation for remaining execution paths (not only spawn).
+1. Sprint C.1 hardening: kill-tree cross-platform (`taskkill /T /F` on Windows, process group on POSIX).
+2. Sprint C.1 hardening: extend `validateCommandPaths` for interpreter commands with file targets (e.g., `python /outside/script.py`).
 3. Resolve Gemini API quota for full live chat testing (billing/project action).
 4. MCP provider package resolution checkpoint (deferred fallback still active).
 
 ## Known Risks
 
+- `proc.kill()` on Windows only kills the shell, not child processes spawned by the command.
+- Interpreter commands (`python`, `node`) can target files outside workspace without path validation.
 - Gemini generateContent quota remains at zero for current GCP project.
 - Path-with-spaces remains a portability risk for native rebuilds outside validated PowerShell flow.
 - MCP provider package remains unresolved in npm registry.
@@ -80,6 +75,8 @@ Do not duplicate full DEC or long rationale content.
 
 ## Mitigations
 
+- Kill-tree: Sprint C.1 adds `taskkill /T /F` on Windows and process group kill on POSIX.
+- Interpreter paths: Sprint C.1 extends path validation to interpreter file targets.
 - Gemini quota: keep as CONDITIONAL for live generation until billing/project is enabled.
 - Path-with-spaces: use PowerShell for native rebuilds; avoid Git Bash for node-gyp workflows.
 - MCP: keep local fallback active; handle provider decision in dedicated Fase 2 checkpoint.
@@ -87,11 +84,10 @@ Do not duplicate full DEC or long rationale content.
 
 ## Next Step (Exact)
 
-Codex dispatches Fase 2 Sprint C packet to Claude for items 2.5 and 2.6.
+Claude implements Sprint C.1 hardening: kill-tree + interpreter path guard. Revalidate all 8 checks.
 
 ## Next Owner
 
-- Codex (orchestrator): dispatch Fase 2 Sprint C and acceptance criteria.
-- Claude (implementer): execute items 2.5-2.6.
-- Gemini (auditor): audit kill switch safety and sandbox enforcement.
-- User (director): validate kill-switch UX and remaining security paths.
+- Claude (implementer): execute Sprint C.1 hardening and revalidate.
+- Gemini (auditor): audit kill-tree safety and extended path guard.
+- User (director): validate hardening completeness.
