@@ -1,0 +1,2 @@
+// Terminal IPC handlers
+export {}

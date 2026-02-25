@@ -1,0 +1,2 @@
+// Terminal panel
+export {}

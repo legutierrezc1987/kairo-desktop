@@ -1,0 +1,2 @@
+// Editor IPC handlers
+export {}

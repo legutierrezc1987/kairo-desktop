@@ -1,0 +1,2 @@
+-- Kairo Desktop database schema
+-- Will be populated in Fase 3

@@ -1,0 +1,2 @@
+// Terminal hook
+export {}
