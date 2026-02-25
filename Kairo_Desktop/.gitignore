@@ -4,3 +4,7 @@ out
 .DS_Store
 .eslintcache
 *.log*
+
+# Test artifacts
+.test_pty_sandbox/
+test_output.txt

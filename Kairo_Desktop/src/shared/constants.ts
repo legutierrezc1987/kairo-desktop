@@ -38,3 +38,10 @@ export const MODEL_ROUTING: Record<string, ModelId> = {
 
 export const MAX_TURNS_PER_SESSION = 40
 export const SESSION_CUT_THRESHOLD_PERCENT = 0.80
+
+// ─── Broker Configuration (DEC-024) ─────────────────────────
+
+import type { BrokerMode } from './types'
+
+export const DEFAULT_BROKER_MODE: BrokerMode = 'supervised'
+export const PENDING_COMMAND_TTL_MS = 5 * 60 * 1000 // 5 minutes

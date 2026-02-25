@@ -5,6 +5,11 @@ import tailwindcss from '@tailwindcss/vite'
 
 export default defineConfig({
   main: {
+    build: {
+      rollupOptions: {
+        external: ['node-pty', 'better-sqlite3']
+      }
+    },
     resolve: {
       alias: {
         '@shared': resolve('src/shared')

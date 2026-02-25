@@ -18,6 +18,29 @@ export const IPC_CHANNELS = {
 
   // Session domain
   SESSION_GET_STATE: 'session:get-state',
+
+  // Terminal domain
+  TERMINAL_SPAWN: 'terminal:spawn',
+  TERMINAL_INPUT: 'terminal:input',
+  TERMINAL_RESIZE: 'terminal:resize',
+  TERMINAL_DATA: 'terminal:data',
+  TERMINAL_EXIT: 'terminal:exit',
+  TERMINAL_KILL: 'terminal:kill',
+
+  // Execution domain
+  EXECUTION_CLASSIFY: 'execution:classify',
+
+  // Broker domain
+  BROKER_GET_MODE: 'broker:get-mode',
+  BROKER_SET_MODE: 'broker:set-mode',
+  BROKER_APPROVE: 'broker:approve',
+  BROKER_REJECT: 'broker:reject',
+  BROKER_GET_PENDING: 'broker:get-pending',
+  BROKER_PENDING_ADDED: 'broker:pending-added',
+  BROKER_PENDING_RESOLVED: 'broker:pending-resolved',
+
+  // App domain
+  APP_GET_CWD: 'app:get-cwd',
 } as const
 
 /** Type representing any valid IPC channel value */

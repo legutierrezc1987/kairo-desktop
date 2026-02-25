@@ -5,10 +5,25 @@ import ProjectManager from '@renderer/components/Sidebar/ProjectManager'
 import CodeEditor from '@renderer/components/Editor/CodeEditor'
 import TerminalPanel from '@renderer/components/Terminal/TerminalPanel'
 import ChatPanel from '@renderer/components/Chat/ChatPanel'
+import ModeToggle from '@renderer/components/Layout/ModeToggle'
 
 export default function MainLayout(): React.JSX.Element {
   return (
     <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column' }}>
+      {/* Status bar — mode toggle */}
+      <div style={{
+        height: '32px',
+        minHeight: '32px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'flex-end',
+        paddingRight: '12px',
+        backgroundColor: '#171717',
+        borderBottom: '1px solid #404040',
+      }}>
+        <ModeToggle />
+      </div>
+
       {/* Main vertical split: top (panels) + bottom (chat) */}
       <Allotment vertical defaultSizes={[70, 30]}>
         {/* Top section: sidebar | editor+terminal */}
