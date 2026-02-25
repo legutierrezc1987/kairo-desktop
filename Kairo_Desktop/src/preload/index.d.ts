@@ -1,17 +1,11 @@
-declare global {
-  interface Window {
-    electron: {
-      ipcRenderer: {
-        send: (channel: string, ...args: unknown[]) => void
-        on: (channel: string, func: (...args: unknown[]) => void) => void
-        invoke: (channel: string, ...args: unknown[]) => Promise<unknown>
-      }
-      process: {
-        versions: NodeJS.ProcessVersions
-      }
-    }
-    api: unknown
-  }
+export interface KairoApi {
+  invoke: (channel: string, ...args: unknown[]) => Promise<unknown>
+  send: (channel: string, ...args: unknown[]) => void
+  on: (channel: string, callback: (...args: unknown[]) => void) => () => void
 }
 
-export {}
+declare global {
+  interface Window {
+    kairoApi: KairoApi
+  }
+}

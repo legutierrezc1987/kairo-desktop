@@ -1,30 +1,48 @@
 import { contextBridge, ipcRenderer } from 'electron'
+import { isAllowedChannel } from '../shared/ipc-channels'
 
-const electronAPI = {
-  ipcRenderer: {
-    send: (channel: string, ...args: unknown[]) => ipcRenderer.send(channel, ...args),
-    on: (channel: string, func: (...args: unknown[]) => void) => {
-      ipcRenderer.on(channel, (_event, ...args) => func(...args))
-    },
-    invoke: (channel: string, ...args: unknown[]) => ipcRenderer.invoke(channel, ...args)
-  },
-  process: {
-    versions: process.versions
+/**
+ * Hardened IPC API.
+ * SECURITY: Every channel is validated against the frozen allowlist
+ * before being forwarded to ipcRenderer. Unlisted channels throw.
+ */
+function validateChannel(channel: string): void {
+  if (!isAllowedChannel(channel)) {
+    throw new Error(
+      `[KAIRO_SECURITY] IPC channel "${channel}" is NOT in the allowlist. Rejected.`
+    )
   }
 }
 
-const api = {}
+const kairoApi = {
+  invoke: (channel: string, ...args: unknown[]): Promise<unknown> => {
+    validateChannel(channel)
+    return ipcRenderer.invoke(channel, ...args)
+  },
+  send: (channel: string, ...args: unknown[]): void => {
+    validateChannel(channel)
+    ipcRenderer.send(channel, ...args)
+  },
+  on: (channel: string, callback: (...args: unknown[]) => void): (() => void) => {
+    validateChannel(channel)
+    const listener = (_event: Electron.IpcRendererEvent, ...args: unknown[]): void => {
+      callback(...args)
+    }
+    ipcRenderer.on(channel, listener)
+    return () => {
+      ipcRenderer.removeListener(channel, listener)
+    }
+  },
+}
 
 if (process.contextIsolated) {
   try {
-    contextBridge.exposeInMainWorld('electron', electronAPI)
-    contextBridge.exposeInMainWorld('api', api)
+    contextBridge.exposeInMainWorld('kairoApi', kairoApi)
   } catch (error) {
-    console.error(error)
+    console.error('[KAIRO] Failed to expose API:', error)
   }
 } else {
-  // @ts-ignore
-  window.electron = electronAPI
-  // @ts-ignore
-  window.api = api
+  throw new Error(
+    '[KAIRO_SECURITY] Context isolation is DISABLED. This is a security violation.'
+  )
 }
