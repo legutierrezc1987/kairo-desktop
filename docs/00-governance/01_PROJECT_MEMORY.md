@@ -1,6 +1,6 @@
 # PROJECT MEMORY (Single Living Context)
 
-Version: 3.5
+Version: 3.7
 Last Updated: 2026-02-25
 Status: ACTIVE
 
@@ -23,26 +23,30 @@ Do not duplicate full DEC or long rationale content.
 
 ## Current Snapshot
 
-- Active phase: Phase 2 (OS + Security) — Sprint C completed, hardening C.1 in progress.
-- Current objective: execute Sprint C.1 hardening (kill-tree robustness + interpreter path guard).
+- Active phase: Phase 2 (OS + Security) — Sprint C + C.1 sealed (Codex GO).
+- Current objective: Open next Fase 2 sprint or transition to Fase 3.
 - Active debates: none.
 - Open RFCs: none.
 
 ## Completed This Session
 
-- Fase 2 Sprint C (2.5-2.6) implemented:
-  - Kill switch `Ctrl+Shift+K` via Electron `globalShortcut` — system-wide.
-  - `killAll()` returns count; `emergencyReset()` soft resets pending queue (timer alive).
-  - Push event `killswitch:activated` to renderer; KillSwitch banner with 4s auto-dismiss.
-  - `will-quit` handler unregisters all global shortcuts.
-  - `sudo` added to RED_PATTERNS — privilege escalation always blocked.
-  - `ALLOWED_SHELLS` allowlist — `spawn()` rejects non-listed shell binaries.
-  - `tokenizeCommand()`, `isLikelyPath()`, `validateCommandPaths()` in workspace-sandbox.ts.
-  - YELLOW file-mutation commands (`rm`, `del`, `rmdir`, `cp`, `mv`, `chmod`) path-validated against workspace.
-  - Path validation wired into `broker.evaluate()` for YELLOW commands.
-  - `executeApproved()` re-validates CWD before writing to PTY.
-  - `write()` passes `this.workspacePath` to broker (not `instance.cwd`).
-  - IPC channels: 21 → 22 (`killswitch:activated` added).
+- Sprint C.1 hardening implemented:
+  - **Kill-tree cross-platform**: `killProcessTree()` private method in TerminalService.
+    - Windows: `taskkill /T /F /PID <pid>` — kills entire process tree forcefully.
+    - POSIX: `process.kill(-pid, 'SIGKILL')` — sends SIGKILL to process group.
+    - Fallback: `proc.kill()` if tree kill fails (process already exited).
+    - Both `kill()` and `killAll()` delegate to `killProcessTree()`.
+  - **Interpreter path guard**: `YELLOW_INTERPRETER_COMMANDS` constant in command-zones.ts.
+    - Covers: `python`, `python3`, `node`, `ts-node`, `tsx`, `deno`, `bun`.
+    - `validateCommandPaths()` extended: checks first path-like non-flag argument of interpreter commands against workspace boundary.
+    - `python /outside/evil.py` → BLOCKED. `python ./local.py` → ALLOWED. `python -m pip` → ALLOWED (no path arg).
+
+- Codex NO-GO remediation (5 fixes):
+  1. **TS2551 fix**: `window.electron` declared in `index.d.ts` — `typecheck:web` now passes.
+  2. **Universal path validation**: removed permissive return for unknown commands. ALL commands now have path-like tokens validated against workspace boundary (universal fallback).
+  3. **Navigation commands**: `NAVIGATION_COMMANDS` constant (`cd`, `chdir`, `pushd`, `popd`) added to command-zones.ts. First non-flag argument validated (even bare directory names, not just path-like tokens).
+  4. **GREEN+YELLOW path validation**: path validation moved BEFORE zone dispatch in execution-broker.ts. Applies to GREEN and YELLOW zones. RED skipped (already unconditionally blocked). Prevents `cd ../../` then `rm ./file` attack vector.
+  5. **New tests**: 32 new assertions covering navigation bypass, universal fallback, GREEN+path broker integration, and source verification.
 
 ## Validation Ledger (Latest)
 
@@ -52,22 +56,20 @@ Do not duplicate full DEC or long rationale content.
 | IPC parity test | `node test_ipc_negative.mjs` | 41/41 PASS |
 | Approval flow test | `node test_approval.mjs` | 74/74 PASS |
 | PTY blocked execution test | `node test_terminal_blocked_execution.mjs` | 8/8 PASS |
-| Kill switch test | `node test_kill_switch.mjs` | 60/60 PASS |
-| Sandbox path test | `node test_sandbox_paths.mjs` | 46/46 PASS |
-| TypeScript strict | `npx tsc --noEmit` | exit 0 |
-| Electron-vite build | `npx electron-vite build` | PASS (main 83KB, preload 2KB, renderer 1041KB) |
+| Kill switch test | `node test_kill_switch.mjs` | 66/66 PASS |
+| Sandbox path test | `node test_sandbox_paths.mjs` | 105/105 PASS |
+| TypeScript strict (web) | `npx tsc --noEmit -p tsconfig.web.json --composite false` | exit 0 |
+| Electron-vite build | `npx electron-vite build` | PASS (main 86KB, preload 2KB, renderer 1041KB) |
+
+Total: 351 assertions, all passing.
 
 ## Pending (Priority Ordered)
 
-1. Sprint C.1 hardening: kill-tree cross-platform (`taskkill /T /F` on Windows, process group on POSIX).
-2. Sprint C.1 hardening: extend `validateCommandPaths` for interpreter commands with file targets (e.g., `python /outside/script.py`).
-3. Resolve Gemini API quota for full live chat testing (billing/project action).
-4. MCP provider package resolution checkpoint (deferred fallback still active).
+1. Resolve Gemini API quota for full live chat testing (billing/project action).
+2. MCP provider package resolution checkpoint (deferred fallback still active).
 
 ## Known Risks
 
-- `proc.kill()` on Windows only kills the shell, not child processes spawned by the command.
-- Interpreter commands (`python`, `node`) can target files outside workspace without path validation.
 - Gemini generateContent quota remains at zero for current GCP project.
 - Path-with-spaces remains a portability risk for native rebuilds outside validated PowerShell flow.
 - MCP provider package remains unresolved in npm registry.
@@ -75,8 +77,6 @@ Do not duplicate full DEC or long rationale content.
 
 ## Mitigations
 
-- Kill-tree: Sprint C.1 adds `taskkill /T /F` on Windows and process group kill on POSIX.
-- Interpreter paths: Sprint C.1 extends path validation to interpreter file targets.
 - Gemini quota: keep as CONDITIONAL for live generation until billing/project is enabled.
 - Path-with-spaces: use PowerShell for native rebuilds; avoid Git Bash for node-gyp workflows.
 - MCP: keep local fallback active; handle provider decision in dedicated Fase 2 checkpoint.
@@ -84,10 +84,10 @@ Do not duplicate full DEC or long rationale content.
 
 ## Next Step (Exact)
 
-Claude implements Sprint C.1 hardening: kill-tree + interpreter path guard. Revalidate all 8 checks.
+Sprint C.1 sealed (Codex GO). User decides next sprint scope (Fase 2 remaining items or Fase 3 transition).
 
 ## Next Owner
 
-- Claude (implementer): execute Sprint C.1 hardening and revalidate.
-- Gemini (auditor): audit kill-tree safety and extended path guard.
-- User (director): validate hardening completeness.
+- User (director): decide next sprint scope and assign work packets.
+- Codex (orchestrator): prepare next sprint plan once scope is defined.
+- Claude (implementer): standby for next implementation packet.
