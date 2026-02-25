@@ -365,6 +365,17 @@ console.log('\n--- source verification ---')
   assert(tsSource.includes('ALLOWED_SHELLS'), 'T-KS-51: terminal.service imports ALLOWED_SHELLS')
   assert(tsSource.includes('killAll(): number'), 'T-KS-52: killAll returns number')
 
+  // Sprint C.1: kill-tree cross-platform
+  assert(tsSource.includes('killProcessTree'), 'T-KS-52a: terminal.service has killProcessTree method')
+  assert(tsSource.includes('execSync'), 'T-KS-52b: terminal.service imports execSync for taskkill')
+  assert(tsSource.includes('taskkill /T /F /PID'), 'T-KS-52c: Windows kill-tree uses taskkill /T /F')
+  assert(tsSource.includes("process.kill(-pid, 'SIGKILL')"), 'T-KS-52d: POSIX kill-tree uses process group SIGKILL')
+  // kill() and killAll() both call killProcessTree
+  const killMethod = tsSource.match(/kill\(terminalId[\s\S]*?return \{ success: true \}/)
+  assert(killMethod && killMethod[0].includes('killProcessTree'), 'T-KS-52e: kill() delegates to killProcessTree')
+  const killAllMethod = tsSource.match(/killAll\(\): number[\s\S]*?return count/)
+  assert(killAllMethod && killAllMethod[0].includes('killProcessTree'), 'T-KS-52f: killAll() delegates to killProcessTree')
+
   // Broker emergencyReset
   const brokerSource = readFileSync(resolve(__dirname, 'src/main/execution/execution-broker.ts'), 'utf-8')
   assert(brokerSource.includes('emergencyReset'), 'T-KS-53: broker has emergencyReset')

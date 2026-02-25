@@ -93,5 +93,28 @@ export const YELLOW_FILE_COMMANDS: readonly string[] = Object.freeze([
   'rm', 'del', 'rmdir', 'cp', 'mv', 'chmod',
 ])
 
+/**
+ * YELLOW interpreter commands — DEC-025 Sprint C.1.
+ * These commands execute script files. The first path-like argument
+ * (the script file) is validated against workspace boundary.
+ * SECURITY: Prevents `python /outside/evil.py` style sandbox escapes.
+ */
+export const YELLOW_INTERPRETER_COMMANDS: readonly string[] = Object.freeze([
+  'python', 'python3', 'node', 'ts-node', 'tsx', 'deno', 'bun',
+])
+
+/**
+ * Navigation commands — DEC-025 Sprint C.1 hardening.
+ * These commands change the working directory of the shell.
+ * The target directory argument is validated against workspace boundary.
+ * SECURITY: Prevents `cd ../../` escaping workspace, then running
+ * subsequent commands from an outside-workspace CWD.
+ * Note: `cd` is GREEN-classified (safe to run) but its argument
+ * must stay inside workspace.
+ */
+export const NAVIGATION_COMMANDS: readonly string[] = Object.freeze([
+  'cd', 'chdir', 'pushd', 'popd',
+])
+
 /** Maximum lines of terminal output before truncation (PRD §10) */
 export const TERMINAL_OUTPUT_TRUNCATE_LINES = 50

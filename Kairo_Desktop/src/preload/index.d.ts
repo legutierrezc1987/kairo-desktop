@@ -7,5 +7,10 @@ export interface KairoApi {
 declare global {
   interface Window {
     kairoApi: KairoApi
+    electron: {
+      process: {
+        versions: { electron: string; chrome: string; node: string }
+      }
+    }
   }
 }

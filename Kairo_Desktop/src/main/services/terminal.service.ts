@@ -1,6 +1,7 @@
 import * as pty from 'node-pty'
 import { randomUUID } from 'node:crypto'
 import { basename } from 'node:path'
+import { execSync } from 'node:child_process'
 import { ExecutionBroker } from '../execution/execution-broker'
 import { validateWorkspaceCwd } from '../execution/workspace-sandbox'
 import { ALLOWED_SHELLS } from '../config/command-zones'
@@ -187,7 +188,7 @@ export class TerminalService {
     if (!instance) {
       return { success: false, error: `Terminal ${terminalId} not found.` }
     }
-    instance.process.kill()
+    this.killProcessTree(instance.process)
     this.terminals.delete(terminalId)
     this.lineBuffers.delete(terminalId)
     return { success: true }
@@ -196,11 +197,41 @@ export class TerminalService {
   killAll(): number {
     const count = this.terminals.size
     for (const [, instance] of this.terminals) {
-      instance.process.kill()
+      this.killProcessTree(instance.process)
     }
     this.terminals.clear()
     this.lineBuffers.clear()
     return count
+  }
+
+  /**
+   * Kill a PTY process and its entire child process tree.
+   * SECURITY (Sprint C.1): proc.kill() on Windows only kills the shell process,
+   * not child processes spawned by the command. This method ensures full tree kill.
+   *
+   * Windows: `taskkill /T /F /PID <pid>` — kills process tree forcefully.
+   * POSIX: `process.kill(-pid, 'SIGKILL')` — sends signal to process group.
+   * Fallback: proc.kill() if tree kill fails (best effort).
+   */
+  private killProcessTree(proc: pty.IPty): void {
+    const pid = proc.pid
+
+    try {
+      if (process.platform === 'win32') {
+        // taskkill /T = tree kill, /F = force
+        execSync(`taskkill /T /F /PID ${pid}`, { stdio: 'ignore', timeout: 5000 })
+      } else {
+        // Send SIGKILL to the entire process group (negative PID)
+        process.kill(-pid, 'SIGKILL')
+      }
+    } catch {
+      // Tree kill failed (process already exited, or PID invalid) — fallback
+      try {
+        proc.kill()
+      } catch {
+        // Process already dead — nothing to do
+      }
+    }
   }
 
   private getDefaultShell(): string {

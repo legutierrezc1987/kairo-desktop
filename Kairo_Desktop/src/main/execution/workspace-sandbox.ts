@@ -1,5 +1,9 @@
 import { resolve, normalize } from 'node:path'
-import { YELLOW_FILE_COMMANDS } from '../config/command-zones'
+import {
+  YELLOW_FILE_COMMANDS,
+  YELLOW_INTERPRETER_COMMANDS,
+  NAVIGATION_COMMANDS,
+} from '../config/command-zones'
 
 /**
  * Workspace sandbox validation — DEC-025.
@@ -91,12 +95,16 @@ export function isLikelyPath(token: string): boolean {
 }
 
 /**
- * Validate that all path-like arguments in a YELLOW file-mutation command
- * are inside the workspace boundary.
+ * Validate path-like arguments in commands against workspace boundary.
  *
- * SECURITY: Only checks YELLOW_FILE_COMMANDS (rm, del, rmdir, cp, mv, chmod).
- * Non-file commands and flags (starting with `-`) are skipped.
- * Uses workspace-relative resolution for relative paths.
+ * Strategy (Sprint C.1 hardening):
+ * 1. YELLOW_FILE_COMMANDS (rm, cp, mv, etc.) → validate ALL path arguments.
+ * 2. YELLOW_INTERPRETER_COMMANDS (python, node, etc.) → validate FIRST path-like argument.
+ * 3. NAVIGATION_COMMANDS (cd, chdir, pushd, popd) → validate FIRST non-flag argument
+ *    (even bare directory names like `cd folder`).
+ * 4. UNIVERSAL FALLBACK → any other command with path-like arguments gets ALL paths validated.
+ *
+ * SECURITY: Flags (starting with `-`) are skipped. Uses workspace-relative resolution.
  */
 export function validateCommandPaths(
   command: string,
@@ -106,24 +114,80 @@ export function validateCommandPaths(
   if (tokens.length < 2) return { valid: true, reason: 'No arguments to validate.' }
 
   const baseCmd = tokens[0].toLowerCase()
-  if (!YELLOW_FILE_COMMANDS.includes(baseCmd)) {
-    return { valid: true, reason: 'Command not in file-mutation list.' }
+
+  // ── File-mutation commands: validate ALL path arguments ──
+  if (YELLOW_FILE_COMMANDS.includes(baseCmd)) {
+    for (let i = 1; i < tokens.length; i++) {
+      const token = tokens[i]
+      if (token.startsWith('-')) continue
+      if (!isLikelyPath(token)) continue
+      const resolvedToken = resolve(workspacePath, token)
+      if (!isInsideWorkspace(resolvedToken, workspacePath)) {
+        return {
+          valid: false,
+          reason: `Path "${token}" is outside workspace "${workspacePath}". DEC-025 sandbox violation.`,
+          violatingPath: token,
+        }
+      }
+    }
+    return { valid: true, reason: 'All paths are inside workspace.' }
   }
 
+  // ── Interpreter commands: validate FIRST path-like argument (script file) ──
+  if (YELLOW_INTERPRETER_COMMANDS.includes(baseCmd)) {
+    for (let i = 1; i < tokens.length; i++) {
+      const token = tokens[i]
+      if (token.startsWith('-')) continue
+      if (!isLikelyPath(token)) continue
+      const resolvedToken = resolve(workspacePath, token)
+      if (!isInsideWorkspace(resolvedToken, workspacePath)) {
+        return {
+          valid: false,
+          reason: `Script path "${token}" is outside workspace "${workspacePath}". DEC-025 interpreter sandbox violation.`,
+          violatingPath: token,
+        }
+      }
+      break
+    }
+    return { valid: true, reason: 'Interpreter script path is inside workspace.' }
+  }
+
+  // ── Navigation commands: validate target directory argument ──
+  // cd/chdir/pushd take a directory argument that may not have path separators
+  // (e.g., `cd folder` vs `cd ../outside`). Validate the first non-flag argument.
+  if (NAVIGATION_COMMANDS.includes(baseCmd)) {
+    for (let i = 1; i < tokens.length; i++) {
+      const token = tokens[i]
+      if (token.startsWith('-')) continue
+      // For navigation, resolve ANY non-flag argument (not just path-like ones)
+      // because `cd folder` is also a directory change
+      const resolvedToken = resolve(workspacePath, token)
+      if (!isInsideWorkspace(resolvedToken, workspacePath)) {
+        return {
+          valid: false,
+          reason: `Navigation target "${token}" resolves outside workspace "${workspacePath}". DEC-025 sandbox violation.`,
+          violatingPath: token,
+        }
+      }
+      break // only check first argument
+    }
+    return { valid: true, reason: 'Navigation target is inside workspace.' }
+  }
+
+  // ── Universal fallback: validate ALL path-like arguments for ANY command ──
+  // SECURITY: Prevents sandbox escape via unlisted commands with path arguments.
   for (let i = 1; i < tokens.length; i++) {
     const token = tokens[i]
-    if (token.startsWith('-')) continue // skip flags
-    if (!isLikelyPath(token)) continue // skip non-path args
-
-    // Resolve relative paths against workspace (not Node.js CWD)
+    if (token.startsWith('-')) continue
+    if (!isLikelyPath(token)) continue
     const resolvedToken = resolve(workspacePath, token)
     if (!isInsideWorkspace(resolvedToken, workspacePath)) {
       return {
         valid: false,
-        reason: `Path "${token}" is outside workspace "${workspacePath}". DEC-025 sandbox violation.`,
+        reason: `Path "${token}" is outside workspace "${workspacePath}". DEC-025 universal sandbox check.`,
         violatingPath: token,
       }
     }
   }
-  return { valid: true, reason: 'All paths are inside workspace.' }
+  return { valid: true, reason: 'All path arguments are inside workspace.' }
 }

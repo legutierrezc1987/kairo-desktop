@@ -87,6 +87,21 @@ export class ExecutionBroker {
     let reason: string
     let commandId: string | undefined
 
+    // SECURITY: Validate command paths against workspace boundary (DEC-025)
+    // Runs BEFORE zone dispatch — applies to GREEN and YELLOW alike.
+    // RED is already blocked unconditionally, so path check is redundant for RED.
+    if (workspacePath && classification.zone !== 'red') {
+      const pathCheck = validateCommandPaths(command, workspacePath)
+      if (!pathCheck.valid) {
+        allowed = false
+        action = 'blocked'
+        reason = `DEC-025 sandbox: ${pathCheck.reason}`
+
+        this.commandLog.log(terminalId, command, classification.zone, action, reason, this.mode, 'system')
+        return { allowed, classification, action, reason, commandId }
+      }
+    }
+
     switch (classification.zone) {
       case 'green':
         allowed = true
@@ -95,17 +110,6 @@ export class ExecutionBroker {
         break
 
       case 'yellow': {
-        // SECURITY: Validate command paths against workspace boundary (DEC-025)
-        if (workspacePath) {
-          const pathCheck = validateCommandPaths(command, workspacePath)
-          if (!pathCheck.valid) {
-            allowed = false
-            action = 'blocked'
-            reason = `DEC-025 sandbox: ${pathCheck.reason}`
-            break
-          }
-        }
-
         if (this.mode === 'auto') {
           allowed = true
           action = 'executed'
