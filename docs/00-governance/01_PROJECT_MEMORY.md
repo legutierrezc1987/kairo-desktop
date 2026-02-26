@@ -1,6 +1,6 @@
 # PROJECT MEMORY (Single Living Context)
 
-Version: 3.7
+Version: 3.8
 Last Updated: 2026-02-25
 Status: ACTIVE
 
@@ -23,50 +23,42 @@ Do not duplicate full DEC or long rationale content.
 
 ## Current Snapshot
 
-- Active phase: Phase 2 (OS + Security) — Sprint C + C.1 sealed (Codex GO).
-- Current objective: Open next Fase 2 sprint or transition to Fase 3.
+- Active phase: Phase 3 (State + Tokens) — Sprint A sealed (post-audit hardening complete).
+- Current objective: Define Sprint B scope (3.3 token persistence + 3.4 accounts/settings).
 - Active debates: none.
 - Open RFCs: none.
 
 ## Completed This Session
 
-- Sprint C.1 hardening implemented:
-  - **Kill-tree cross-platform**: `killProcessTree()` private method in TerminalService.
-    - Windows: `taskkill /T /F /PID <pid>` — kills entire process tree forcefully.
-    - POSIX: `process.kill(-pid, 'SIGKILL')` — sends SIGKILL to process group.
-    - Fallback: `proc.kill()` if tree kill fails (process already exited).
-    - Both `kill()` and `killAll()` delegate to `killProcessTree()`.
-  - **Interpreter path guard**: `YELLOW_INTERPRETER_COMMANDS` constant in command-zones.ts.
-    - Covers: `python`, `python3`, `node`, `ts-node`, `tsx`, `deno`, `bun`.
-    - `validateCommandPaths()` extended: checks first path-like non-flag argument of interpreter commands against workspace boundary.
-    - `python /outside/evil.py` → BLOCKED. `python ./local.py` → ALLOWED. `python -m pip` → ALLOWED (no path arg).
-
-- Codex NO-GO remediation (5 fixes):
-  1. **TS2551 fix**: `window.electron` declared in `index.d.ts` — `typecheck:web` now passes.
-  2. **Universal path validation**: removed permissive return for unknown commands. ALL commands now have path-like tokens validated against workspace boundary (universal fallback).
-  3. **Navigation commands**: `NAVIGATION_COMMANDS` constant (`cd`, `chdir`, `pushd`, `popd`) added to command-zones.ts. First non-flag argument validated (even bare directory names, not just path-like tokens).
-  4. **GREEN+YELLOW path validation**: path validation moved BEFORE zone dispatch in execution-broker.ts. Applies to GREEN and YELLOW zones. RED skipped (already unconditionally blocked). Prevents `cd ../../` then `rm ./file` attack vector.
-  5. **New tests**: 32 new assertions covering navigation bypass, universal fallback, GREEN+path broker integration, and source verification.
+- Sprint A hardening (post-audit):
+  - **ProjectService folder validation hardened**: `realpathSync()` + `accessSync(R_OK | W_OK)` replace simple `existsSync()`. Resolves symlinks and validates read/write permissions before storing path.
+  - **test_db_schema.mjs rewritten**: Uses real `DatabaseService` compiled via esbuild (no regex SQL extraction). 44 assertions against real service instance.
+  - **test_project_state.mjs rewritten**: Uses real `ProjectService` + `DatabaseService` compiled via esbuild (no JS replica). 50 assertions against real service instances.
+  - **Anti-flakiness**: Robust temp dir cleanup with retry/backoff for Windows EBUSY/EPERM.
+  - **Source cross-verification demoted to complementary** (no longer the primary test axis).
 
 ## Validation Ledger (Latest)
 
 | Check | Command | Result |
 |-------|---------|--------|
+| DB schema test (real service) | `node test_db_schema.mjs` | 44/44 PASS |
+| Project state test (real service) | `node test_project_state.mjs` | 50/50 PASS |
 | Broker adversarial test | `node test_broker.mjs` | 57/57 PASS |
-| IPC parity test | `node test_ipc_negative.mjs` | 41/41 PASS |
+| IPC parity test | `node test_ipc_negative.mjs` | 44/44 PASS |
 | Approval flow test | `node test_approval.mjs` | 74/74 PASS |
-| PTY blocked execution test | `node test_terminal_blocked_execution.mjs` | 8/8 PASS |
 | Kill switch test | `node test_kill_switch.mjs` | 66/66 PASS |
 | Sandbox path test | `node test_sandbox_paths.mjs` | 105/105 PASS |
+| PTY blocked execution test | `node test_terminal_blocked_execution.mjs` | 8/8 PASS |
 | TypeScript strict (web) | `npx tsc --noEmit -p tsconfig.web.json --composite false` | exit 0 |
-| Electron-vite build | `npx electron-vite build` | PASS (main 86KB, preload 2KB, renderer 1041KB) |
+| Electron-vite build | `npx electron-vite build` | PASS (main 97KB, preload 2KB, renderer 1041KB) |
 
-Total: 351 assertions, all passing.
+Total: 448 assertions, all passing.
 
 ## Pending (Priority Ordered)
 
-1. Resolve Gemini API quota for full live chat testing (billing/project action).
-2. MCP provider package resolution checkpoint (deferred fallback still active).
+1. Define Sprint B scope: 3.3 token persistence + 3.4 accounts/settings.
+2. Resolve Gemini API quota for full live chat testing (billing/project action).
+3. MCP provider package resolution checkpoint (deferred fallback still active).
 
 ## Known Risks
 
@@ -74,20 +66,22 @@ Total: 351 assertions, all passing.
 - Path-with-spaces remains a portability risk for native rebuilds outside validated PowerShell flow.
 - MCP provider package remains unresolved in npm registry.
 - ConPTY on Windows emits "AttachConsole failed" on proc.kill() — noise only, no functional impact.
+- `better-sqlite3` ABI: `npm rebuild better-sqlite3` for system Node tests; `electron-builder install-app-deps` for Electron runtime. Dual-rebuild pattern documented.
 
 ## Mitigations
 
 - Gemini quota: keep as CONDITIONAL for live generation until billing/project is enabled.
 - Path-with-spaces: use PowerShell for native rebuilds; avoid Git Bash for node-gyp workflows.
-- MCP: keep local fallback active; handle provider decision in dedicated Fase 2 checkpoint.
+- MCP: keep local fallback active; handle provider decision in dedicated checkpoint.
 - ConPTY noise: stderr from ConPTY agent is benign; PTY integration tests tolerate it.
+- better-sqlite3 ABI: documented dual-rebuild pattern. Tests verify both paths.
 
 ## Next Step (Exact)
 
-Sprint C.1 sealed (Codex GO). User decides next sprint scope (Fase 2 remaining items or Fase 3 transition).
+Sprint A sealed (post-audit hardening complete). Codex defines Sprint B scope (3.3 + 3.4).
 
 ## Next Owner
 
-- User (director): decide next sprint scope and assign work packets.
-- Codex (orchestrator): prepare next sprint plan once scope is defined.
+- Codex (orchestrator): define Sprint B scope and prepare work packets.
 - Claude (implementer): standby for next implementation packet.
+- Gemini (auditor): standby for next audit cycle.
