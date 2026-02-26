@@ -47,6 +47,16 @@ export const IPC_CHANNELS = {
   PROJECT_LIST: 'project:list',
   PROJECT_LOAD: 'project:load',
 
+  // Account domain
+  ACCOUNT_CREATE: 'account:create',
+  ACCOUNT_LIST: 'account:list',
+  ACCOUNT_SET_ACTIVE: 'account:set-active',
+  ACCOUNT_DELETE: 'account:delete',
+
+  // Session persistence domain
+  SESSION_CREATE: 'session:create',
+  SESSION_GET_ACTIVE: 'session:get-active',
+
   // App domain
   APP_GET_CWD: 'app:get-cwd',
 } as const

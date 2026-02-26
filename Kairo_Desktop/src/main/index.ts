@@ -5,10 +5,14 @@ import { registerChatHandlers } from './ipc/chat.handlers'
 import { registerTerminalHandlers } from './ipc/terminal.handlers'
 import { registerBrokerHandlers } from './ipc/broker.handlers'
 import { registerProjectHandlers } from './ipc/project.handlers'
+import { registerSettingsHandlers } from './ipc/settings.handlers'
 import { validateSender } from './ipc/validate-sender'
 import { DatabaseService } from './services/database.service'
 import { initGeminiGateway } from './services/gemini-gateway'
 import { ProjectService } from './services/project.service'
+import { SessionPersistenceService } from './services/session-persistence.service'
+import { AccountService } from './services/account.service'
+import { SettingsService } from './services/settings.service'
 import { ExecutionBroker } from './execution/execution-broker'
 import { TerminalService } from './services/terminal.service'
 import { IPC_CHANNELS } from '../shared/ipc-channels'
@@ -57,6 +61,9 @@ app.whenReady().then(() => {
   // Initialize SQLite database (DEC-023)
   const dbService = new DatabaseService(app.getPath('userData'))
   const projectService = new ProjectService(dbService.getDb())
+  const sessionPersistence = new SessionPersistenceService(dbService.getDb())
+  const accountService = new AccountService(dbService.getDb())
+  const settingsService = new SettingsService(dbService.getDb())
 
   // Initialize Gemini gateway (API key from env — settings UI in later phase)
   const apiKey = process.env['GEMINI_API_KEY'] ?? ''
@@ -81,6 +88,7 @@ app.whenReady().then(() => {
   registerTerminalHandlers(terminalService, () => mainWindow)
   registerBrokerHandlers(broker, () => mainWindow)
   registerProjectHandlers(projectService)
+  registerSettingsHandlers(settingsService, sessionPersistence, accountService)
 
   // Kill switch — Ctrl+Shift+K emergency stop (DEC-025)
   const registered = globalShortcut.register(KILL_SWITCH_ACCELERATOR, () => {

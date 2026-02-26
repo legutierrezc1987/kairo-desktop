@@ -217,3 +217,71 @@ export interface LoadProjectResponse {
 export interface ListProjectsResponse {
   projects: Project[]
 }
+
+// ─── Account Domain ────────────────────────────────────────
+
+export type AccountTier = 'free' | 'tier1' | 'tier2'
+
+export interface Account {
+  id: string
+  label: string
+  isActive: boolean
+  tier: AccountTier
+  createdAt: string
+}
+
+export interface CreateAccountRequest {
+  label: string
+  apiKey: string
+  tier?: AccountTier
+}
+
+export interface CreateAccountResponse { account: Account }
+export interface ListAccountsResponse { accounts: Account[] }
+export interface SetActiveAccountRequest { accountId: string }
+export interface SetActiveAccountResponse { account: Account }
+export interface DeleteAccountRequest { accountId: string }
+
+// ─── Session Persistence Domain ────────────────────────────
+
+export type SessionStatus = 'active' | 'archived' | 'failed'
+export type CutReason = 'tokens' | 'turns' | 'manual' | 'emergency'
+
+export interface SessionRecord {
+  id: string
+  projectId: string
+  sessionNumber: number
+  totalTokens: number
+  interactionCount: number
+  cutReason: CutReason | null
+  status: SessionStatus
+  startedAt: string
+  endedAt: string | null
+}
+
+export interface CreateSessionRequest { projectId: string }
+export interface CreateSessionResponse { session: SessionRecord }
+export interface GetActiveSessionRequest { projectId: string }
+export interface GetActiveSessionResponse { session: SessionRecord | null }
+export interface UpdateSessionTokensRequest {
+  sessionId: string
+  tokensToAdd: number
+}
+
+// ─── Settings Persistence Domain ───────────────────────────
+
+export interface SettingEntry {
+  key: string
+  value: string
+  description: string | null
+}
+
+export interface SetSettingRequest {
+  key: string
+  value: string
+  description?: string
+}
+
+export interface GetSettingRequest { key: string }
+export interface GetSettingResponse { value: string | null }
+export interface GetAllSettingsResponse { settings: SettingEntry[] }
