@@ -4,8 +4,11 @@ import { Orchestrator } from './core/orchestrator'
 import { registerChatHandlers } from './ipc/chat.handlers'
 import { registerTerminalHandlers } from './ipc/terminal.handlers'
 import { registerBrokerHandlers } from './ipc/broker.handlers'
+import { registerProjectHandlers } from './ipc/project.handlers'
 import { validateSender } from './ipc/validate-sender'
+import { DatabaseService } from './services/database.service'
 import { initGeminiGateway } from './services/gemini-gateway'
+import { ProjectService } from './services/project.service'
 import { ExecutionBroker } from './execution/execution-broker'
 import { TerminalService } from './services/terminal.service'
 import { IPC_CHANNELS } from '../shared/ipc-channels'
@@ -51,6 +54,10 @@ function createWindow(): BrowserWindow {
 app.whenReady().then(() => {
   app.setAppUserModelId('com.orionocg.kairo-desktop')
 
+  // Initialize SQLite database (DEC-023)
+  const dbService = new DatabaseService(app.getPath('userData'))
+  const projectService = new ProjectService(dbService.getDb())
+
   // Initialize Gemini gateway (API key from env — settings UI in later phase)
   const apiKey = process.env['GEMINI_API_KEY'] ?? ''
   if (apiKey) {
@@ -73,6 +80,7 @@ app.whenReady().then(() => {
   mainWindow = createWindow()
   registerTerminalHandlers(terminalService, () => mainWindow)
   registerBrokerHandlers(broker, () => mainWindow)
+  registerProjectHandlers(projectService)
 
   // Kill switch — Ctrl+Shift+K emergency stop (DEC-025)
   const registered = globalShortcut.register(KILL_SWITCH_ACCELERATOR, () => {
@@ -131,6 +139,7 @@ app.whenReady().then(() => {
   app.on('before-quit', () => {
     broker.destroy()
     terminalService.killAll()
+    dbService.close()
   })
 })
 

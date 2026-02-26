@@ -7,4 +7,5 @@ out
 
 # Test artifacts
 .test_pty_sandbox/
+.test-build/
 test_output.txt

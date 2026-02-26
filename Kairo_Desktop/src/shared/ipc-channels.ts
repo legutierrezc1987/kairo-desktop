@@ -42,6 +42,11 @@ export const IPC_CHANNELS = {
   // Kill switch domain
   KILLSWITCH_ACTIVATED: 'killswitch:activated',
 
+  // Project domain
+  PROJECT_CREATE: 'project:create',
+  PROJECT_LIST: 'project:list',
+  PROJECT_LOAD: 'project:load',
+
   // App domain
   APP_GET_CWD: 'app:get-cwd',
 } as const

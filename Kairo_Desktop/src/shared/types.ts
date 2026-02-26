@@ -177,3 +177,43 @@ export interface IpcResult<T> {
   data?: T
   error?: string
 }
+
+// ─── Project Domain ─────────────────────────────────────────
+
+export type AgentMode = 'supervised' | 'auto'
+
+export interface Project {
+  id: string
+  name: string
+  folderPath: string
+  notebookId: string | null
+  notebookUrl: string | null
+  model: string
+  tokenThresholdSoft: number
+  tokenThresholdHard: number
+  turnLimit: number
+  agentMode: AgentMode
+  createdAt: string
+  updatedAt: string
+}
+
+export interface CreateProjectRequest {
+  name: string
+  folderPath: string
+}
+
+export interface CreateProjectResponse {
+  project: Project
+}
+
+export interface LoadProjectRequest {
+  projectId: string
+}
+
+export interface LoadProjectResponse {
+  project: Project
+}
+
+export interface ListProjectsResponse {
+  projects: Project[]
+}
