@@ -2,6 +2,7 @@ import { ipcMain, type BrowserWindow } from 'electron'
 import { IPC_CHANNELS } from '../../shared/ipc-channels'
 import type { ApprovalRequest, BrokerMode } from '../../shared/types'
 import type { ExecutionBroker } from '../execution/execution-broker'
+import type { SettingsService } from '../services/settings.service'
 import { validateSender } from './validate-sender'
 
 function isValidApprovalRequest(data: unknown): data is ApprovalRequest {
@@ -18,7 +19,8 @@ function isValidModeRequest(data: unknown): data is { mode: BrokerMode } {
 
 export function registerBrokerHandlers(
   broker: ExecutionBroker,
-  getMainWindow: () => BrowserWindow | null
+  getMainWindow: () => BrowserWindow | null,
+  settingsService?: SettingsService,
 ): void {
   // Wire push events: pending-added
   broker.setOnPendingAdded((pending) => {
@@ -64,6 +66,7 @@ export function registerBrokerHandlers(
       return { success: false, error: 'Invalid mode. Must be "auto" or "supervised".' }
     }
     broker.setMode(data.mode)
+    settingsService?.setSetting('broker_mode', data.mode, 'Execution broker mode')
     return { success: true, data: { mode: broker.getMode() } }
   })
 

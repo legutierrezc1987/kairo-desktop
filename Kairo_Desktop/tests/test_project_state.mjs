@@ -62,11 +62,11 @@ function cleanupDir(dir) {
 
 // ─── Compile real services via esbuild ───────────────────────────────
 
-const buildDir = resolve(__dirname, '.test-build')
+const buildDir = resolve(__dirname, '../.test-build')
 
 // Compile DatabaseService
 buildSync({
-  entryPoints: [resolve(__dirname, 'src/main/services/database.service.ts')],
+  entryPoints: [resolve(__dirname, '../src/main/services/database.service.ts')],
   bundle: true,
   platform: 'node',
   format: 'esm',
@@ -77,7 +77,7 @@ buildSync({
 
 // Compile ProjectService (needs better-sqlite3 + node:* externals)
 buildSync({
-  entryPoints: [resolve(__dirname, 'src/main/services/project.service.ts')],
+  entryPoints: [resolve(__dirname, '../src/main/services/project.service.ts')],
   bundle: true,
   platform: 'node',
   format: 'esm',
@@ -248,7 +248,7 @@ console.log('\n--- T09: Load with invalid inputs ---')
 console.log('\n--- T10: Source cross-verification (complementary) ---')
 {
   const projectServiceSource = readFileSync(
-    resolve(__dirname, 'src/main/services/project.service.ts'), 'utf-8'
+    resolve(__dirname, '../src/main/services/project.service.ts'), 'utf-8'
   )
   assert(projectServiceSource.includes('class ProjectService'), 'T10a: source has ProjectService class')
   assert(projectServiceSource.includes('createProject'), 'T10b: source has createProject method')
@@ -267,7 +267,7 @@ console.log('\n--- T10: Source cross-verification (complementary) ---')
 console.log('\n--- T11: IPC handler source cross-verification ---')
 {
   const handlerSource = readFileSync(
-    resolve(__dirname, 'src/main/ipc/project.handlers.ts'), 'utf-8'
+    resolve(__dirname, '../src/main/ipc/project.handlers.ts'), 'utf-8'
   )
   assert(handlerSource.includes('registerProjectHandlers'), 'T11a: handler exports registerProjectHandlers')
   assert(handlerSource.includes('PROJECT_CREATE'), 'T11b: handler registers PROJECT_CREATE channel')
@@ -280,7 +280,7 @@ console.log('\n--- T11: IPC handler source cross-verification ---')
 console.log('\n--- T12: Main index.ts wiring verification ---')
 {
   const indexSource = readFileSync(
-    resolve(__dirname, 'src/main/index.ts'), 'utf-8'
+    resolve(__dirname, '../src/main/index.ts'), 'utf-8'
   )
   assert(indexSource.includes('DatabaseService'), 'T12a: index imports DatabaseService')
   assert(indexSource.includes('ProjectService'), 'T12b: index imports ProjectService')

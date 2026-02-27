@@ -62,11 +62,11 @@ function cleanupDir(dir) {
 
 // ─── Compile real services via esbuild ───────────────────────────────
 
-const buildDir = resolve(__dirname, '.test-build')
+const buildDir = resolve(__dirname, '../.test-build')
 
 // Compile DatabaseService
 buildSync({
-  entryPoints: [resolve(__dirname, 'src/main/services/database.service.ts')],
+  entryPoints: [resolve(__dirname, '../src/main/services/database.service.ts')],
   bundle: true,
   platform: 'node',
   format: 'esm',
@@ -77,7 +77,7 @@ buildSync({
 
 // Compile ProjectService (needed to create projects for FK)
 buildSync({
-  entryPoints: [resolve(__dirname, 'src/main/services/project.service.ts')],
+  entryPoints: [resolve(__dirname, '../src/main/services/project.service.ts')],
   bundle: true,
   platform: 'node',
   format: 'esm',
@@ -88,7 +88,7 @@ buildSync({
 
 // Compile SessionPersistenceService
 buildSync({
-  entryPoints: [resolve(__dirname, 'src/main/services/session-persistence.service.ts')],
+  entryPoints: [resolve(__dirname, '../src/main/services/session-persistence.service.ts')],
   bundle: true,
   platform: 'node',
   format: 'esm',
@@ -306,7 +306,7 @@ console.log('\n--- T10: Input validation edge cases ---')
 console.log('\n--- T11: Source cross-verification (complementary) ---')
 {
   const source = readFileSync(
-    resolve(__dirname, 'src/main/services/session-persistence.service.ts'), 'utf-8'
+    resolve(__dirname, '../src/main/services/session-persistence.service.ts'), 'utf-8'
   )
   assert(source.includes('class SessionPersistenceService'), 'T11a: source has SessionPersistenceService class')
   assert(source.includes('createSession'), 'T11b: source has createSession method')

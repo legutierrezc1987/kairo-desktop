@@ -23,7 +23,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url))
 // This ensures test never drifts from source — if a channel is added/removed
 // in the source file, the test picks it up automatically.
 
-const SOURCE_PATH = resolve(__dirname, 'src/shared/ipc-channels.ts')
+const SOURCE_PATH = resolve(__dirname, '../src/shared/ipc-channels.ts')
 const source = readFileSync(SOURCE_PATH, 'utf-8')
 
 // Extract all string values from lines like:  CHAT_SEND_MESSAGE: 'chat:send-message',

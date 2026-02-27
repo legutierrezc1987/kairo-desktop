@@ -4,11 +4,30 @@ import type {
   SendMessageResponse,
   ChatMessage,
   IpcResult,
+  CutReason,
+  SessionRecord,
+  CreateSessionResponse,
+  GetActiveSessionResponse,
 } from '../../shared/types'
 import { generateContent, countTokens, isInitialized } from '../services/gemini-gateway'
 import { routeModel } from '../services/model-router'
 import { TokenBudgeter } from '../services/token-budgeter'
 import { SessionManager } from '../services/session-manager'
+import { MAX_TURNS_PER_SESSION, SESSION_CUT_THRESHOLD_PERCENT } from '../../shared/constants'
+
+// ─── Port Interface (interface segregation — no circular imports) ────
+
+export interface SessionPersistencePort {
+  createSession(projectId: string): IpcResult<CreateSessionResponse>
+  getActiveSession(projectId: string): IpcResult<GetActiveSessionResponse>
+  addTokens(sessionId: string, tokensToAdd: number): IpcResult<{ session: SessionRecord }>
+  archiveSession(sessionId: string, cutReason: CutReason): IpcResult<{ session: SessionRecord }>
+}
+
+export interface OrchestratorOptions {
+  sessionPersistence?: SessionPersistencePort
+  totalBudget?: number
+}
 
 /**
  * Fallback token estimate when countTokens API is unavailable (e.g. 429 quota).
@@ -22,11 +41,42 @@ function estimateTokens(text: string): number {
 export class Orchestrator {
   private budgeter: TokenBudgeter
   private sessionManager: SessionManager
+  private sessionPersistence: SessionPersistencePort | null
+  private activeProjectId: string | null = null
+  private activeDbSessionId: string | null = null
 
-  constructor() {
-    this.budgeter = new TokenBudgeter()
+  constructor(options?: OrchestratorOptions) {
+    this.budgeter = new TokenBudgeter(options?.totalBudget)
     this.sessionManager = new SessionManager()
+    this.sessionPersistence = options?.sessionPersistence ?? null
   }
+
+  // ─── Project Context ────────────────────────────────────────
+
+  setActiveProject(projectId: string | null): void {
+    if (projectId === this.activeProjectId) return
+    // Archive current session if switching projects
+    if (this.activeDbSessionId) {
+      this.archiveCurrentSession('manual')
+    }
+    this.activeProjectId = projectId
+    this.activeDbSessionId = null
+    this.budgeter.reset()
+    this.sessionManager.startSession()
+    console.log(`[KAIRO_ORCHESTRATOR] Active project: ${projectId ?? 'none'}`)
+  }
+
+  getActiveProjectId(): string | null {
+    return this.activeProjectId
+  }
+
+  // ─── Public archive request (for kill switch / external triggers) ──
+
+  requestArchive(reason: CutReason): void {
+    this.archiveCurrentSession(reason)
+  }
+
+  // ─── Chat Message Handler ───────────────────────────────────
 
   async handleChatMessage(
     request: SendMessageRequest
@@ -34,12 +84,15 @@ export class Orchestrator {
     if (!isInitialized()) {
       return {
         success: false,
-        error: 'Gemini API not initialized. Set GEMINI_API_KEY environment variable.',
+        error: 'Gemini API not initialized. Configure an account or set GEMINI_API_KEY environment variable.',
       }
     }
 
     try {
       const modelId = routeModel('foreground', request.model)
+
+      // Ensure DB session exists (lazy creation)
+      this.ensureDbSession()
 
       // Pre-count input tokens via countTokens API.
       // If countTokens fails (429 quota, network, etc.), fall back to estimate.
@@ -62,6 +115,9 @@ export class Orchestrator {
       const outputTokens = result.tokenCount.completion
       this.budgeter.record('chat', outputTokens)
       this.sessionManager.incrementTurn(result.tokenCount.total)
+
+      // Persist tokens to DB (best-effort, never blocks response)
+      this.persistTokens(result.tokenCount.total)
 
       const responseMessage: ChatMessage = {
         id: randomUUID(),
@@ -91,5 +147,60 @@ export class Orchestrator {
 
   getSessionState() {
     return this.sessionManager.getState()
+  }
+
+  // ─── Private: DB Session Lifecycle ──────────────────────────
+
+  private ensureDbSession(): void {
+    if (!this.sessionPersistence || !this.activeProjectId || this.activeDbSessionId) return
+
+    const active = this.sessionPersistence.getActiveSession(this.activeProjectId)
+    if (active.success && active.data?.session) {
+      this.activeDbSessionId = active.data.session.id
+    } else {
+      const created = this.sessionPersistence.createSession(this.activeProjectId)
+      if (created.success && created.data) {
+        this.activeDbSessionId = created.data.session.id
+      }
+    }
+  }
+
+  private persistTokens(totalTokens: number): void {
+    if (!this.sessionPersistence || !this.activeDbSessionId) return
+
+    try {
+      this.sessionPersistence.addTokens(this.activeDbSessionId, totalTokens)
+    } catch (err) {
+      console.error('[KAIRO_ORCHESTRATOR] Failed to persist tokens:', err)
+    }
+
+    this.checkSessionLimits()
+  }
+
+  private checkSessionLimits(): void {
+    const sessionState = this.sessionManager.getState()
+    if (sessionState.turnCount >= MAX_TURNS_PER_SESSION) {
+      this.archiveCurrentSession('turns')
+      return
+    }
+
+    const budgetState = this.budgeter.getState()
+    if (budgetState.totalUsed >= budgetState.totalBudget * SESSION_CUT_THRESHOLD_PERCENT) {
+      this.archiveCurrentSession('tokens')
+    }
+  }
+
+  private archiveCurrentSession(reason: CutReason): void {
+    if (this.sessionPersistence && this.activeDbSessionId) {
+      try {
+        this.sessionPersistence.archiveSession(this.activeDbSessionId, reason)
+        console.log(`[KAIRO_ORCHESTRATOR] Session archived (reason: ${reason})`)
+      } catch (err) {
+        console.error('[KAIRO_ORCHESTRATOR] Failed to archive session:', err)
+      }
+    }
+    this.activeDbSessionId = null
+    this.budgeter.reset()
+    this.sessionManager.startSession()
   }
 }

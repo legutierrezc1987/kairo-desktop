@@ -21,7 +21,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url))
 
 // ─── Extract patterns from source (same approach as other tests) ────
 
-const ZONES_PATH = resolve(__dirname, 'src/main/config/command-zones.ts')
+const ZONES_PATH = resolve(__dirname, '../src/main/config/command-zones.ts')
 const zonesSource = readFileSync(ZONES_PATH, 'utf-8')
 
 function extractPatterns(source, varName) {
@@ -39,7 +39,7 @@ const YELLOW_FILE_COMMANDS = extractPatterns(zonesSource, 'YELLOW_FILE_COMMANDS'
 
 // ─── Extract chain operators from classifier ────────────────────────
 
-const CLASSIFIER_PATH = resolve(__dirname, 'src/main/execution/command-classifier.ts')
+const CLASSIFIER_PATH = resolve(__dirname, '../src/main/execution/command-classifier.ts')
 const classifierSource = readFileSync(CLASSIFIER_PATH, 'utf-8')
 const chainOpsMatch = classifierSource.match(/CHAIN_OPERATORS[\s\S]*?Object\.freeze\(\[([\\s\S]*?)\]\)/)
 const CHAIN_OPERATORS = chainOpsMatch
@@ -346,7 +346,7 @@ console.log('\n--- kill switch full sequence ---')
 // ─── T-KS-45: Source verification ─────────────────────────────
 console.log('\n--- source verification ---')
 {
-  const indexSource = readFileSync(resolve(__dirname, 'src/main/index.ts'), 'utf-8')
+  const indexSource = readFileSync(resolve(__dirname, '../src/main/index.ts'), 'utf-8')
 
   // globalShortcut import
   assert(indexSource.includes('globalShortcut'), 'T-KS-45: index.ts imports globalShortcut')
@@ -361,7 +361,7 @@ console.log('\n--- source verification ---')
   assert(indexSource.includes('unregisterAll'), 'T-KS-50: index.ts unregisters shortcuts on quit')
 
   // Terminal service changes
-  const tsSource = readFileSync(resolve(__dirname, 'src/main/services/terminal.service.ts'), 'utf-8')
+  const tsSource = readFileSync(resolve(__dirname, '../src/main/services/terminal.service.ts'), 'utf-8')
   assert(tsSource.includes('ALLOWED_SHELLS'), 'T-KS-51: terminal.service imports ALLOWED_SHELLS')
   assert(tsSource.includes('killAll(): number'), 'T-KS-52: killAll returns number')
 
@@ -377,25 +377,25 @@ console.log('\n--- source verification ---')
   assert(killAllMethod && killAllMethod[0].includes('killProcessTree'), 'T-KS-52f: killAll() delegates to killProcessTree')
 
   // Broker emergencyReset
-  const brokerSource = readFileSync(resolve(__dirname, 'src/main/execution/execution-broker.ts'), 'utf-8')
+  const brokerSource = readFileSync(resolve(__dirname, '../src/main/execution/execution-broker.ts'), 'utf-8')
   assert(brokerSource.includes('emergencyReset'), 'T-KS-53: broker has emergencyReset')
   assert(brokerSource.includes('validateCommandPaths'), 'T-KS-54: broker imports validateCommandPaths')
 
   // PendingQueue reset
-  const pqSource = readFileSync(resolve(__dirname, 'src/main/execution/pending-queue.ts'), 'utf-8')
+  const pqSource = readFileSync(resolve(__dirname, '../src/main/execution/pending-queue.ts'), 'utf-8')
   assert(pqSource.includes('reset(): void'), 'T-KS-55: PendingQueue has reset() method')
 
   // IPC channel
-  const ipcSource = readFileSync(resolve(__dirname, 'src/shared/ipc-channels.ts'), 'utf-8')
+  const ipcSource = readFileSync(resolve(__dirname, '../src/shared/ipc-channels.ts'), 'utf-8')
   assert(ipcSource.includes('KILLSWITCH_ACTIVATED'), 'T-KS-56: IPC channels has KILLSWITCH_ACTIVATED')
 
   // Constants
-  const constSource = readFileSync(resolve(__dirname, 'src/shared/constants.ts'), 'utf-8')
+  const constSource = readFileSync(resolve(__dirname, '../src/shared/constants.ts'), 'utf-8')
   assert(constSource.includes('KILL_SWITCH_ACCELERATOR'), 'T-KS-57: constants has KILL_SWITCH_ACCELERATOR')
   assert(constSource.includes('KILL_SWITCH_BANNER_DURATION_MS'), 'T-KS-58: constants has KILL_SWITCH_BANNER_DURATION_MS')
 
   // KillSwitch renderer component
-  const ksSource = readFileSync(resolve(__dirname, 'src/renderer/src/components/Layout/KillSwitch.tsx'), 'utf-8')
+  const ksSource = readFileSync(resolve(__dirname, '../src/renderer/src/components/Layout/KillSwitch.tsx'), 'utf-8')
   assert(ksSource.includes('KILLSWITCH_ACTIVATED'), 'T-KS-59: KillSwitch.tsx subscribes to push event')
   assert(ksSource.includes('EMERGENCY STOP'), 'T-KS-60: KillSwitch.tsx shows emergency banner')
 }

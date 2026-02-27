@@ -8,7 +8,7 @@ import { registerProjectHandlers } from './ipc/project.handlers'
 import { registerSettingsHandlers } from './ipc/settings.handlers'
 import { validateSender } from './ipc/validate-sender'
 import { DatabaseService } from './services/database.service'
-import { initGeminiGateway } from './services/gemini-gateway'
+import { initGeminiGateway, resetGeminiGateway } from './services/gemini-gateway'
 import { ProjectService } from './services/project.service'
 import { SessionPersistenceService } from './services/session-persistence.service'
 import { AccountService } from './services/account.service'
@@ -16,7 +16,8 @@ import { SettingsService } from './services/settings.service'
 import { ExecutionBroker } from './execution/execution-broker'
 import { TerminalService } from './services/terminal.service'
 import { IPC_CHANNELS } from '../shared/ipc-channels'
-import { KILL_SWITCH_ACCELERATOR } from '../shared/constants'
+import { KILL_SWITCH_ACCELERATOR, DEFAULT_BUDGET, BUDGET_PRESETS } from '../shared/constants'
+import type { BrokerMode } from '../shared/types'
 
 const icon = join(__dirname, '../../resources/icon.png')
 
@@ -58,43 +59,85 @@ function createWindow(): BrowserWindow {
 app.whenReady().then(() => {
   app.setAppUserModelId('com.orionocg.kairo-desktop')
 
-  // Initialize SQLite database (DEC-023)
+  // ── Initialize SQLite database (DEC-023) ────────────────────
   const dbService = new DatabaseService(app.getPath('userData'))
   const projectService = new ProjectService(dbService.getDb())
   const sessionPersistence = new SessionPersistenceService(dbService.getDb())
   const accountService = new AccountService(dbService.getDb())
   const settingsService = new SettingsService(dbService.getDb())
 
-  // Initialize Gemini gateway (API key from env — settings UI in later phase)
-  const apiKey = process.env['GEMINI_API_KEY'] ?? ''
+  // ── Account→Gateway bridge: resolve API key from DB or env ──
+  const dbApiKey = accountService.getActiveApiKey()
+  const apiKey = dbApiKey ?? process.env['GEMINI_API_KEY'] ?? ''
   if (apiKey) {
     initGeminiGateway(apiKey)
+    console.log(`[KAIRO] Gemini gateway initialized (source: ${dbApiKey ? 'account' : 'env'})`)
   } else {
-    console.warn('[KAIRO] GEMINI_API_KEY not set. Chat will return initialization errors.')
+    console.warn('[KAIRO] No API key available. Chat disabled until account is configured.')
   }
 
-  // Initialize orchestrator and register chat IPC handlers
-  const orchestrator = new Orchestrator()
+  // ── Settings bridge: read persisted budget/mode on startup ──
+  const budgetSetting = settingsService.getSetting('budget_preset')
+  const customBudgetSetting = settingsService.getSetting('custom_budget')
+
+  let totalBudget = DEFAULT_BUDGET
+  if (budgetSetting.success && budgetSetting.data?.value) {
+    const preset = budgetSetting.data.value
+    if (preset in BUDGET_PRESETS) {
+      totalBudget = BUDGET_PRESETS[preset as keyof typeof BUDGET_PRESETS]
+    } else if (preset === 'custom' && customBudgetSetting.success && customBudgetSetting.data?.value) {
+      const parsed = parseInt(customBudgetSetting.data.value, 10)
+      if (!isNaN(parsed) && parsed > 0) totalBudget = parsed
+    }
+  }
+
+  // ── Initialize orchestrator with persistence + resolved budget ──
+  const orchestrator = new Orchestrator({
+    sessionPersistence,
+    totalBudget,
+  })
   registerChatHandlers(orchestrator)
 
-  // Initialize execution broker + terminal service
+  // ── Initialize execution broker + terminal service ──────────
   // SECURITY: workspacePath anchors sandbox validation for all terminal spawns (DEC-025)
   const workspacePath = process.cwd()
   const broker = new ExecutionBroker()
   const terminalService = new TerminalService(broker, workspacePath)
 
-  // Create window and register terminal handlers (needs window reference)
+  // Apply persisted broker mode (safe defaults if missing)
+  const brokerModeSetting = settingsService.getSetting('broker_mode')
+  if (brokerModeSetting.success && brokerModeSetting.data?.value) {
+    const mode = brokerModeSetting.data.value
+    if (mode === 'auto' || mode === 'supervised') {
+      broker.setMode(mode as BrokerMode)
+    }
+  }
+
+  // ── Create window and register handlers ─────────────────────
   mainWindow = createWindow()
   registerTerminalHandlers(terminalService, () => mainWindow)
-  registerBrokerHandlers(broker, () => mainWindow)
-  registerProjectHandlers(projectService)
-  registerSettingsHandlers(settingsService, sessionPersistence, accountService)
+  registerBrokerHandlers(broker, () => mainWindow, settingsService)
+  registerProjectHandlers(projectService, (projectId) => {
+    orchestrator.setActiveProject(projectId)
+  })
+  registerSettingsHandlers(settingsService, sessionPersistence, accountService, () => {
+    const newKey = accountService.getActiveApiKey()
+    const resolvedKey = newKey ?? process.env['GEMINI_API_KEY'] ?? ''
+    if (resolvedKey) {
+      initGeminiGateway(resolvedKey)
+      console.log(`[KAIRO] Gemini gateway re-initialized (source: ${newKey ? 'account' : 'env'})`)
+    } else {
+      resetGeminiGateway()
+      console.warn('[KAIRO] No API key available after account change. Gateway reset.')
+    }
+  })
 
-  // Kill switch — Ctrl+Shift+K emergency stop (DEC-025)
+  // ── Kill switch — Ctrl+Shift+K emergency stop (DEC-025) ────
   const registered = globalShortcut.register(KILL_SWITCH_ACCELERATOR, () => {
     console.log('[KAIRO_KILLSWITCH] Emergency stop activated!')
     const killedCount = terminalService.killAll()
     broker.emergencyReset()
+    orchestrator.requestArchive('emergency')
     mainWindow?.webContents.send(IPC_CHANNELS.KILLSWITCH_ACTIVATED, {
       timestamp: Date.now(),
       killedCount,

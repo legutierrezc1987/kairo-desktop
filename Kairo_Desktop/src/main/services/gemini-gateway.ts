@@ -21,6 +21,11 @@ export function initGeminiGateway(apiKey: string): void {
   }
 }
 
+export function resetGeminiGateway(): void {
+  sdk = null
+  models.clear()
+}
+
 export function isInitialized(): boolean {
   return sdk !== null
 }

@@ -21,7 +21,10 @@ function isValidLoadProjectRequest(data: unknown): data is LoadProjectRequest {
   return typeof obj.projectId === 'string' && obj.projectId.length > 0
 }
 
-export function registerProjectHandlers(projectService: ProjectService): void {
+export function registerProjectHandlers(
+  projectService: ProjectService,
+  onProjectLoaded?: (projectId: string) => void,
+): void {
   ipcMain.handle(IPC_CHANNELS.PROJECT_CREATE, (event, data: unknown) => {
     try {
       validateSender(event)
@@ -55,6 +58,10 @@ export function registerProjectHandlers(projectService: ProjectService): void {
     if (!isValidLoadProjectRequest(data)) {
       return { success: false, error: 'Invalid load project request: projectId required.' }
     }
-    return projectService.loadProject(data.projectId)
+    const result = projectService.loadProject(data.projectId)
+    if (result.success) {
+      onProjectLoaded?.(data.projectId)
+    }
+    return result
   })
 }

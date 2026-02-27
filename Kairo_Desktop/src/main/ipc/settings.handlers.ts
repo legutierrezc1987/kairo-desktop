@@ -70,6 +70,7 @@ export function registerSettingsHandlers(
   settingsService: SettingsService,
   sessionPersistence: SessionPersistenceService,
   accountService: AccountService,
+  onAccountChanged?: () => void,
 ): void {
   // ── Settings ────────────────────────────────────────────────
 
@@ -166,7 +167,11 @@ export function registerSettingsHandlers(
     if (!isValidSetActiveAccountRequest(data)) {
       return { success: false, error: 'Invalid set active account request: accountId required.' }
     }
-    return accountService.setActiveAccount(data.accountId)
+    const result = accountService.setActiveAccount(data.accountId)
+    if (result.success) {
+      onAccountChanged?.()
+    }
+    return result
   })
 
   ipcMain.handle(IPC_CHANNELS.ACCOUNT_DELETE, (event, data: unknown) => {
@@ -179,6 +184,10 @@ export function registerSettingsHandlers(
     if (!isValidDeleteAccountRequest(data)) {
       return { success: false, error: 'Invalid delete account request: accountId required.' }
     }
-    return accountService.deleteAccount(data.accountId)
+    const result = accountService.deleteAccount(data.accountId)
+    if (result.success) {
+      onAccountChanged?.()
+    }
+    return result
   })
 }

@@ -65,11 +65,11 @@ function cleanupDir(dir) {
 
 // ─── Compile real services via esbuild ───────────────────────────────
 
-const buildDir = resolve(__dirname, '.test-build')
+const buildDir = resolve(__dirname, '../.test-build')
 
 // Compile DatabaseService
 buildSync({
-  entryPoints: [resolve(__dirname, 'src/main/services/database.service.ts')],
+  entryPoints: [resolve(__dirname, '../src/main/services/database.service.ts')],
   bundle: true,
   platform: 'node',
   format: 'esm',
@@ -80,7 +80,7 @@ buildSync({
 
 // Compile AccountService (needs electron externalized — safeStorage not available in Node)
 buildSync({
-  entryPoints: [resolve(__dirname, 'src/main/services/account.service.ts')],
+  entryPoints: [resolve(__dirname, '../src/main/services/account.service.ts')],
   bundle: true,
   platform: 'node',
   format: 'esm',
@@ -91,7 +91,7 @@ buildSync({
 
 // Compile SettingsService
 buildSync({
-  entryPoints: [resolve(__dirname, 'src/main/services/settings.service.ts')],
+  entryPoints: [resolve(__dirname, '../src/main/services/settings.service.ts')],
   bundle: true,
   platform: 'node',
   format: 'esm',
@@ -123,7 +123,7 @@ export default { safeStorage }
 
 // Recompile AccountService with electron alias pointing to our shim
 buildSync({
-  entryPoints: [resolve(__dirname, 'src/main/services/account.service.ts')],
+  entryPoints: [resolve(__dirname, '../src/main/services/account.service.ts')],
   bundle: true,
   platform: 'node',
   format: 'esm',
@@ -417,7 +417,7 @@ console.log('\n--- T17: Settings input validation ---')
 console.log('\n--- T18: Source cross-verification ---')
 {
   const accountSource = readFileSync(
-    resolve(__dirname, 'src/main/services/account.service.ts'), 'utf-8'
+    resolve(__dirname, '../src/main/services/account.service.ts'), 'utf-8'
   )
   assert(accountSource.includes('class AccountService'), 'T18a: AccountService class exists')
   assert(accountSource.includes('safeStorage'), 'T18b: AccountService uses safeStorage')
@@ -427,13 +427,13 @@ console.log('\n--- T18: Source cross-verification ---')
   assert(accountSource.includes('isEncryptionAvailable'), 'T18f: AccountService checks encryption availability')
 
   const settingsSource = readFileSync(
-    resolve(__dirname, 'src/main/services/settings.service.ts'), 'utf-8'
+    resolve(__dirname, '../src/main/services/settings.service.ts'), 'utf-8'
   )
   assert(settingsSource.includes('class SettingsService'), 'T18g: SettingsService class exists')
   assert(settingsSource.includes('INSERT OR REPLACE'), 'T18h: SettingsService uses upsert pattern')
 
   const handlersSource = readFileSync(
-    resolve(__dirname, 'src/main/ipc/settings.handlers.ts'), 'utf-8'
+    resolve(__dirname, '../src/main/ipc/settings.handlers.ts'), 'utf-8'
   )
   assert(handlersSource.includes('registerSettingsHandlers'), 'T18i: handlers export registerSettingsHandlers')
   assert(handlersSource.includes('ACCOUNT_CREATE'), 'T18j: handlers register ACCOUNT_CREATE')

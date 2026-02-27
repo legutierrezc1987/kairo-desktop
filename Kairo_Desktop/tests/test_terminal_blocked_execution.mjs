@@ -27,7 +27,7 @@ import { tmpdir } from 'node:os'
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
 // ─── Extract patterns (same as other tests) ─────────────────────────
-const ZONES_PATH = resolve(__dirname, 'src/main/config/command-zones.ts')
+const ZONES_PATH = resolve(__dirname, '../src/main/config/command-zones.ts')
 const zonesSource = readFileSync(ZONES_PATH, 'utf-8')
 
 function extractPatterns(source, varName) {
@@ -41,7 +41,7 @@ const GREEN = extractPatterns(zonesSource, 'GREEN_PATTERNS')
 const YELLOW = extractPatterns(zonesSource, 'YELLOW_PATTERNS')
 const RED = extractPatterns(zonesSource, 'RED_PATTERNS')
 
-const CLASSIFIER_PATH = resolve(__dirname, 'src/main/execution/command-classifier.ts')
+const CLASSIFIER_PATH = resolve(__dirname, '../src/main/execution/command-classifier.ts')
 const classifierSource = readFileSync(CLASSIFIER_PATH, 'utf-8')
 const chainOpsMatch = classifierSource.match(/CHAIN_OPERATORS[\s\S]*?Object\.freeze\(\[([\s\S]*?)\]\)/)
 const CHAIN_OPERATORS = chainOpsMatch
@@ -146,7 +146,7 @@ console.log('\n=== P0 PTY Integration Tests ===\n')
 console.log('--- Source verification: Ctrl+C fix present ---')
 {
   const tsSource = readFileSync(
-    resolve(__dirname, 'src/main/services/terminal.service.ts'),
+    resolve(__dirname, '../src/main/services/terminal.service.ts'),
     'utf-8'
   )
 

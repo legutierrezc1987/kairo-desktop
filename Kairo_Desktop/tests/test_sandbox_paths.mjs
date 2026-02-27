@@ -19,7 +19,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url))
 
 // ─── Extract patterns from source ───────────────────────────────────
 
-const ZONES_PATH = resolve(__dirname, 'src/main/config/command-zones.ts')
+const ZONES_PATH = resolve(__dirname, '../src/main/config/command-zones.ts')
 const zonesSource = readFileSync(ZONES_PATH, 'utf-8')
 
 function extractPatterns(source, varName) {
@@ -36,7 +36,7 @@ const YELLOW_FILE_COMMANDS = extractPatterns(zonesSource, 'YELLOW_FILE_COMMANDS'
 const YELLOW_INTERPRETER_COMMANDS = extractPatterns(zonesSource, 'YELLOW_INTERPRETER_COMMANDS')
 const NAVIGATION_COMMANDS = extractPatterns(zonesSource, 'NAVIGATION_COMMANDS')
 
-const CLASSIFIER_PATH = resolve(__dirname, 'src/main/execution/command-classifier.ts')
+const CLASSIFIER_PATH = resolve(__dirname, '../src/main/execution/command-classifier.ts')
 const classifierSource = readFileSync(CLASSIFIER_PATH, 'utf-8')
 const chainOpsMatch = classifierSource.match(/CHAIN_OPERATORS[\s\S]*?Object\.freeze\(\[([\\s\S]*?)\]\)/)
 const CHAIN_OPERATORS = chainOpsMatch
@@ -663,7 +663,7 @@ console.log('\n--- broker integration: GREEN + path validation ---')
 console.log('\n--- source verification ---')
 {
   const sandboxSource = readFileSync(
-    resolve(__dirname, 'src/main/execution/workspace-sandbox.ts'),
+    resolve(__dirname, '../src/main/execution/workspace-sandbox.ts'),
     'utf-8'
   )
 
@@ -676,7 +676,7 @@ console.log('\n--- source verification ---')
 
   // command-zones has all constants
   const zonesSourceVerify = readFileSync(
-    resolve(__dirname, 'src/main/config/command-zones.ts'),
+    resolve(__dirname, '../src/main/config/command-zones.ts'),
     'utf-8'
   )
   assert(zonesSourceVerify.includes('YELLOW_INTERPRETER_COMMANDS'), 'T-SP-66: command-zones has YELLOW_INTERPRETER_COMMANDS')
@@ -684,7 +684,7 @@ console.log('\n--- source verification ---')
 
   // Terminal service uses workspacePath in evaluate
   const tsSource = readFileSync(
-    resolve(__dirname, 'src/main/services/terminal.service.ts'),
+    resolve(__dirname, '../src/main/services/terminal.service.ts'),
     'utf-8'
   )
   assert(tsSource.includes('this.workspacePath'), 'T-SP-68: terminal service passes workspacePath')
@@ -700,7 +700,7 @@ console.log('\n--- source verification ---')
 
   // Broker applies path validation before zone dispatch (not only in YELLOW)
   const brokerSource = readFileSync(
-    resolve(__dirname, 'src/main/execution/execution-broker.ts'),
+    resolve(__dirname, '../src/main/execution/execution-broker.ts'),
     'utf-8'
   )
   assert(brokerSource.includes("classification.zone !== 'red'"), 'T-SP-70: broker validates paths for non-RED zones')

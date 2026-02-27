@@ -17,7 +17,7 @@ import { fileURLToPath } from 'node:url'
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
 // ─── Extract zone patterns from real source ─────────────────────────
-const ZONES_PATH = resolve(__dirname, 'src/main/config/command-zones.ts')
+const ZONES_PATH = resolve(__dirname, '../src/main/config/command-zones.ts')
 const zonesSource = readFileSync(ZONES_PATH, 'utf-8')
 
 function extractPatterns(source, varName) {
@@ -32,7 +32,7 @@ const YELLOW = extractPatterns(zonesSource, 'YELLOW_PATTERNS')
 const RED = extractPatterns(zonesSource, 'RED_PATTERNS')
 
 // Extract CHAIN_OPERATORS from classifier
-const CLASSIFIER_PATH = resolve(__dirname, 'src/main/execution/command-classifier.ts')
+const CLASSIFIER_PATH = resolve(__dirname, '../src/main/execution/command-classifier.ts')
 const classifierSource = readFileSync(CLASSIFIER_PATH, 'utf-8')
 const chainOpsMatch = classifierSource.match(/CHAIN_OPERATORS[\s\S]*?Object\.freeze\(\[([\s\S]*?)\]\)/)
 const CHAIN_OPERATORS = chainOpsMatch

@@ -63,11 +63,11 @@ function cleanupDir(dir) {
 // ─── Compile real DatabaseService via esbuild ────────────────────────
 // Output inside project so Node can resolve better-sqlite3 from node_modules
 
-const buildDir = resolve(__dirname, '.test-build')
+const buildDir = resolve(__dirname, '../.test-build')
 const outFile = join(buildDir, 'database.service.mjs')
 
 buildSync({
-  entryPoints: [resolve(__dirname, 'src/main/services/database.service.ts')],
+  entryPoints: [resolve(__dirname, '../src/main/services/database.service.ts')],
   bundle: true,
   platform: 'node',
   format: 'esm',
@@ -368,7 +368,7 @@ console.log('\n--- T13: WAL journal mode ---')
 console.log('\n--- T14: Source cross-verification (complementary) ---')
 {
   const dbServiceSource = readFileSync(
-    resolve(__dirname, 'src/main/services/database.service.ts'), 'utf-8'
+    resolve(__dirname, '../src/main/services/database.service.ts'), 'utf-8'
   )
   assert(dbServiceSource.includes('SCHEMA_VERSION = 1'), 'T14a: source has SCHEMA_VERSION = 1')
   assert(dbServiceSource.includes("pragma('foreign_keys = ON')"), 'T14b: source sets foreign_keys ON')
