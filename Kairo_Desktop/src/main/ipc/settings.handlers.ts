@@ -8,7 +8,6 @@ import type {
   DeleteAccountRequest,
   CreateSessionRequest,
   GetActiveSessionRequest,
-  AccountTier,
 } from '../../shared/types'
 import type { SettingsService } from '../services/settings.service'
 import type { SessionPersistenceService } from '../services/session-persistence.service'
@@ -143,8 +142,7 @@ export function registerSettingsHandlers(
     if (!isValidCreateAccountRequest(data)) {
       return { success: false, error: 'Invalid create account request: label and apiKey required.' }
     }
-    const tier = (data as Record<string, unknown>).tier as AccountTier | undefined
-    return accountService.createAccount(data.label, data.apiKey, tier)
+    return accountService.createAccount(data.label, data.apiKey, data.tier)
   })
 
   ipcMain.handle(IPC_CHANNELS.ACCOUNT_LIST, (event) => {
