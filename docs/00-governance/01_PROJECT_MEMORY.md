@@ -1,6 +1,6 @@
 # PROJECT MEMORY (Single Living Context)
 
-Version: 3.11
+Version: 3.12
 Last Updated: 2026-02-26
 Status: ACTIVE
 
@@ -35,6 +35,7 @@ Do not duplicate full DEC or long rationale content.
   - **Integration tests rewritten**: `test_integration_layer.mjs` now instantiates **real Orchestrator** with instrumented fake `SessionPersistencePort`. Tests verify: `setActiveProject()` archives previous session, `requestArchive()` forces close, `handleChatMessage` triggers lazy session creation + token persistence (via shimmed gateway). String-search cross-verification reduced to 12 wiring-only assertions (T19).
   - **Test organization**: All 11 `test_*.mjs` files moved to `Kairo_Desktop/tests/` folder. All `__dirname` paths updated to `../` relative.
   - **Tests**: `test_integration_layer.mjs` expanded from 61 → 64 assertions (runtime Orchestrator tests + gateway lifecycle + reduced string searches).
+- TS2352 hotfix: Removed redundant `AccountTier` cast in `ACCOUNT_CREATE` handler — `data.tier` accessed directly via type guard. Validated: `npm run build` PASS, `test_accounts_settings.mjs` 59/59, `test_integration_layer.mjs` 64/64.
 
 ## Validation Ledger (Latest)
 
