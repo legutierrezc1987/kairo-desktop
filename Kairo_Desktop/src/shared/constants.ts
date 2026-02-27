@@ -50,3 +50,31 @@ export const PENDING_COMMAND_TTL_MS = 5 * 60 * 1000 // 5 minutes
 
 export const KILL_SWITCH_ACCELERATOR = 'Ctrl+Shift+K'
 export const KILL_SWITCH_BANNER_DURATION_MS = 4000
+
+// ─── MCP Process Configuration (DEC-020) ────────────────────
+
+export const MCP_SPAWN_TIMEOUT_MS = 15_000
+export const MCP_HEALTH_CHECK_TIMEOUT_MS = 5_000
+export const MCP_MAX_RESTART_ATTEMPTS = 3
+export const MCP_RESTART_BACKOFF_BASE_MS = 2_000
+export const MCP_JSONRPC_VERSION = '2.0' as const
+
+/** Maximum allowed size for MCP stdout input buffer (bytes). Prevents unbounded growth from hostile/broken servers. */
+export const MCP_STDOUT_BUFFER_MAX_BYTES = 1_048_576 // 1 MB
+
+// ─── Memory Provider Configuration ─────────────────────────
+
+export const MEMORY_QUERY_MAX_RESULTS_DEFAULT = 5
+export const MEMORY_SETTINGS_KEY_MCP_PATH = 'mcp_server_path'
+export const MEMORY_SETTINGS_KEY_PROVIDER = 'memory_provider'
+
+// ─── Memory Hardening Limits (Phase 4 Sprint A Hardening) ──
+
+/** Maximum allowed length for a memory query string (characters) */
+export const MEMORY_QUERY_MAX_LENGTH = 2_000
+
+/** Minimum allowed value for maxResults parameter */
+export const MEMORY_MAX_RESULTS_MIN = 1
+
+/** Maximum allowed value for maxResults parameter */
+export const MEMORY_MAX_RESULTS_MAX = 50

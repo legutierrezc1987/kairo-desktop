@@ -1,6 +1,6 @@
 # PROJECT MEMORY (Single Living Context)
 
-Version: 3.12
+Version: 3.14
 Last Updated: 2026-02-26
 Status: ACTIVE
 
@@ -23,45 +23,54 @@ Do not duplicate full DEC or long rationale content.
 
 ## Current Snapshot
 
-- Active phase: Phase 3 (State + Tokens) — Sprint C post-remediation complete.
-- Current objective: Define Phase 4 scope (UI layer, live chat end-to-end).
+- Active phase: Phase 4 (Memory + MCP) — Sprint A Hardening + root path hotfix complete.
+- Current objective: Await Codex for Phase 4 Sprint A commit + next scope definition.
 - Active debates: none.
 - Open RFCs: none.
 
 ## Completed This Session
 
-- Sprint C post-remediation (Gemini audit findings):
-  - **Gateway lifecycle**: Added `resetGeminiGateway()` to clear SDK/models state. `onAccountChanged` now resolves `dbKey ?? envKey` — re-inits gateway when key exists, resets gateway when no key available. No stale state after delete/set-active without key.
-  - **Integration tests rewritten**: `test_integration_layer.mjs` now instantiates **real Orchestrator** with instrumented fake `SessionPersistencePort`. Tests verify: `setActiveProject()` archives previous session, `requestArchive()` forces close, `handleChatMessage` triggers lazy session creation + token persistence (via shimmed gateway). String-search cross-verification reduced to 12 wiring-only assertions (T19).
-  - **Test organization**: All 11 `test_*.mjs` files moved to `Kairo_Desktop/tests/` folder. All `__dirname` paths updated to `../` relative.
-  - **Tests**: `test_integration_layer.mjs` expanded from 61 → 64 assertions (runtime Orchestrator tests + gateway lifecycle + reduced string searches).
-- TS2352 hotfix: Removed redundant `AccountTier` cast in `ACCOUNT_CREATE` handler — `data.tier` accessed directly via type guard. Validated: `npm run build` PASS, `test_accounts_settings.mjs` 59/59, `test_integration_layer.mjs` 64/64.
+- **Phase 4 Sprint A Hardening** (Memory/MCP security):
+  - **Workspace binding**: `MemoryService.updateWorkspace()` rebinds sandbox to active project `folderPath`. When MCP was active, forces degradation to local-markdown (zero cross-project leakage). Wired via `registerProjectHandlers` callback in `index.ts`.
+  - **Sandbox path validation**: `isInsideWorkspace()` uses `relative()` + `isAbsolute()` + `sep` boundary check. Prevents sibling prefix attack (`/my-app` vs `/my-app-evil`). Root workspace edge case (`C:\` or `/`) handled via `wsPrefix` normalization.
+  - **Payload limits**: `MEMORY_QUERY_MAX_LENGTH=2000`, `MEMORY_MAX_RESULTS_MIN=1`, `MEMORY_MAX_RESULTS_MAX=50`. Whitespace-only query rejection. `sanitizeMaxResults()` clamps NaN/Infinity/out-of-range.
+  - **MCP buffer cap**: `MCP_STDOUT_BUFFER_MAX_BYTES=1MB`. Overflow kills process, rejects pending requests, triggers crash→restart cycle.
+  - **IPC handler hardening**: `memory.handlers.ts` validates types, null bytes, finiteness, length limits at gate level.
+  - **Tests**: `test_memory_hardening.mjs` — 71 assertions (T01-T11: sibling attack, traversal, boundary, query limits, maxResults sanitization, buffer cap, MCP degradation, local-only workspace change, null byte, source cross-verification, root workspace rejection).
+- **Root path hotfix** (DEC-025 hardening):
+  - `ProjectService.createProject()`: rejects filesystem root paths (`C:\`, `D:\`, `/`) with deterministic error. Uses `parse()` to detect root — checks both canonical and resolved real path (symlink defense).
+  - `MemoryService.updateWorkspace()`: throws for root paths before any state mutation. Workspace remains unchanged on rejection.
+  - Tests: `test_project_state.mjs` 50→56 assertions (T09b root rejection + T10l/T10m source cross-verification).
 
 ## Validation Ledger (Latest)
 
 | Check | Command | Result |
 |-------|---------|--------|
+| Memory hardening test | `node tests/test_memory_hardening.mjs` | 71/71 PASS |
+| MCP process test | `node tests/test_mcp_process.mjs` | 41/41 PASS |
+| Memory provider test | `node tests/test_memory_provider.mjs` | 61/61 PASS |
+| IPC parity test | `node tests/test_ipc_negative.mjs` | 54/54 PASS |
 | Integration layer test | `node tests/test_integration_layer.mjs` | 64/64 PASS |
 | Token persistence test | `node tests/test_token_persistence.mjs` | 45/45 PASS |
 | Accounts/settings test | `node tests/test_accounts_settings.mjs` | 59/59 PASS |
 | DB schema test (real service) | `node tests/test_db_schema.mjs` | 44/44 PASS |
-| Project state test (real service) | `node tests/test_project_state.mjs` | 50/50 PASS |
+| Project state test (real service) | `node tests/test_project_state.mjs` | 56/56 PASS |
 | Broker adversarial test | `node tests/test_broker.mjs` | 57/57 PASS |
-| IPC parity test | `node tests/test_ipc_negative.mjs` | 50/50 PASS |
 | Approval flow test | `node tests/test_approval.mjs` | 74/74 PASS |
 | Kill switch test | `node tests/test_kill_switch.mjs` | 66/66 PASS |
 | Sandbox path test | `node tests/test_sandbox_paths.mjs` | 105/105 PASS |
 | PTY blocked execution test | `node tests/test_terminal_blocked_execution.mjs` | 8/8 PASS |
-| TypeScript strict (web) | `npx tsc --noEmit -p tsconfig.web.json --composite false` | exit 0 |
-| Electron-vite build | `npx electron-vite build` | PASS (main 120KB, preload 3KB, renderer 1041KB) |
+| TypeScript strict | `npx tsc --noEmit` | exit 0 |
+| Electron-vite build | `npx electron-vite build` | PASS (main 151KB, preload 3KB, renderer 1042KB) |
 
-Total: 622 assertions, all passing.
+Total: 805 assertions, all passing (794 prior + 11 new from root path hotfix).
 
 ## Pending (Priority Ordered)
 
-1. Define Phase 4 scope (UI layer, live chat end-to-end).
-2. Resolve Gemini API quota for full live chat testing (billing/project action).
-3. MCP provider package resolution checkpoint (deferred fallback still active).
+1. Phase 4 Sprint A commit (Codex orchestrator).
+2. Define Phase 4 Sprint B scope (UI layer, live chat end-to-end).
+3. Resolve Gemini API quota for full live chat testing (billing/project action).
+4. MCP provider package resolution checkpoint (deferred fallback still active).
 
 ## Known Risks
 
@@ -85,10 +94,10 @@ Total: 622 assertions, all passing.
 
 ## Next Step (Exact)
 
-Sprint C post-remediation complete. Define Phase 4 scope.
+Phase 4 Sprint A Hardening complete. Awaiting Codex for commit + next scope definition.
 
 ## Next Owner
 
-- Codex (orchestrator): define Phase 4 scope.
+- Codex (orchestrator): commit Sprint A Hardening, define Phase 4 Sprint B scope.
 - Claude (implementer): standby for next implementation packet.
 - Gemini (auditor): standby for next audit cycle.

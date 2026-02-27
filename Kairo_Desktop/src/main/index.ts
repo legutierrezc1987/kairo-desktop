@@ -15,8 +15,10 @@ import { AccountService } from './services/account.service'
 import { SettingsService } from './services/settings.service'
 import { ExecutionBroker } from './execution/execution-broker'
 import { TerminalService } from './services/terminal.service'
+import { MemoryService } from './memory/memory.service'
+import { registerMemoryHandlers } from './ipc/memory.handlers'
 import { IPC_CHANNELS } from '../shared/ipc-channels'
-import { KILL_SWITCH_ACCELERATOR, DEFAULT_BUDGET, BUDGET_PRESETS } from '../shared/constants'
+import { KILL_SWITCH_ACCELERATOR, DEFAULT_BUDGET, BUDGET_PRESETS, MEMORY_SETTINGS_KEY_MCP_PATH } from '../shared/constants'
 import type { BrokerMode } from '../shared/types'
 
 const icon = join(__dirname, '../../resources/icon.png')
@@ -113,12 +115,31 @@ app.whenReady().then(() => {
     }
   }
 
+  // ── Initialize Memory Service (DEC-020) ────────────────────
+  const mcpPathSetting = settingsService.getSetting(MEMORY_SETTINGS_KEY_MCP_PATH)
+  const mcpServerPath = (mcpPathSetting.success && mcpPathSetting.data?.value)
+    ? mcpPathSetting.data.value
+    : undefined
+
+  const memoryService = new MemoryService({
+    mcpServerPath,
+    workspacePath,
+  })
+
+  memoryService.initialize().catch((err) => {
+    console.error(`[KAIRO] Memory service init failed: ${err instanceof Error ? err.message : String(err)}`)
+  })
+
   // ── Create window and register handlers ─────────────────────
   mainWindow = createWindow()
   registerTerminalHandlers(terminalService, () => mainWindow)
   registerBrokerHandlers(broker, () => mainWindow, settingsService)
-  registerProjectHandlers(projectService, (projectId) => {
+  registerProjectHandlers(projectService, (projectId, folderPath) => {
     orchestrator.setActiveProject(projectId)
+    // SECURITY: Bind memory workspace to active project (Phase 4 Hardening)
+    memoryService.updateWorkspace(folderPath).catch((err) => {
+      console.error(`[KAIRO] Memory workspace update failed: ${err instanceof Error ? err.message : String(err)}`)
+    })
   })
   registerSettingsHandlers(settingsService, sessionPersistence, accountService, () => {
     const newKey = accountService.getActiveApiKey()
@@ -131,6 +152,7 @@ app.whenReady().then(() => {
       console.warn('[KAIRO] No API key available after account change. Gateway reset.')
     }
   })
+  registerMemoryHandlers(memoryService, () => mainWindow)
 
   // ── Kill switch — Ctrl+Shift+K emergency stop (DEC-025) ────
   const registered = globalShortcut.register(KILL_SWITCH_ACCELERATOR, () => {
@@ -138,6 +160,7 @@ app.whenReady().then(() => {
     const killedCount = terminalService.killAll()
     broker.emergencyReset()
     orchestrator.requestArchive('emergency')
+    memoryService.shutdown().catch(() => {})
     mainWindow?.webContents.send(IPC_CHANNELS.KILLSWITCH_ACTIVATED, {
       timestamp: Date.now(),
       killedCount,
@@ -190,6 +213,7 @@ app.whenReady().then(() => {
   app.on('before-quit', () => {
     broker.destroy()
     terminalService.killAll()
+    memoryService.shutdown().catch(() => {})
     dbService.close()
   })
 })

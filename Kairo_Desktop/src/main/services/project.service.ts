@@ -1,7 +1,7 @@
 import type Database from 'better-sqlite3'
 import { randomUUID } from 'node:crypto'
 import { accessSync, realpathSync, constants } from 'node:fs'
-import { resolve } from 'node:path'
+import { resolve, parse } from 'node:path'
 import type {
   Project,
   IpcResult,
@@ -64,11 +64,23 @@ export class ProjectService {
 
     const canonicalPath = resolve(folderPath)
 
+    // SECURITY: Reject filesystem root paths — makes entire filesystem writable scope (DEC-025)
+    const parsed = parse(canonicalPath)
+    if (canonicalPath === parsed.root) {
+      return { success: false, error: 'Root path is not allowed as project workspace.' }
+    }
+
     let realPath: string
     try {
       realPath = realpathSync(canonicalPath)
     } catch {
       return { success: false, error: `Folder does not exist or is not accessible: ${canonicalPath}` }
+    }
+
+    // SECURITY: Also check the resolved real path (symlink could point to root)
+    const parsedReal = parse(realPath)
+    if (realPath === parsedReal.root) {
+      return { success: false, error: 'Root path is not allowed as project workspace.' }
     }
 
     try {

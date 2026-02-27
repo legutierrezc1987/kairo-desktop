@@ -57,6 +57,12 @@ export const IPC_CHANNELS = {
   SESSION_CREATE: 'session:create',
   SESSION_GET_ACTIVE: 'session:get-active',
 
+  // Memory domain
+  MEMORY_QUERY: 'memory:query',
+  MEMORY_INDEX: 'memory:index',
+  MEMORY_HEALTH: 'memory:health',
+  MEMORY_PROVIDER_CHANGED: 'memory:provider-changed',
+
   // App domain
   APP_GET_CWD: 'app:get-cwd',
 } as const

@@ -245,6 +245,28 @@ console.log('\n--- T09: Load with invalid inputs ---')
 }
 
 // ────────────────────────────────────────────────
+console.log('\n--- T09b: Reject root path as project workspace ---')
+{
+  const { dbService, projectService } = createServices('t09b')
+
+  // Windows root drives or Unix root
+  const rootPaths = process.platform === 'win32'
+    ? ['C:\\', 'D:\\']
+    : ['/']
+
+  for (const rootPath of rootPaths) {
+    const result = projectService.createProject('Root Project', rootPath)
+    assertEqual(result.success, false, `T09b-a: Root path "${rootPath}" rejected`)
+    assert(
+      result.error.includes('Root path is not allowed'),
+      `T09b-b: Error mentions root path not allowed for "${rootPath}"`
+    )
+  }
+
+  dbService.close()
+}
+
+// ────────────────────────────────────────────────
 console.log('\n--- T10: Source cross-verification (complementary) ---')
 {
   const projectServiceSource = readFileSync(
@@ -261,6 +283,8 @@ console.log('\n--- T10: Source cross-verification (complementary) ---')
   assert(projectServiceSource.includes('randomUUID'), 'T10i: source generates UUID')
   assert(projectServiceSource.includes('UNIQUE constraint'), 'T10j: source handles UNIQUE violation')
   assert(projectServiceSource.includes('IpcResult'), 'T10k: source returns IpcResult envelope')
+  assert(projectServiceSource.includes('Root path is not allowed'), 'T10l: source rejects root paths')
+  assert(projectServiceSource.includes("parse("), 'T10m: source uses parse() for root detection')
 }
 
 // ────────────────────────────────────────────────

@@ -285,3 +285,62 @@ export interface SetSettingRequest {
 export interface GetSettingRequest { key: string }
 export interface GetSettingResponse { value: string | null }
 export interface GetAllSettingsResponse { settings: SettingEntry[] }
+
+// ─── Memory Domain ─────────────────────────────────────────
+
+export type MemoryProviderType = 'mcp' | 'local-markdown'
+export type MemoryProviderStatus = 'ready' | 'starting' | 'degraded' | 'failed' | 'stopped'
+export type McpProcessState = 'stopped' | 'starting' | 'running' | 'crashed' | 'failed'
+
+export interface MemoryResult {
+  content: string
+  source: string
+  relevance: number
+  timestamp: number
+}
+
+export interface IndexResult {
+  indexed: boolean
+  filePath: string
+  chunksIndexed: number
+  error?: string
+}
+
+export interface ProviderHealth {
+  provider: MemoryProviderType
+  status: MemoryProviderStatus
+  lastCheckAt: number
+  error?: string
+}
+
+export interface MemoryQueryRequest {
+  query: string
+  maxResults?: number
+}
+
+export interface MemoryQueryResponse {
+  results: MemoryResult[]
+  provider: MemoryProviderType
+}
+
+export interface MemoryIndexRequest {
+  filePath: string
+}
+
+export interface MemoryIndexResponse {
+  result: IndexResult
+  provider: MemoryProviderType
+}
+
+export interface MemoryHealthResponse {
+  health: ProviderHealth
+  activeProvider: MemoryProviderType
+  fallbackAvailable: boolean
+}
+
+export interface MemoryProviderChangedNotification {
+  previousProvider: MemoryProviderType
+  currentProvider: MemoryProviderType
+  reason: string
+  timestamp: number
+}
