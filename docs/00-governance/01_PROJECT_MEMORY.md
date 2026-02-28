@@ -1,6 +1,6 @@
 # PROJECT MEMORY (Single Living Context)
 
-Version: 3.19
+Version: 3.20
 Last Updated: 2026-02-28
 Status: ACTIVE
 
@@ -23,9 +23,9 @@ Do not duplicate full DEC or long rationale content.
 
 ## Current Snapshot
 
-- Active phase: Phase 4 (Memory + MCP) — Sprint D (Cut Pipeline Integration) implemented, pending commit.
-- Sealed commits: `326071a` (Sprint A hardening), `3c5799c` (Sprint B + stabilization), `756ad33` (Sprint C streaming e2e).
-- Current objective: Seal Sprint D commit and start Phase 5 scope.
+- Active phase: Phase 4 (Memory + MCP) — Sprint D (Cut Pipeline Integration) sealed.
+- Sealed commits: `326071a` (Sprint A hardening), `3c5799c` (Sprint B + stabilization), `756ad33` (Sprint C streaming e2e), `07831d4` (Sprint D cut-pipeline e2e).
+- Current objective: Define Phase 5 scope (Recall strategy + consolidation + rate-limit resilience).
 - Active debates: none.
 - Open RFCs: none.
 - IPC channels: 39 (`CUT_PIPELINE_STATE` added).
@@ -88,12 +88,11 @@ Total: 1188 assertions validated (24 green test files, 1 known pre-existing fail
 
 ## Pending (Priority Ordered)
 
-1. Commit Phase 4 Sprint D implementation (Codex orchestration).
-2. Resolve handling policy for `test_audit_memory_hacks.mjs` (fix, quarantine, or remove from future ledgers).
-3. Define Phase 5 scope (Recall strategy, consolidation engine, rate-limit handler).
-4. Resolve Gemini API quota for real streaming smoke test (billing/project action).
-5. MCP provider package resolution checkpoint (fallback still active).
-6. Clean scratch untracked artifacts from working tree (`diff*.txt`, `*_diff.txt`, bundle, audit scratch test).
+1. Define Phase 5 scope (Recall strategy, consolidation engine, rate-limit handler).
+2. Resolve handling policy for `test_audit_memory_hacks.mjs` (fix, quarantine, or remove from canonical ledgers).
+3. Resolve Gemini API quota for real streaming smoke test (billing/project action).
+4. MCP provider package resolution checkpoint (fallback still active).
+5. Clean scratch untracked artifacts from working tree (`diff*.txt`, `*_diff.txt`, bundle, audit scratch test).
 
 ## Known Risks
 
@@ -119,10 +118,10 @@ Total: 1188 assertions validated (24 green test files, 1 known pre-existing fail
 
 ## Next Step (Exact)
 
-Create Sprint D seal commit (excluding scratch artifacts), then open Phase 5 scope definition packet.
+Codex issues Phase 5 scope packet to Claude, then Gemini audits for GO/NO-GO before implementation.
 
 ## Next Owner
 
-- Codex (orchestrator): seal Sprint D commit and frame Phase 5 scope packet.
-- Claude (implementer): standby for Phase 5 scope/implementation.
+- Codex (orchestrator): frame Phase 5 scope packet and synthesize tribunal verdict.
+- Claude (implementer): standby for Phase 5 scope definition/implementation.
 - Gemini (auditor): standby for Phase 5 scope audit.
