@@ -1,6 +1,6 @@
 # PROJECT MEMORY (Single Living Context)
 
-Version: 3.20
+Version: 3.21
 Last Updated: 2026-02-28
 Status: ACTIVE
 
@@ -23,12 +23,12 @@ Do not duplicate full DEC or long rationale content.
 
 ## Current Snapshot
 
-- Active phase: Phase 4 (Memory + MCP) — Sprint D (Cut Pipeline Integration) sealed.
+- Active phase: Phase 5 (Recall + Consolidation + Rate-Limit) — scoped, pending implementation.
 - Sealed commits: `326071a` (Sprint A hardening), `3c5799c` (Sprint B + stabilization), `756ad33` (Sprint C streaming e2e), `07831d4` (Sprint D cut-pipeline e2e).
-- Current objective: Define Phase 5 scope (Recall strategy + consolidation + rate-limit resilience).
+- Current objective: Implement Phase 5 Sprint A (Recall strategy) with tribunal concurrency guards.
 - Active debates: none.
 - Open RFCs: none.
-- IPC channels: 39 (`CUT_PIPELINE_STATE` added).
+- IPC channels: 39 (Phase 5 scope plans +3 push channels → 42).
 
 ## Completed This Session
 
@@ -52,6 +52,13 @@ Do not duplicate full DEC or long rationale content.
   - Worker implemented: `sync-worker.ts` (single-flight, timeout, retry loop).
   - UI wiring: `CUT_PIPELINE_STATE` channel + `chatStore.cutPhase` + cut overlay in `ChatPanel`.
   - Prompt scaffold implemented in `system-prompt.ts`.
+- **Phase 5 scope tribunal** (design-only):
+  - Claude delivered Phase 5 scope: Sprint A (Recall DEC-026), Sprint B (Consolidation DEC-022), Sprint C (Rate-limit PRD §14).
+  - Gemini audit verdict: GO CONDICIONADO.
+  - Mandatory implementation guards accepted for next step:
+    - Consolidation lock (`_isConsolidating`) + SYNCED→CONSOLIDATING transition.
+    - Recall concurrency guard aligned with single-flight chat path (no user overlap during in-flight recall).
+    - Consolidation input window/token cap guard to avoid context overflow.
 
 ## Validation Ledger (Latest)
 
@@ -88,11 +95,13 @@ Total: 1188 assertions validated (24 green test files, 1 known pre-existing fail
 
 ## Pending (Priority Ordered)
 
-1. Define Phase 5 scope (Recall strategy, consolidation engine, rate-limit handler).
-2. Resolve handling policy for `test_audit_memory_hacks.mjs` (fix, quarantine, or remove from canonical ledgers).
-3. Resolve Gemini API quota for real streaming smoke test (billing/project action).
-4. MCP provider package resolution checkpoint (fallback still active).
-5. Clean scratch untracked artifacts from working tree (`diff*.txt`, `*_diff.txt`, bundle, audit scratch test).
+1. Implement Phase 5 Sprint A (Recall strategy) with accepted concurrency safeguards.
+2. Implement Phase 5 Sprint B (Consolidation engine) with `_isConsolidating` and durable source-state transitions.
+3. Implement Phase 5 Sprint C (Rate-limit handler) with retry/backoff/fallback.
+4. Resolve handling policy for `test_audit_memory_hacks.mjs` (fix, quarantine, or remove from canonical ledgers).
+5. Resolve Gemini API quota for real streaming smoke test (billing/project action).
+6. MCP provider package resolution checkpoint (fallback still active).
+7. Clean scratch untracked artifacts from working tree (`diff*.txt`, `*_diff.txt`, bundle, audit scratch test).
 
 ## Known Risks
 
@@ -104,6 +113,8 @@ Total: 1188 assertions validated (24 green test files, 1 known pre-existing fail
 - `better-sqlite3`/`node-pty` ABI dual-rebuild workflow remains required between Node tests and Electron runtime.
 - `safeStorage` unavailable in headless test environments (`PLAINTEXT:` fallback path).
 - `test_audit_memory_hacks.mjs` fails due to ESM `.ts` import resolution and remains untracked scratch.
+- Consolidation race/data-loss risk if source claiming is not atomic before LLM merge.
+- Recall/conversation overlap risk if recall is executed outside single-flight request path.
 
 ## Mitigations
 
@@ -115,13 +126,16 @@ Total: 1188 assertions validated (24 green test files, 1 known pre-existing fail
 - Preserve bridge-guard pattern (`hasKairoApi`/`getKairoApiOrThrow`) for renderer IPC safety.
 - Keep `_isCutting` + idempotent cut lock + worker timeout as invariant in future refactors.
 - Exclude scratch tests/artifacts from release ledgers unless promoted to canonical suite.
+- Enforce `_isConsolidating` lock + atomic source-state transition for consolidation workflow.
+- Keep recall execution within existing single-flight chat lifecycle; renderer input remains disabled while request is active.
+- Apply bounded consolidation input window with token cap and overflow fallback path.
 
 ## Next Step (Exact)
 
-Codex issues Phase 5 scope packet to Claude, then Gemini audits for GO/NO-GO before implementation.
+Codex issues Phase 5 Sprint A implementation packet to Claude with mandatory guards, then Gemini audits implementation for GO/NO-GO.
 
 ## Next Owner
 
-- Codex (orchestrator): frame Phase 5 scope packet and synthesize tribunal verdict.
-- Claude (implementer): standby for Phase 5 scope definition/implementation.
-- Gemini (auditor): standby for Phase 5 scope audit.
+- Codex (orchestrator): route Sprint A implementation packet and synthesize verdict.
+- Claude (implementer): implement Phase 5 Sprint A.
+- Gemini (auditor): audit Sprint A implementation.
