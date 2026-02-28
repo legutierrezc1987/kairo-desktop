@@ -10,6 +10,7 @@ import type {
   ChatAbortResponse,
   CutPipelineEvent,
   RecallStatusEvent,
+  ConsolidationStatusEvent,
   IpcResult,
 } from '@shared/types'
 
@@ -26,6 +27,7 @@ export function useChat() {
   const setError = useChatStore((s) => s.setError)
   const setCutPhase = useChatStore((s) => s.setCutPhase)
   const setRecallPhase = useChatStore((s) => s.setRecallPhase)
+  const setConsolidationPhase = useChatStore((s) => s.setConsolidationPhase)
   const selectedModel = useSettingsStore((s) => s.selectedModel)
 
   // ── Register streaming listener (mount-once) ──────────────
@@ -99,6 +101,29 @@ export function useChat() {
 
     return unsubscribe
   }, [setRecallPhase])
+
+  // ── Register consolidation status listener (Phase 5 Sprint B) ──
+  useEffect(() => {
+    if (!hasKairoApi()) return
+
+    const api = getKairoApiOrThrow()
+    const unsubscribe = api.on(
+      IPC_CHANNELS.CONSOLIDATION_STATUS,
+      (event: unknown) => {
+        const e = event as ConsolidationStatusEvent
+        if (!e || typeof e.phase !== 'string') return
+
+        // Terminal states → clear consolidation phase
+        if (e.phase === 'done' || e.phase === 'skipped' || e.phase === 'error') {
+          setConsolidationPhase(null)
+        } else {
+          setConsolidationPhase(e.phase)
+        }
+      },
+    )
+
+    return unsubscribe
+  }, [setConsolidationPhase])
 
   // ── Send message (initiates streaming) ─────────────────────
   const sendMessage = useCallback(

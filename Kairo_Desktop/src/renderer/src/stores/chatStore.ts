@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import type { ChatMessage, CutPipelinePhase, RecallStatusPhase } from '@shared/types'
+import type { ChatMessage, CutPipelinePhase, RecallStatusPhase, ConsolidationPhase } from '@shared/types'
 
 interface ChatState {
   messages: ChatMessage[]
@@ -13,6 +13,9 @@ interface ChatState {
 
   // Recall status (Phase 5 Sprint A, DEC-026)
   recallPhase: RecallStatusPhase | null
+
+  // Consolidation status (Phase 5 Sprint B, DEC-022)
+  consolidationPhase: ConsolidationPhase | null
 
   addMessage: (message: ChatMessage) => void
   setLoading: (loading: boolean) => void
@@ -30,6 +33,9 @@ interface ChatState {
 
   // Recall status actions (Phase 5 Sprint A)
   setRecallPhase: (phase: RecallStatusPhase | null) => void
+
+  // Consolidation status actions (Phase 5 Sprint B)
+  setConsolidationPhase: (phase: ConsolidationPhase | null) => void
 }
 
 export const useChatStore = create<ChatState>()((set) => ({
@@ -40,6 +46,7 @@ export const useChatStore = create<ChatState>()((set) => ({
   error: null,
   cutPhase: null,
   recallPhase: null,
+  consolidationPhase: null,
 
   addMessage: (message) => set((state) => ({ messages: [...state.messages, message] })),
   setLoading: (isLoading) => set({ isLoading }),
@@ -95,4 +102,6 @@ export const useChatStore = create<ChatState>()((set) => ({
   setCutPhase: (cutPhase) => set({ cutPhase }),
 
   setRecallPhase: (recallPhase) => set({ recallPhase }),
+
+  setConsolidationPhase: (consolidationPhase) => set({ consolidationPhase }),
 }))

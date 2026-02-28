@@ -71,6 +71,9 @@ export const IPC_CHANNELS = {
   // Recall strategy domain (Phase 5 Sprint A, DEC-026)
   RECALL_STATUS: 'recall:status',
 
+  // Consolidation engine domain (Phase 5 Sprint B, DEC-022)
+  CONSOLIDATION_STATUS: 'consolidation:status',
+
   // App domain
   APP_GET_CWD: 'app:get-cwd',
   APP_SELECT_FOLDER: 'app:select-folder',

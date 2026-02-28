@@ -236,6 +236,56 @@ assert(
 )
 
 // ═════════════════════════════════════════════════════════════════════
+// T35-T38: Consolidation status in chatStore (Phase 5 Sprint B)
+// ═════════════════════════════════════════════════════════════════════
+console.log('\n── T35-T38: Consolidation status in chatStore ──')
+
+assert(
+  chatStoreSrc.includes('consolidationPhase: ConsolidationPhase | null'),
+  'T35: chatStore has consolidationPhase state'
+)
+assert(
+  chatStoreSrc.includes('setConsolidationPhase: (phase: ConsolidationPhase | null) => void'),
+  'T36: chatStore has setConsolidationPhase action'
+)
+assert(
+  chatStoreSrc.includes('consolidationPhase: null,'),
+  'T37: consolidationPhase initialized to null'
+)
+assert(
+  chatStoreSrc.includes('setConsolidationPhase: (consolidationPhase) => set({ consolidationPhase })'),
+  'T38: setConsolidationPhase setter implemented'
+)
+
+// useChat hook consolidation listener (useChatSrc already loaded above)
+assert(
+  useChatSrc.includes('CONSOLIDATION_STATUS'),
+  'T39: useChat registers CONSOLIDATION_STATUS listener'
+)
+assert(
+  useChatSrc.includes('ConsolidationStatusEvent'),
+  'T40: useChat imports ConsolidationStatusEvent type'
+)
+assert(
+  useChatSrc.includes('setConsolidationPhase'),
+  'T41: useChat calls setConsolidationPhase'
+)
+
+// ChatPanel consolidation indicator (chatPanelSrc already loaded above)
+assert(
+  chatPanelSrc.includes('consolidationPhase'),
+  'T42: ChatPanel reads consolidationPhase from store'
+)
+assert(
+  chatPanelSrc.includes('CONSOLIDATION_PHASE_LABELS'),
+  'T43: ChatPanel uses CONSOLIDATION_PHASE_LABELS for display'
+)
+assert(
+  chatPanelSrc.includes('Consolidating memory...'),
+  'T44: ChatPanel has fallback consolidation label'
+)
+
+// ═════════════════════════════════════════════════════════════════════
 // Summary
 // ═════════════════════════════════════════════════════════════════════
 

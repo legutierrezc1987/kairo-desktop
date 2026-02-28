@@ -252,6 +252,11 @@ export class MemoryService {
     return this.activeProvider?.type ?? 'local-markdown'
   }
 
+  /** Expose the active provider for consolidation deleteSource delegation (Phase 5 Sprint B). */
+  getActiveProvider(): MemoryProvider | null {
+    return this.activeProvider
+  }
+
   // ── Private ───────────────────────────────────────────────
 
   /**

@@ -6,6 +6,7 @@ import type {
   IndexResult,
   ProviderHealth,
   MemoryProviderType,
+  DeleteSourceResult,
 } from '../../shared/types'
 import { MEMORY_QUERY_MAX_RESULTS_DEFAULT } from '../../shared/constants'
 
@@ -118,6 +119,11 @@ export class LocalMarkdownMemoryProvider implements MemoryProvider {
         error: err instanceof Error ? err.message : 'Index failed',
       }
     }
+  }
+
+  async deleteSource(sourceId: string): Promise<DeleteSourceResult> {
+    // Local-markdown has no remote source concept — graceful no-op (Hard Guard #5)
+    return { deleted: false, sourceId, error: 'Delete not supported by local provider' }
   }
 
   health(): ProviderHealth {

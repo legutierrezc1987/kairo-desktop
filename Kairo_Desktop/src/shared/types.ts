@@ -390,7 +390,7 @@ export interface BridgeBuffer {
   sourceSessionNumber: number
 }
 
-export type UploadQueueStatus = 'pending' | 'uploading' | 'synced' | 'failed' | 'manual'
+export type UploadQueueStatus = 'pending' | 'uploading' | 'synced' | 'failed' | 'manual' | 'consolidated'
 export type UploadFileType = 'transcript' | 'summary' | 'master_summary'
 
 // ─── Recall Strategy Domain (Phase 5 Sprint A, DEC-026) ────
@@ -408,6 +408,29 @@ export type RecallStatusPhase = 'querying' | 'injecting' | 'done' | 'skipped' | 
 export interface RecallStatusEvent {
   phase: RecallStatusPhase
   trigger: RecallTrigger
+  error?: string
+}
+
+// ─── Consolidation Engine Domain (Phase 5 Sprint B, DEC-022) ──
+
+export type ConsolidationPhase =
+  | 'claiming'
+  | 'merging'
+  | 'uploading'
+  | 'deleting'
+  | 'done'
+  | 'skipped'
+  | 'error'
+
+export interface ConsolidationStatusEvent {
+  phase: ConsolidationPhase
+  mergedCount?: number
+  error?: string
+}
+
+export interface DeleteSourceResult {
+  deleted: boolean
+  sourceId: string
   error?: string
 }
 

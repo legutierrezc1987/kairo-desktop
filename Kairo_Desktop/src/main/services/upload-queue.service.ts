@@ -19,6 +19,7 @@ export interface QueueEntry {
   errorMessage: string | null
   createdAt: string
   nextRetryAt: string | null
+  consolidatedInto: string | null
 }
 
 interface QueueRow {
@@ -31,6 +32,7 @@ interface QueueRow {
   error_message: string | null
   created_at: string
   next_retry_at: string | null
+  consolidated_into: string | null
 }
 
 function rowToEntry(row: QueueRow): QueueEntry {
@@ -44,6 +46,7 @@ function rowToEntry(row: QueueRow): QueueEntry {
     errorMessage: row.error_message,
     createdAt: row.created_at,
     nextRetryAt: row.next_retry_at,
+    consolidatedInto: row.consolidated_into ?? null,
   }
 }
 
@@ -53,6 +56,9 @@ export class UploadQueueService {
   private stmtSetStatus: Database.Statement
   private stmtRetry: Database.Statement
   private stmtEscalate: Database.Statement
+  private stmtSelectSynced: Database.Statement
+  private stmtCountSynced: Database.Statement
+  private stmtMarkConsolidated: Database.Statement
 
   constructor(private db: Database.Database) {
     this.stmtInsert = this.db.prepare(
@@ -84,6 +90,23 @@ export class UploadQueueService {
     this.stmtEscalate = this.db.prepare(
       `UPDATE upload_queue SET status = 'manual', error_message = ? WHERE id = ?`
     )
+
+    // ── Consolidation queries (Phase 5 Sprint B, DEC-022) ──
+
+    this.stmtSelectSynced = this.db.prepare(
+      `SELECT * FROM upload_queue
+       WHERE status = 'synced'
+       ORDER BY created_at ASC
+       LIMIT ?`
+    )
+
+    this.stmtCountSynced = this.db.prepare(
+      `SELECT COUNT(*) as count FROM upload_queue WHERE status = 'synced'`
+    )
+
+    this.stmtMarkConsolidated = this.db.prepare(
+      `UPDATE upload_queue SET status = 'consolidated', consolidated_into = ? WHERE id = ?`
+    )
   }
 
   /**
@@ -102,6 +125,7 @@ export class UploadQueueService {
       errorMessage: null,
       createdAt: new Date().toISOString(),
       nextRetryAt: null,
+      consolidatedInto: null,
     }
   }
 
@@ -125,6 +149,39 @@ export class UploadQueueService {
    */
   markSynced(id: string): void {
     this.stmtSetStatus.run('synced', null, id)
+  }
+
+  // ── Consolidation Methods (Phase 5 Sprint B, DEC-022) ─────
+
+  /**
+   * Get the oldest SYNCED entries for consolidation.
+   * Hard Guard #3: ONLY returns entries with status = 'synced'.
+   */
+  getSyncedSources(limit: number): QueueEntry[] {
+    const rows = this.stmtSelectSynced.all(limit) as QueueRow[]
+    return rows.map(rowToEntry)
+  }
+
+  /**
+   * Count total SYNCED entries (for threshold check).
+   */
+  countSynced(): number {
+    const row = this.stmtCountSynced.get() as { count: number }
+    return row.count
+  }
+
+  /**
+   * Mark entries as consolidated (atomic transaction).
+   * Hard Guard #2: wraps in transaction for atomicity.
+   * Sets status = 'consolidated' and records the master entry ID.
+   */
+  markConsolidated(ids: string[], masterEntryId: string): void {
+    const txn = this.db.transaction(() => {
+      for (const id of ids) {
+        this.stmtMarkConsolidated.run(masterEntryId, id)
+      }
+    })
+    txn()
   }
 
   /**

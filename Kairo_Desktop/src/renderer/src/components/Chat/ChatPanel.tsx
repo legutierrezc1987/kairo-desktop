@@ -17,12 +17,20 @@ const CUT_PHASE_LABELS: Record<string, string> = {
   recalling: 'Recalling context...',
 }
 
+const CONSOLIDATION_PHASE_LABELS: Record<string, string> = {
+  claiming: 'Claiming sources...',
+  merging: 'Merging sources...',
+  uploading: 'Uploading master summary...',
+  deleting: 'Deleting old sources...',
+}
+
 export default function ChatPanel(): React.JSX.Element {
   const messages = useChatStore((s) => s.messages)
   const isLoading = useChatStore((s) => s.isLoading)
   const isStreaming = useChatStore((s) => s.isStreaming)
   const cutPhase = useChatStore((s) => s.cutPhase)
   const recallPhase = useChatStore((s) => s.recallPhase)
+  const consolidationPhase = useChatStore((s) => s.consolidationPhase)
   const error = useChatStore((s) => s.error)
   const { sendMessage, abortGeneration } = useChat()
   const messagesEndRef = useRef<HTMLDivElement>(null)
@@ -111,6 +119,24 @@ export default function ChatPanel(): React.JSX.Element {
           zIndex: 40,
         }}>
           {recallPhase === 'querying' ? 'Recalling memory...' : 'Injecting context...'}
+        </div>
+      )}
+
+      {/* Non-blocking consolidation status indicator (Phase 5 Sprint B) */}
+      {consolidationPhase && (
+        <div style={{
+          position: 'absolute',
+          top: recallPhase ? '80px' : '48px',
+          right: '12px',
+          backgroundColor: '#1e3a2f',
+          border: '1px solid #16a34a',
+          borderRadius: '8px',
+          padding: '6px 12px',
+          fontSize: '11px',
+          color: '#86efac',
+          zIndex: 40,
+        }}>
+          {CONSOLIDATION_PHASE_LABELS[consolidationPhase] ?? 'Consolidating memory...'}
         </div>
       )}
 

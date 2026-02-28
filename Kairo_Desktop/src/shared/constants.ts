@@ -112,3 +112,17 @@ export const RECALL_PERIODIC_INTERVAL = 8
 
 /** Timeout for a single recall query (ms) */
 export const RECALL_QUERY_TIMEOUT_MS = 10_000
+
+// ─── Consolidation Engine Configuration (Phase 5 Sprint B, DEC-022) ──
+
+/** Number of SYNCED sources that triggers consolidation ("40-1 Rule") */
+export const CONSOLIDATION_SOURCE_THRESHOLD = 40
+
+/** Number of oldest SYNCED sources to merge into Master Summary */
+export const CONSOLIDATION_MERGE_COUNT = 20
+
+/** Maximum characters for merged consolidation input (~20K tokens at 4 chars/token) */
+export const CONSOLIDATION_INPUT_CAP_CHARS = 80_000
+
+/** Timeout for consolidation LLM generation (ms) */
+export const CONSOLIDATION_TIMEOUT_MS = 60_000

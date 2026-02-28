@@ -217,13 +217,14 @@ console.log('\n--- T14: IPC channels ---')
   const src = readSrc('shared/ipc-channels.ts')
   assert(src.includes("SESSION_ARCHIVE: 'session:archive'"), 'T14a: SESSION_ARCHIVE channel exists')
   assert(src.includes("APP_SELECT_FOLDER: 'app:select-folder'"), 'T14b: APP_SELECT_FOLDER channel exists')
+  assert(src.includes("CONSOLIDATION_STATUS: 'consolidation:status'"), 'T14d: CONSOLIDATION_STATUS channel exists')
 
   // Count channels
   const channelPattern = /:\s*'([a-z][-a-z]*:[a-z][-a-z]*)'/g
   const channels = []
   let m
   while ((m = channelPattern.exec(src)) !== null) channels.push(m[1])
-  assert(channels.length === 40, `T14c: 40 channels total (got ${channels.length})`)
+  assert(channels.length === 41, `T14c: 41 channels total (got ${channels.length})`)
 }
 
 // ─── T15: types.ts updated ──────────────────────────────────

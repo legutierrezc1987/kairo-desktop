@@ -9,7 +9,7 @@ import { join } from 'node:path'
  * app.getPath('userData') is only valid after the ready event.
  */
 
-const SCHEMA_VERSION = 1
+const SCHEMA_VERSION = 2
 
 export class DatabaseService {
   private db: Database.Database
@@ -44,10 +44,61 @@ export class DatabaseService {
       return
     }
 
-    this.db.exec(this.getSchemaSQL())
-    this.db.pragma(`user_version = ${SCHEMA_VERSION}`)
+    if (currentVersion === 0) {
+      // Fresh install — create all tables at current schema version
+      this.db.exec(this.getSchemaSQL())
+    } else {
+      // Incremental migration path
+      if (currentVersion < 2) {
+        this.migrateV1toV2()
+      }
+    }
 
-    console.log(`[KAIRO_DB] Schema bootstrapped to version ${SCHEMA_VERSION}`)
+    this.db.pragma(`user_version = ${SCHEMA_VERSION}`)
+    console.log(`[KAIRO_DB] Schema bootstrapped to version ${SCHEMA_VERSION} (from v${currentVersion})`)
+  }
+
+  /**
+   * Migration v1 → v2 (Phase 5 Sprint B, DEC-022: Consolidation Engine).
+   * Adds 'consolidated' status and 'consolidated_into' column to upload_queue.
+   *
+   * SQLite cannot ALTER CHECK constraints, so we rebuild the table:
+   * 1. Create upload_queue_new with updated CHECK + new column
+   * 2. Copy data from upload_queue
+   * 3. Drop upload_queue
+   * 4. Rename upload_queue_new → upload_queue
+   * 5. Recreate indices
+   *
+   * Wrapped in a transaction for atomicity.
+   */
+  private migrateV1toV2(): void {
+    this.db.exec(`
+      CREATE TABLE upload_queue_new (
+        id                TEXT PRIMARY KEY NOT NULL,
+        session_id        TEXT NOT NULL REFERENCES sessions(id) ON DELETE CASCADE,
+        file_path         TEXT NOT NULL,
+        file_type         TEXT NOT NULL CHECK (file_type IN ('transcript', 'summary', 'master_summary')),
+        retry_count       INTEGER NOT NULL DEFAULT 0,
+        status            TEXT NOT NULL DEFAULT 'pending'
+                          CHECK (status IN ('pending', 'uploading', 'synced', 'failed', 'manual', 'consolidated')),
+        error_message     TEXT,
+        created_at        TEXT NOT NULL DEFAULT (datetime('now')),
+        next_retry_at     TEXT,
+        consolidated_into TEXT
+      );
+
+      INSERT INTO upload_queue_new (id, session_id, file_path, file_type, retry_count, status, error_message, created_at, next_retry_at)
+        SELECT id, session_id, file_path, file_type, retry_count, status, error_message, created_at, next_retry_at
+        FROM upload_queue;
+
+      DROP TABLE upload_queue;
+
+      ALTER TABLE upload_queue_new RENAME TO upload_queue;
+
+      CREATE INDEX IF NOT EXISTS idx_upload_queue_session_id ON upload_queue(session_id);
+      CREATE INDEX IF NOT EXISTS idx_upload_queue_status     ON upload_queue(status);
+    `)
+    console.log('[KAIRO_DB] Migration v1→v2: upload_queue rebuilt with consolidated status + consolidated_into column')
   }
 
   private getSchemaSQL(): string {
@@ -108,16 +159,17 @@ export class DatabaseService {
       );
 
       CREATE TABLE IF NOT EXISTS upload_queue (
-        id            TEXT PRIMARY KEY NOT NULL,
-        session_id    TEXT NOT NULL REFERENCES sessions(id) ON DELETE CASCADE,
-        file_path     TEXT NOT NULL,
-        file_type     TEXT NOT NULL CHECK (file_type IN ('transcript', 'summary', 'master_summary')),
-        retry_count   INTEGER NOT NULL DEFAULT 0,
-        status        TEXT NOT NULL DEFAULT 'pending'
-                      CHECK (status IN ('pending', 'uploading', 'synced', 'failed', 'manual')),
-        error_message TEXT,
-        created_at    TEXT NOT NULL DEFAULT (datetime('now')),
-        next_retry_at TEXT
+        id                TEXT PRIMARY KEY NOT NULL,
+        session_id        TEXT NOT NULL REFERENCES sessions(id) ON DELETE CASCADE,
+        file_path         TEXT NOT NULL,
+        file_type         TEXT NOT NULL CHECK (file_type IN ('transcript', 'summary', 'master_summary')),
+        retry_count       INTEGER NOT NULL DEFAULT 0,
+        status            TEXT NOT NULL DEFAULT 'pending'
+                          CHECK (status IN ('pending', 'uploading', 'synced', 'failed', 'manual', 'consolidated')),
+        error_message     TEXT,
+        created_at        TEXT NOT NULL DEFAULT (datetime('now')),
+        next_retry_at     TEXT,
+        consolidated_into TEXT
       );
 
       CREATE TABLE IF NOT EXISTS accounts (

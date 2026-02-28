@@ -7,6 +7,7 @@ import type {
   MemoryProviderType,
   MemoryProviderStatus,
   McpProcessState,
+  DeleteSourceResult,
 } from '../../shared/types'
 import { MEMORY_QUERY_MAX_RESULTS_DEFAULT } from '../../shared/constants'
 
@@ -106,6 +107,30 @@ export class NotebookLmMemoryProvider implements MemoryProvider {
       indexed: true,
       filePath,
       chunksIndexed: result?.chunksIndexed ?? 0,
+    }
+  }
+
+  async deleteSource(sourceId: string): Promise<DeleteSourceResult> {
+    try {
+      const response = await this.mcpService.sendRequest('memory/delete', {
+        sourceId,
+      })
+
+      if (response.error) {
+        return {
+          deleted: false,
+          sourceId,
+          error: response.error.message,
+        }
+      }
+
+      return { deleted: true, sourceId }
+    } catch (err) {
+      return {
+        deleted: false,
+        sourceId,
+        error: err instanceof Error ? err.message : 'Delete request failed',
+      }
     }
   }
 

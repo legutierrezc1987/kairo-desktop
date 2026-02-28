@@ -7,7 +7,7 @@ import { registerBrokerHandlers } from './ipc/broker.handlers'
 import { registerProjectHandlers } from './ipc/project.handlers'
 import { registerSettingsHandlers } from './ipc/settings.handlers'
 import { validateSender } from './ipc/validate-sender'
-import { initGeminiGateway, resetGeminiGateway } from './services/gemini-gateway'
+import { initGeminiGateway, resetGeminiGateway, generateContent, isInitialized as isGeminiInitialized } from './services/gemini-gateway'
 import { ProjectService } from './services/project.service'
 import { SessionPersistenceService } from './services/session-persistence.service'
 import { AccountService } from './services/account.service'
@@ -20,7 +20,9 @@ import { UploadQueueService } from './services/upload-queue.service'
 import { SyncWorker } from './workers/sync-worker'
 import { IPC_CHANNELS } from '../shared/ipc-channels'
 import { KILL_SWITCH_ACCELERATOR, DEFAULT_BUDGET, BUDGET_PRESETS, MEMORY_SETTINGS_KEY_MCP_PATH, CUT_PIPELINE_TIMEOUT_MS } from '../shared/constants'
-import type { BrokerMode, CutReason, CutPipelineEvent, RecallStatusEvent } from '../shared/types'
+import type { BrokerMode, CutReason, CutPipelineEvent, RecallStatusEvent, ConsolidationStatusEvent } from '../shared/types'
+import { readFile, writeFile, mkdir } from 'node:fs/promises'
+import { MASTER_SUMMARY_PROMPT, type ConsolidationPort } from './memory/consolidation-engine'
 
 // ── Startup guard: bail early if Electron is not running as a proper app ──
 if (process.env['ELECTRON_RUN_AS_NODE']) {
@@ -168,6 +170,44 @@ app.whenReady().then(async () => {
   })
   syncWorker.start()
 
+  // ── Wire Consolidation Port into SyncWorker (Phase 5 Sprint B, DEC-022) ──
+  const consolidationPort: ConsolidationPort = {
+    getSyncedCount: () => uploadQueue.countSynced(),
+    getOldestSynced: (limit: number) => uploadQueue.getSyncedSources(limit),
+    readSourceFile: (filePath: string) => readFile(filePath, 'utf-8'),
+    generateMasterSummary: async (mergedContent: string, sourceCount: number) => {
+      if (!isGeminiInitialized()) {
+        return `# Master Summary (no LLM available)\n\nConsolidated from ${sourceCount} sources.\n\n${mergedContent.slice(0, 20_000)}`
+      }
+      const prompt = `${MASTER_SUMMARY_PROMPT}\n\nNumber of sessions: ${sourceCount}\n\n---\n\n${mergedContent}`
+      const result = await generateContent(prompt, 'gemini-2.0-flash')
+      return result.text
+    },
+    saveMasterSummary: async (projectFolder: string, content: string) => {
+      const dir = join(projectFolder, '.kairo', 'sessions')
+      await mkdir(dir, { recursive: true })
+      const timestamp = new Date().toISOString().replace(/[:.]/g, '-')
+      const filePath = join(dir, `master_summary_${timestamp}.md`)
+      await writeFile(filePath, content, 'utf-8')
+      return filePath
+    },
+    enqueueMasterSummary: (sessionId: string, filePath: string) => {
+      const entry = uploadQueue.enqueue(sessionId, filePath, 'master_summary')
+      return entry.id
+    },
+    markConsolidated: (ids: string[], masterEntryId: string) => {
+      uploadQueue.markConsolidated(ids, masterEntryId)
+    },
+    deleteRemoteSource: async (sourceId: string) => {
+      const provider = memoryService.getActiveProvider()
+      if (provider?.deleteSource) {
+        return provider.deleteSource(sourceId)
+      }
+      return { deleted: false, sourceId, error: 'Active provider does not support deleteSource' }
+    },
+  }
+  syncWorker.setConsolidationPort(consolidationPort)
+
   // ── Create window and register handlers ─────────────────────
   mainWindow = createWindow()
   registerTerminalHandlers(terminalService, () => mainWindow)
@@ -178,6 +218,8 @@ app.whenReady().then(async () => {
     memoryService.updateWorkspace(folderPath).catch((err) => {
       console.error(`[KAIRO] Memory workspace update failed: ${err instanceof Error ? err.message : String(err)}`)
     })
+    // Phase 5 Sprint B: update SyncWorker project context for consolidation
+    syncWorker.setProjectContext(folderPath, projectId)
   })
   registerSettingsHandlers(settingsService, sessionPersistence, accountService, () => {
     const newKey = accountService.getActiveApiKey()
@@ -200,6 +242,12 @@ app.whenReady().then(async () => {
   // ── Register recall status push (Phase 5 Sprint A, DEC-026) ───
   orchestrator.setRecallStatusSender((event: RecallStatusEvent) => {
     mainWindow?.webContents.send(IPC_CHANNELS.RECALL_STATUS, event)
+  })
+
+  // ── Register consolidation status push (Phase 5 Sprint B, DEC-022) ───
+  syncWorker.setConsolidationEmitter((phase) => {
+    const event: ConsolidationStatusEvent = { phase }
+    mainWindow?.webContents.send(IPC_CHANNELS.CONSOLIDATION_STATUS, event)
   })
 
   // ── Kill switch — Ctrl+Shift+K emergency stop (DEC-025) ────
