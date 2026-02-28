@@ -8,10 +8,20 @@ import ContextMeter from './ContextMeter'
 import ConsolidateButton from './ConsolidateButton'
 import RecallButton from './RecallButton'
 
+const CUT_PHASE_LABELS: Record<string, string> = {
+  blocking: 'Preparing session cut...',
+  counting: 'Counting tokens...',
+  generating: 'Generating summary...',
+  saving: 'Saving files...',
+  uploading: 'Queueing upload...',
+  recalling: 'Recalling context...',
+}
+
 export default function ChatPanel(): React.JSX.Element {
   const messages = useChatStore((s) => s.messages)
   const isLoading = useChatStore((s) => s.isLoading)
   const isStreaming = useChatStore((s) => s.isStreaming)
+  const cutPhase = useChatStore((s) => s.cutPhase)
   const error = useChatStore((s) => s.error)
   const { sendMessage, abortGeneration } = useChat()
   const messagesEndRef = useRef<HTMLDivElement>(null)
@@ -56,6 +66,35 @@ export default function ChatPanel(): React.JSX.Element {
         <div ref={messagesEndRef} />
       </div>
 
+      {/* Cut pipeline overlay (Sprint D) */}
+      {cutPhase && (
+        <div style={{
+          position: 'absolute',
+          inset: 0,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          backgroundColor: 'rgba(0,0,0,0.7)',
+          zIndex: 50,
+        }}>
+          <div style={{
+            backgroundColor: '#262626',
+            border: '1px solid #404040',
+            borderRadius: '12px',
+            padding: '24px 32px',
+            textAlign: 'center',
+            maxWidth: '320px',
+          }}>
+            <div style={{ fontSize: '14px', color: '#e5e5e5', fontWeight: 600, marginBottom: '8px' }}>
+              Session Cut in Progress
+            </div>
+            <div style={{ fontSize: '12px', color: '#a3a3a3' }}>
+              {CUT_PHASE_LABELS[cutPhase] ?? cutPhase}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Recall popover (positioned relative to this container) */}
       <RecallButton />
 
@@ -79,8 +118,8 @@ export default function ChatPanel(): React.JSX.Element {
         </div>
       )}
 
-      {/* Input */}
-      <InputBar onSend={sendMessage} disabled={isLoading} />
+      {/* Input — disabled during loading or cut pipeline */}
+      <InputBar onSend={sendMessage} disabled={isLoading || !!cutPhase} />
     </div>
   )
 }

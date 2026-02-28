@@ -166,6 +166,23 @@ writeFileSync(join(shimServicesDir, 'model-router.ts'), `
 export function routeModel(context: string, userOverride?: string): string { return userOverride || 'gemini-2.0-flash' }
 `)
 
+// System prompt shim at shim-services/system-prompt.ts (Sprint D)
+const shimConfigDir = join(buildDir, 'shim-config')
+mkdirSync(shimConfigDir, { recursive: true })
+writeFileSync(join(shimConfigDir, 'system-prompt.ts'), `
+export function buildSystemPrompt(projectName: string, recallContext: string, bridgeSummary: string): string {
+  return 'mock system prompt'
+}
+`)
+
+// Snapshot service shim at shim-services/snapshot.service.ts (Sprint D)
+writeFileSync(join(shimServicesDir, 'snapshot.service.ts'), `
+export interface SnapshotResult { transcriptPath: string; summaryPath: string; summaryText: string }
+export async function createSnapshot(projectFolderPath: string, sessionNumber: number, history: any[]): Promise<SnapshotResult> {
+  return { transcriptPath: '/tmp/transcript.md', summaryPath: '/tmp/summary.md', summaryText: 'mock summary' }
+}
+`)
+
 // Patch orchestrator source: replace gateway/router imports with shim absolute paths,
 // and fix relative imports that break when source is moved to shim-core/
 const orchestratorOrigSource = readFileSync(
@@ -173,11 +190,14 @@ const orchestratorOrigSource = readFileSync(
 )
 const srcMain = resolve(__dirname, '../src/main').replace(/\\/g, '/')
 const shimSvcDir = shimServicesDir.replace(/\\/g, '/')
+const shimCfgDir = shimConfigDir.replace(/\\/g, '/')
 const patchedSource = orchestratorOrigSource
   .replace("from '../services/gemini-gateway'", `from '${shimSvcDir}/gemini-gateway.ts'`)
   .replace("from '../services/model-router'", `from '${shimSvcDir}/model-router.ts'`)
   .replace("from '../services/token-budgeter'", `from '${srcMain}/services/token-budgeter'`)
   .replace("from '../services/session-manager'", `from '${srcMain}/services/session-manager'`)
+  .replace("from '../config/system-prompt'", `from '${shimCfgDir}/system-prompt.ts'`)
+  .replace("from '../services/snapshot.service'", `from '${shimSvcDir}/snapshot.service.ts'`)
   .replace("from '../../shared/types'", `from '${resolve(__dirname, '../src/shared/types').replace(/\\/g, '/')}'`)
   .replace("from '../../shared/constants'", `from '${resolve(__dirname, '../src/shared/constants').replace(/\\/g, '/')}'`)
 writeFileSync(join(shimCoreDir, 'orchestrator.ts'), patchedSource)
@@ -189,7 +209,7 @@ buildSync({
   platform: 'node',
   format: 'esm',
   outfile: join(buildDir, 'orchestrator.mjs'),
-  external: ['better-sqlite3', 'node:crypto', '@google/generative-ai'],
+  external: ['better-sqlite3', 'node:crypto', 'node:fs/promises', '@google/generative-ai'],
   logLevel: 'silent',
 })
 
@@ -308,7 +328,7 @@ console.log('\n--- T02: Orchestrator with persistence but no active project — 
 
   const orch = new Orchestrator({ sessionPersistence: port })
   // requestArchive without project should not crash or write to DB
-  orch.requestArchive('emergency')
+  await orch.requestArchive('emergency')
   assertEqual(log.length, 0, 'T02a: no persistence calls without active project')
   assertEqual(orch.getActiveProjectId(), null, 'T02b: project remains null')
 
@@ -384,7 +404,7 @@ console.log('\n--- T05: requestArchive forces session close ---')
   assert(createCalls.length >= 1, 'T05a: session created')
 
   // Emergency archive
-  orch.requestArchive('emergency')
+  await orch.requestArchive('emergency')
   const archiveCalls = log.filter(l => l.method === 'archiveSession')
   assert(archiveCalls.length >= 1, 'T05b: archiveSession called by requestArchive')
   assertEqual(archiveCalls.length > 0 ? archiveCalls[0].args[1] : null, 'emergency', 'T05c: archive reason is emergency')
@@ -435,7 +455,7 @@ console.log('\n--- T07: After archive, next chat creates new session ---')
   orch.setActiveProject(projectId)
 
   await orch.handleChatMessage({ content: 'first', model: 'gemini-2.0-flash' })
-  orch.requestArchive('manual')
+  await orch.requestArchive('manual')
 
   // Next chat should create new session
   await orch.handleChatMessage({ content: 'second', model: 'gemini-2.0-flash' })

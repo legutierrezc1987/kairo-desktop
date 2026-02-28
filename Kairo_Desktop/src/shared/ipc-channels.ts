@@ -65,6 +65,9 @@ export const IPC_CHANNELS = {
   MEMORY_HEALTH: 'memory:health',
   MEMORY_PROVIDER_CHANGED: 'memory:provider-changed',
 
+  // Cut pipeline domain (Phase 4 Sprint D)
+  CUT_PIPELINE_STATE: 'cut:pipeline-state',
+
   // App domain
   APP_GET_CWD: 'app:get-cwd',
   APP_SELECT_FOLDER: 'app:select-folder',

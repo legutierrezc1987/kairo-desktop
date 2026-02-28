@@ -119,17 +119,33 @@ writeFileSync(join(shimServicesDir, 'model-router.ts'), `
 export function routeModel(context: string, userOverride?: string): string { return userOverride || 'gemini-2.0-flash' }
 `)
 
+// System prompt + snapshot shims (Sprint D)
+const shimConfigDir = join(buildDir, 'shim-config')
+mkdirSync(shimConfigDir, { recursive: true })
+writeFileSync(join(shimConfigDir, 'system-prompt.ts'), `
+export function buildSystemPrompt(projectName: string, recallContext: string, bridgeSummary: string): string { return 'mock' }
+`)
+writeFileSync(join(shimServicesDir, 'snapshot.service.ts'), `
+export interface SnapshotResult { transcriptPath: string; summaryPath: string; summaryText: string }
+export async function createSnapshot(p: string, n: number, h: any[]): Promise<SnapshotResult> {
+  return { transcriptPath: '/tmp/transcript.md', summaryPath: '/tmp/summary.md', summaryText: 'mock' }
+}
+`)
+
 // Patch orchestrator source: replace gateway/router imports with shim absolute paths
 const orchestratorOrigSource = readFileSync(
   resolve(__dirname, '../src/main/core/orchestrator.ts'), 'utf-8'
 )
 const srcMain = resolve(__dirname, '../src/main').replace(/\\/g, '/')
 const shimSvcDir = shimServicesDir.replace(/\\/g, '/')
+const shimCfgDir = shimConfigDir.replace(/\\/g, '/')
 const patchedSource = orchestratorOrigSource
   .replace("from '../services/gemini-gateway'", `from '${shimSvcDir}/gemini-gateway.ts'`)
   .replace("from '../services/model-router'", `from '${shimSvcDir}/model-router.ts'`)
   .replace("from '../services/token-budgeter'", `from '${srcMain}/services/token-budgeter'`)
   .replace("from '../services/session-manager'", `from '${srcMain}/services/session-manager'`)
+  .replace("from '../config/system-prompt'", `from '${shimCfgDir}/system-prompt.ts'`)
+  .replace("from '../services/snapshot.service'", `from '${shimSvcDir}/snapshot.service.ts'`)
   .replace("from '../../shared/types'", `from '${resolve(__dirname, '../src/shared/types').replace(/\\/g, '/')}'`)
   .replace("from '../../shared/constants'", `from '${resolve(__dirname, '../src/shared/constants').replace(/\\/g, '/')}'`)
 writeFileSync(join(shimCoreDir, 'orchestrator.ts'), patchedSource)
@@ -138,7 +154,7 @@ buildSync({
   entryPoints: [join(shimCoreDir, 'orchestrator.ts')],
   bundle: true, platform: 'node', format: 'esm',
   outfile: join(buildDir, 'orchestrator.mjs'),
-  external: ['better-sqlite3', 'node:crypto', '@google/generative-ai'],
+  external: ['better-sqlite3', 'node:crypto', 'node:fs/promises', '@google/generative-ai'],
   logLevel: 'silent',
 })
 
@@ -167,7 +183,7 @@ console.log('--- T01: requestArchive with no active session ---')
 
   const orchestrator = new Orchestrator({ sessionPersistence })
   try {
-    orchestrator.requestArchive('manual')
+    await orchestrator.requestArchive('manual')
     passed++
     console.log('  PASS  T01a: requestArchive with no session does not throw')
   } catch (err) {
@@ -201,7 +217,7 @@ console.log('\n--- T02: requestArchive archives active session ---')
   assert(activeResult.data.session !== null, 'T02c: session record is non-null')
   const sessionId = activeResult.data.session.id
 
-  orchestrator.requestArchive('manual')
+  await orchestrator.requestArchive('manual')
 
   const raw = db.prepare('SELECT * FROM sessions WHERE id = ?').get(sessionId)
   assertEqual(raw.status, 'archived', 'T02d: session status is archived in DB')
@@ -242,7 +258,7 @@ console.log('\n--- T03: requestArchive with different reasons ---')
     const activeResult = sessionPersistence.getActiveSession(projectId)
     const sessionId = activeResult.data.session.id
 
-    orchestrator.requestArchive(reason)
+    await orchestrator.requestArchive(reason)
 
     const raw = db.prepare('SELECT * FROM sessions WHERE id = ?').get(sessionId)
     assertEqual(raw.cut_reason, reason, `T03-${reason}: cut_reason is ${reason}`)
@@ -271,7 +287,7 @@ console.log('\n--- T04: Archive resets budgeter ---')
   const budgetBefore = orchestrator.getTokenBudgetState()
   assert(budgetBefore.totalUsed > 0, 'T04a: budget has usage before archive')
 
-  orchestrator.requestArchive('manual')
+  await orchestrator.requestArchive('manual')
 
   const budgetAfter = orchestrator.getTokenBudgetState()
   assertEqual(budgetAfter.totalUsed, 0, 'T04b: budget totalUsed reset to 0 after archive')
@@ -300,7 +316,7 @@ console.log('\n--- T05: Archive resets session state ---')
   const sessionBefore = orchestrator.getSessionState()
   assertEqual(sessionBefore.turnCount, 2, 'T05a: turn count is 2 before archive')
 
-  orchestrator.requestArchive('manual')
+  await orchestrator.requestArchive('manual')
 
   const sessionAfter = orchestrator.getSessionState()
   assertEqual(sessionAfter.turnCount, 0, 'T05b: turn count reset to 0 after archive')

@@ -23,7 +23,7 @@ function isValidLoadProjectRequest(data: unknown): data is LoadProjectRequest {
 
 export function registerProjectHandlers(
   projectService: ProjectService,
-  onProjectLoaded?: (projectId: string, folderPath: string) => void,
+  onProjectLoaded?: (projectId: string, folderPath: string, projectName: string) => void,
 ): void {
   ipcMain.handle(IPC_CHANNELS.PROJECT_CREATE, (event, data: unknown) => {
     try {
@@ -60,7 +60,7 @@ export function registerProjectHandlers(
     }
     const result = projectService.loadProject(data.projectId)
     if (result.success && result.data) {
-      onProjectLoaded?.(data.projectId, result.data.project.folderPath)
+      onProjectLoaded?.(data.projectId, result.data.project.folderPath, result.data.project.name)
     }
     return result
   })

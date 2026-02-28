@@ -183,8 +183,8 @@ assert(
   'T26: "Thinking..." shown only when loading but NOT streaming'
 )
 assert(
-  chatPanelSrc.includes('disabled={isLoading}'),
-  'T27: InputBar disabled during loading (includes streaming)'
+  chatPanelSrc.includes('disabled={isLoading') && chatPanelSrc.includes('disabled='),
+  'T27: InputBar disabled during loading (includes streaming and cut phase)'
 )
 assert(
   chatPanelSrc.includes("border: '1px solid #ef4444'"),

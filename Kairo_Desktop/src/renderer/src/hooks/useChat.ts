@@ -8,6 +8,7 @@ import type {
   SendMessageRequest,
   StreamChunk,
   ChatAbortResponse,
+  CutPipelineEvent,
   IpcResult,
 } from '@shared/types'
 
@@ -22,6 +23,7 @@ export function useChat() {
   const finishStreaming = useChatStore((s) => s.finishStreaming)
   const failStreaming = useChatStore((s) => s.failStreaming)
   const setError = useChatStore((s) => s.setError)
+  const setCutPhase = useChatStore((s) => s.setCutPhase)
   const selectedModel = useSettingsStore((s) => s.selectedModel)
 
   // ── Register streaming listener (mount-once) ──────────────
@@ -49,6 +51,29 @@ export function useChat() {
 
     return unsubscribe
   }, [appendDelta, finishStreaming, failStreaming])
+
+  // ── Register cut pipeline state listener (Sprint D) ────────
+  useEffect(() => {
+    if (!hasKairoApi()) return
+
+    const api = getKairoApiOrThrow()
+    const unsubscribe = api.on(
+      IPC_CHANNELS.CUT_PIPELINE_STATE,
+      (event: unknown) => {
+        const e = event as CutPipelineEvent
+        if (!e || typeof e.phase !== 'string') return
+
+        // Terminal states → clear cut phase
+        if (e.phase === 'ready' || e.phase === 'error') {
+          setCutPhase(null)
+        } else {
+          setCutPhase(e.phase)
+        }
+      },
+    )
+
+    return unsubscribe
+  }, [setCutPhase])
 
   // ── Send message (initiates streaming) ─────────────────────
   const sendMessage = useCallback(

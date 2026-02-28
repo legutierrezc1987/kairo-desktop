@@ -16,9 +16,11 @@ import { ExecutionBroker } from './execution/execution-broker'
 import { TerminalService } from './services/terminal.service'
 import { MemoryService } from './memory/memory.service'
 import { registerMemoryHandlers } from './ipc/memory.handlers'
+import { UploadQueueService } from './services/upload-queue.service'
+import { SyncWorker } from './workers/sync-worker'
 import { IPC_CHANNELS } from '../shared/ipc-channels'
-import { KILL_SWITCH_ACCELERATOR, DEFAULT_BUDGET, BUDGET_PRESETS, MEMORY_SETTINGS_KEY_MCP_PATH } from '../shared/constants'
-import type { BrokerMode, CutReason } from '../shared/types'
+import { KILL_SWITCH_ACCELERATOR, DEFAULT_BUDGET, BUDGET_PRESETS, MEMORY_SETTINGS_KEY_MCP_PATH, CUT_PIPELINE_TIMEOUT_MS } from '../shared/constants'
+import type { BrokerMode, CutReason, CutPipelineEvent } from '../shared/types'
 
 // ── Startup guard: bail early if Electron is not running as a proper app ──
 if (process.env['ELECTRON_RUN_AS_NODE']) {
@@ -110,6 +112,9 @@ app.whenReady().then(async () => {
     }
   }
 
+  // ── Initialize upload queue + sync worker ──────────────────
+  const uploadQueue = new UploadQueueService(dbService.getDb())
+
   // ── Initialize orchestrator with persistence + resolved budget ──
   const orchestrator = new Orchestrator({
     sessionPersistence,
@@ -147,12 +152,28 @@ app.whenReady().then(async () => {
     console.error(`[KAIRO] Memory service init failed: ${err instanceof Error ? err.message : String(err)}`)
   })
 
+  // ── Wire orchestrator ports (Sprint D) ────────────────────
+  orchestrator.setMemoryPort(memoryService)
+  orchestrator.setUploadQueuePort(uploadQueue)
+
+  // ── Initialize SyncWorker (background upload) ─────────────
+  const syncWorker = new SyncWorker(uploadQueue, {
+    async index(filePath: string) {
+      const result = await memoryService.index(filePath)
+      if (result.success && result.data) {
+        return { indexed: result.data.result.indexed, error: result.data.result.error }
+      }
+      return { indexed: false, error: result.error ?? 'Memory index failed' }
+    },
+  })
+  syncWorker.start()
+
   // ── Create window and register handlers ─────────────────────
   mainWindow = createWindow()
   registerTerminalHandlers(terminalService, () => mainWindow)
   registerBrokerHandlers(broker, () => mainWindow, settingsService)
-  registerProjectHandlers(projectService, (projectId, folderPath) => {
-    orchestrator.setActiveProject(projectId)
+  registerProjectHandlers(projectService, (projectId, folderPath, projectName) => {
+    orchestrator.setActiveProject(projectId, folderPath, projectName)
     // SECURITY: Bind memory workspace to active project (Phase 4 Hardening)
     memoryService.updateWorkspace(folderPath).catch((err) => {
       console.error(`[KAIRO] Memory workspace update failed: ${err instanceof Error ? err.message : String(err)}`)
@@ -171,12 +192,22 @@ app.whenReady().then(async () => {
   })
   registerMemoryHandlers(memoryService, () => mainWindow)
 
+  // ── Register cut pipeline state push (Sprint D) ───────────
+  orchestrator.setCutStateSender((event: CutPipelineEvent) => {
+    mainWindow?.webContents.send(IPC_CHANNELS.CUT_PIPELINE_STATE, event)
+  })
+
   // ── Kill switch — Ctrl+Shift+K emergency stop (DEC-025) ────
+  // Codex guard #4: fire-and-forget with timeout — never blocks indefinitely
   const registered = globalShortcut.register(KILL_SWITCH_ACCELERATOR, () => {
     console.log('[KAIRO_KILLSWITCH] Emergency stop activated!')
     const killedCount = terminalService.killAll()
     broker.emergencyReset()
-    orchestrator.requestArchive('emergency')
+    // Fire-and-forget: async pipeline with timeout guard
+    Promise.race([
+      orchestrator.requestArchive('emergency'),
+      new Promise<void>(resolve => setTimeout(resolve, CUT_PIPELINE_TIMEOUT_MS)),
+    ]).catch(() => {})
     memoryService.shutdown().catch(() => {})
     mainWindow?.webContents.send(IPC_CHANNELS.KILLSWITCH_ACTIVATED, {
       timestamp: Date.now(),
@@ -220,8 +251,8 @@ app.whenReady().then(async () => {
     return { success: true, data: classifyCommand(obj.command) }
   })
 
-  // Session archive handler — manual consolidation (Phase 4 Sprint B)
-  ipcMain.handle(IPC_CHANNELS.SESSION_ARCHIVE, (event, data: unknown) => {
+  // Session archive handler — triggers 12-step cut pipeline (Sprint D)
+  ipcMain.handle(IPC_CHANNELS.SESSION_ARCHIVE, async (event, data: unknown) => {
     try {
       validateSender(event)
     } catch (err: unknown) {
@@ -236,7 +267,15 @@ app.whenReady().then(async () => {
         reason = obj.reason as CutReason
       }
     }
-    orchestrator.requestArchive(reason)
+    // Codex guard #4: await with timeout — never blocks renderer indefinitely
+    try {
+      await Promise.race([
+        orchestrator.requestArchive(reason),
+        new Promise<void>(resolve => setTimeout(resolve, CUT_PIPELINE_TIMEOUT_MS)),
+      ])
+    } catch {
+      // Pipeline errors are logged internally; don't fail the IPC response
+    }
     return { success: true, data: { archived: true } }
   })
 
@@ -269,6 +308,7 @@ app.whenReady().then(async () => {
 
   // Cleanup before quit
   app.on('before-quit', () => {
+    syncWorker.stop()
     orchestrator.shutdown()
     broker.destroy()
     terminalService.killAll()

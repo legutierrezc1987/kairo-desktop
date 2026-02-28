@@ -1,6 +1,6 @@
 # PROJECT MEMORY (Single Living Context)
 
-Version: 3.17
+Version: 3.19
 Last Updated: 2026-02-28
 Status: ACTIVE
 
@@ -23,12 +23,12 @@ Do not duplicate full DEC or long rationale content.
 
 ## Current Snapshot
 
-- Active phase: Phase 4 (Memory + MCP) — Sprint C (Streaming Chat E2E) sealed.
+- Active phase: Phase 4 (Memory + MCP) — Sprint D (Cut Pipeline Integration) implemented, pending commit.
 - Sealed commits: `326071a` (Sprint A hardening), `3c5799c` (Sprint B + stabilization), `756ad33` (Sprint C streaming e2e).
-- Current objective: Define Phase 4 Sprint D scope (cut pipeline integration).
+- Current objective: Seal Sprint D commit and start Phase 5 scope.
 - Active debates: none.
 - Open RFCs: none.
-- IPC channels: 38 (`CHAT_STREAM_CHUNK` added, `CHAT_ABORT` wired).
+- IPC channels: 39 (`CUT_PIPELINE_STATE` added).
 
 ## Completed This Session
 
@@ -45,6 +45,13 @@ Do not duplicate full DEC or long rationale content.
   - Claude reports implementation complete (GO).
   - Gemini audit: GO incondicional.
   - Codex independent verification run locally on full battery.
+- **Phase 4 Sprint D v2** (Cut Pipeline Integration) implemented:
+  - 12-step cut pipeline wired end-to-end (snapshot, local save, upload queue enqueue, bridge buffer, recall/fallback, context rebuild, UI unblock).
+  - Mandatory guards enforced: `_isCutting` gate, idempotent `requestArchive`, sync-worker `Promise.race` upload timeout, async callsite timeouts (`kill switch`, `before-quit`), terminal UI state in `finally`.
+  - New services: `snapshot.service.ts`, `upload-queue.service.ts`.
+  - Worker implemented: `sync-worker.ts` (single-flight, timeout, retry loop).
+  - UI wiring: `CUT_PIPELINE_STATE` channel + `chatStore.cutPhase` + cut overlay in `ChatPanel`.
+  - Prompt scaffold implemented in `system-prompt.ts`.
 
 ## Validation Ledger (Latest)
 
@@ -61,7 +68,7 @@ Do not duplicate full DEC or long rationale content.
 | Accounts/settings test | `node tests/test_accounts_settings.mjs` | 59/59 PASS |
 | Integration layer test | `node tests/test_integration_layer.mjs` | 64/64 PASS |
 | Session archive test | `node tests/test_session_archive.mjs` | 22/22 PASS |
-| IPC parity test | `node tests/test_ipc_negative.mjs` | 57/57 PASS |
+| IPC parity test | `node tests/test_ipc_negative.mjs` | 58/58 PASS |
 | Memory hardening test | `node tests/test_memory_hardening.mjs` | 71/71 PASS |
 | MCP process test | `node tests/test_mcp_process.mjs` | 41/41 PASS |
 | Memory provider test | `node tests/test_memory_provider.mjs` | 61/61 PASS |
@@ -70,17 +77,23 @@ Do not duplicate full DEC or long rationale content.
 | Streaming gateway test (NEW) | `node tests/test_streaming_gateway.mjs` | 40/40 PASS |
 | Chat history test (NEW) | `node tests/test_chat_history.mjs` | 38/38 PASS |
 | Renderer streaming test (NEW) | `node tests/test_renderer_streaming.mjs` | 34/34 PASS |
+| Snapshot service test (NEW) | `node tests/test_snapshot_service.mjs` | 18/18 PASS |
+| Upload queue test (NEW) | `node tests/test_upload_queue.mjs` | 23/23 PASS |
+| Sync worker test (NEW) | `node tests/test_sync_worker.mjs` | 15/15 PASS |
+| Cut pipeline test (NEW) | `node tests/test_cut_pipeline.mjs` | 31/31 PASS |
 | TypeScript strict | `npx tsc --noEmit` | exit 0 |
-| Electron-vite build | `npx electron-vite build` | PASS (main 154KB, preload 3KB, renderer 1074KB) |
+| Electron-vite build | `npx electron-vite build` | PASS (main 172KB, preload 3KB, renderer 1076KB) |
 
-Total: 1100 assertions, all passing (20 test files, 0 failures).
+Total: 1188 assertions validated (24 green test files, 1 known pre-existing failing scratch test: `test_audit_memory_hacks.mjs`).
 
 ## Pending (Priority Ordered)
 
-1. Define Phase 4 Sprint D scope (full 12-step cut pipeline + prompt/tooling foundation).
-2. Resolve Gemini API quota for real streaming smoke test (billing/project action).
-3. MCP provider package resolution checkpoint (fallback still active).
-4. Clean scratch untracked artifacts from working tree (`diff*.txt`, `*_diff.txt`, bundle, audit scratch test).
+1. Commit Phase 4 Sprint D implementation (Codex orchestration).
+2. Resolve handling policy for `test_audit_memory_hacks.mjs` (fix, quarantine, or remove from future ledgers).
+3. Define Phase 5 scope (Recall strategy, consolidation engine, rate-limit handler).
+4. Resolve Gemini API quota for real streaming smoke test (billing/project action).
+5. MCP provider package resolution checkpoint (fallback still active).
+6. Clean scratch untracked artifacts from working tree (`diff*.txt`, `*_diff.txt`, bundle, audit scratch test).
 
 ## Known Risks
 
@@ -91,6 +104,7 @@ Total: 1100 assertions, all passing (20 test files, 0 failures).
 - ConPTY "AttachConsole failed" noise persists in tests; non-blocking.
 - `better-sqlite3`/`node-pty` ABI dual-rebuild workflow remains required between Node tests and Electron runtime.
 - `safeStorage` unavailable in headless test environments (`PLAINTEXT:` fallback path).
+- `test_audit_memory_hacks.mjs` fails due to ESM `.ts` import resolution and remains untracked scratch.
 
 ## Mitigations
 
@@ -100,13 +114,15 @@ Total: 1100 assertions, all passing (20 test files, 0 failures).
 - Treat ConPTY attach failures as non-blocking test noise (already tolerated in suite).
 - Maintain documented dual-rebuild runbook for Node/Electron contexts.
 - Preserve bridge-guard pattern (`hasKairoApi`/`getKairoApiOrThrow`) for renderer IPC safety.
+- Keep `_isCutting` + idempotent cut lock + worker timeout as invariant in future refactors.
+- Exclude scratch tests/artifacts from release ledgers unless promoted to canonical suite.
 
 ## Next Step (Exact)
 
-Codex issues Sprint D scope packet to Claude, then Gemini audits it for GO/NO-GO before implementation.
+Create Sprint D seal commit (excluding scratch artifacts), then open Phase 5 scope definition packet.
 
 ## Next Owner
 
-- Codex (orchestrator): frame Sprint D scope packet and synthesize tribunal verdict.
-- Claude (implementer): standby for Sprint D implementation packet.
-- Gemini (auditor): standby for Sprint D scope audit.
+- Codex (orchestrator): seal Sprint D commit and frame Phase 5 scope packet.
+- Claude (implementer): standby for Phase 5 scope/implementation.
+- Gemini (auditor): standby for Phase 5 scope audit.

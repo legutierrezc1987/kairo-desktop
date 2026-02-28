@@ -363,6 +363,36 @@ export interface MemoryProviderChangedNotification {
   timestamp: number
 }
 
+// ─── Cut Pipeline Domain (Phase 4 Sprint D) ──────────────
+
+export type CutPipelinePhase =
+  | 'blocking'
+  | 'counting'
+  | 'generating'
+  | 'saving'
+  | 'uploading'
+  | 'recalling'
+  | 'ready'
+  | 'error'
+
+export interface CutPipelineEvent {
+  phase: CutPipelinePhase
+  sessionNumber?: number
+  error?: string
+}
+
+/** Context preserved across session cuts (PRD §5.3 Step 8) */
+export interface BridgeBuffer {
+  /** Last ~10K tokens of chat history (Content[] serialized) */
+  messages: Array<{ role: string; text: string }>
+  lastUserTurn: string
+  tokenEstimate: number
+  sourceSessionNumber: number
+}
+
+export type UploadQueueStatus = 'pending' | 'uploading' | 'synced' | 'failed' | 'manual'
+export type UploadFileType = 'transcript' | 'summary' | 'master_summary'
+
 // ─── App Domain ────────────────────────────────────────────
 
 export interface SelectFolderResponse {

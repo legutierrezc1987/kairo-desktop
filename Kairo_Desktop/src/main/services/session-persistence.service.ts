@@ -44,6 +44,7 @@ export class SessionPersistenceService {
   private stmtCountByProject: Database.Statement
   private stmtAddTokens: Database.Statement
   private stmtArchive: Database.Statement
+  private stmtUpdatePaths: Database.Statement
 
   constructor(private db: Database.Database) {
     this.stmtInsert = this.db.prepare(
@@ -61,6 +62,9 @@ export class SessionPersistenceService {
     )
     this.stmtArchive = this.db.prepare(
       "UPDATE sessions SET status = 'archived', cut_reason = ?, ended_at = datetime('now') WHERE id = ?"
+    )
+    this.stmtUpdatePaths = this.db.prepare(
+      'UPDATE sessions SET transcript_path = ?, summary_path = ? WHERE id = ?'
     )
   }
 
@@ -153,5 +157,10 @@ export class SessionPersistenceService {
       const msg = err instanceof Error ? err.message : 'Database error during session archive'
       return { success: false, error: msg }
     }
+  }
+
+  /** Update transcript and summary file paths for a session (Sprint D). */
+  updatePaths(sessionId: string, transcriptPath: string, summaryPath: string): void {
+    this.stmtUpdatePaths.run(transcriptPath, summaryPath, sessionId)
   }
 }

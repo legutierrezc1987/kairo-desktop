@@ -171,7 +171,7 @@ try {
     platform: 'node',
     format: 'esm',
     outfile: join(buildDir, 'orchestrator-patched.mjs'),
-    external: ['better-sqlite3', 'electron', '@google/generative-ai', 'node:crypto'],
+    external: ['better-sqlite3', 'electron', '@google/generative-ai', 'node:crypto', 'node:fs/promises'],
     logLevel: 'silent',
   })
 } finally {
@@ -299,8 +299,8 @@ console.log('\n── T05-T15: History lifecycle ──')
   const deltaChunks = chunks.filter(c => c.done === false && c.delta)
   assert(deltaChunks.length >= 2, 'T10: delta chunks carry text')
 
-  // Archive clears history
-  orch.requestArchive('manual')
+  // Archive clears history (requestArchive is async in Sprint D)
+  await orch.requestArchive('manual')
   assertEqual(orch.getChatHistoryLength(), 0, 'T11: history cleared on archive')
 
   // Project switch clears history
@@ -403,7 +403,8 @@ console.log('\n── T21-T28: Lifecycle abort ──')
   )
 
   assert(
-    orchSrc.includes('requestArchive(reason: CutReason): void'),
+    orchSrc.includes('requestArchive(reason: CutReason)') &&
+    orchSrc.includes('this.abortStream()'),
     'T24: requestArchive calls abortStream before archiving'
   )
 
@@ -420,9 +421,10 @@ console.log('\n── T21-T28: Lifecycle abort ──')
     'T26: setActiveProject clears chatHistory'
   )
 
+  // Sprint D renamed to archiveCurrentSessionSync (sync variant for project switch)
   const archiveMethod = orchSrc.substring(
-    orchSrc.indexOf('private archiveCurrentSession('),
-    orchSrc.indexOf('private archiveCurrentSession(') + 700
+    orchSrc.indexOf('private archiveCurrentSessionSync('),
+    orchSrc.indexOf('private archiveCurrentSessionSync(') + 700
   )
   assert(
     archiveMethod.includes('this.chatHistory = []'),
@@ -452,10 +454,10 @@ console.log('\n── T29-T33: P1 terminal error chunk ──')
     'T29: onError sends terminal chunk with error field'
   )
 
-  const defensiveCatch = orchSrc.substring(
-    orchSrc.indexOf('// Defensive: should not reach here'),
-    orchSrc.indexOf('} finally {')
-  )
+  const defStart = orchSrc.indexOf('// Defensive: should not reach here')
+  // Find the } finally { that comes AFTER the defensive catch (not the cut pipeline one)
+  const defEnd = orchSrc.indexOf('} finally {', defStart)
+  const defensiveCatch = orchSrc.substring(defStart, defEnd)
   assert(
     defensiveCatch.includes("done: true, error: msg"),
     'T30: defensive catch sends terminal error chunk'

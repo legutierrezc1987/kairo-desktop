@@ -1,4 +1,5 @@
 import { randomUUID } from 'node:crypto'
+import { readFile } from 'node:fs/promises'
 import type { Content } from '@google/generative-ai'
 import type {
   SendMessageRequest,
@@ -10,6 +11,10 @@ import type {
   CreateSessionResponse,
   GetActiveSessionResponse,
   StreamChunk,
+  CutPipelinePhase,
+  CutPipelineEvent,
+  BridgeBuffer,
+  MemoryQueryResponse,
 } from '../../shared/types'
 import {
   isInitialized,
@@ -22,19 +27,38 @@ import {
 import { routeModel } from '../services/model-router'
 import { TokenBudgeter } from '../services/token-budgeter'
 import { SessionManager } from '../services/session-manager'
-import { MAX_TURNS_PER_SESSION, SESSION_CUT_THRESHOLD_PERCENT } from '../../shared/constants'
+import { buildSystemPrompt } from '../config/system-prompt'
+import { createSnapshot, type SnapshotResult } from '../services/snapshot.service'
+import {
+  MAX_TURNS_PER_SESSION,
+  SESSION_CUT_THRESHOLD_PERCENT,
+  BRIDGE_BUFFER_TOKEN_TARGET,
+} from '../../shared/constants'
 
-// ─── Port Interface (interface segregation — no circular imports) ────
+// ─── Port Interfaces (interface segregation — no circular imports) ────
 
 export interface SessionPersistencePort {
   createSession(projectId: string): IpcResult<CreateSessionResponse>
   getActiveSession(projectId: string): IpcResult<GetActiveSessionResponse>
   addTokens(sessionId: string, tokensToAdd: number): IpcResult<{ session: SessionRecord }>
   archiveSession(sessionId: string, cutReason: CutReason): IpcResult<{ session: SessionRecord }>
+  updatePaths?(sessionId: string, transcriptPath: string, summaryPath: string): void
+}
+
+export interface MemoryPort {
+  query(query: string, maxResults?: number): Promise<IpcResult<MemoryQueryResponse>>
+}
+
+export interface UploadQueuePort {
+  enqueue(sessionId: string, filePath: string, fileType: 'transcript' | 'summary' | 'master_summary'): void
 }
 
 export interface OrchestratorOptions {
   sessionPersistence?: SessionPersistencePort
+  memoryPort?: MemoryPort
+  uploadQueuePort?: UploadQueuePort
+  projectFolderPath?: string
+  projectName?: string
   totalBudget?: number
 }
 
@@ -43,6 +67,12 @@ export interface OrchestratorOptions {
  * Registered by chat.handlers.ts at handler-registration time.
  */
 export type StreamChunkSender = (chunk: StreamChunk) => void
+
+/**
+ * Callback for sending cut pipeline state to renderer via IPC push.
+ * Registered by index.ts at startup.
+ */
+export type CutPipelineStateSender = (event: CutPipelineEvent) => void
 
 /**
  * Fallback token estimate when countTokens API is unavailable (e.g. 429 quota).
@@ -57,8 +87,13 @@ export class Orchestrator {
   private budgeter: TokenBudgeter
   private sessionManager: SessionManager
   private sessionPersistence: SessionPersistencePort | null
+  private memoryPort: MemoryPort | null
+  private uploadQueuePort: UploadQueuePort | null
   private activeProjectId: string | null = null
+  private activeProjectName: string = ''
+  private activeProjectFolderPath: string = ''
   private activeDbSessionId: string | null = null
+  private activeSessionNumber = 0
 
   /** Multi-turn chat history (Gemini Content[] format). Lives ONLY in main. */
   private chatHistory: Content[] = []
@@ -66,25 +101,58 @@ export class Orchestrator {
   /** Single-flight guard: true while a stream is in progress. */
   private _isStreaming = false
 
+  /** Concurrency guard: true while the cut pipeline is executing (Codex guard #1). */
+  private _isCutting = false
+
+  /** Bridge buffer from last session cut (injected into next session context). */
+  private _bridgeBuffer: BridgeBuffer | null = null
+
+  /** Callback for pushing cut pipeline state to renderer. */
+  private _cutStateSender: CutPipelineStateSender | null = null
+
   constructor(options?: OrchestratorOptions) {
     this.budgeter = new TokenBudgeter(options?.totalBudget)
     this.sessionManager = new SessionManager()
     this.sessionPersistence = options?.sessionPersistence ?? null
+    this.memoryPort = options?.memoryPort ?? null
+    this.uploadQueuePort = options?.uploadQueuePort ?? null
+    if (options?.projectFolderPath) this.activeProjectFolderPath = options.projectFolderPath
+    if (options?.projectName) this.activeProjectName = options.projectName
+  }
+
+  // ─── Cut State Sender Registration ─────────────────────────────
+
+  setCutStateSender(sender: CutPipelineStateSender): void {
+    this._cutStateSender = sender
+  }
+
+  private emitCutState(phase: CutPipelinePhase, error?: string): void {
+    const event: CutPipelineEvent = {
+      phase,
+      sessionNumber: this.activeSessionNumber,
+      error,
+    }
+    console.log(`[KAIRO_CUT_PIPELINE] Phase: ${phase}${error ? ` (error: ${error})` : ''}`)
+    this._cutStateSender?.(event)
   }
 
   // ─── Project Context ────────────────────────────────────────
 
-  setActiveProject(projectId: string | null): void {
+  setActiveProject(projectId: string | null, folderPath?: string, projectName?: string): void {
     if (projectId === this.activeProjectId) return
     // Abort any in-flight stream before switching projects
     this.abortStream()
-    // Archive current session if switching projects
+    // Archive current session if switching projects (sync — no full pipeline)
     if (this.activeDbSessionId) {
-      this.archiveCurrentSession('manual')
+      this.archiveCurrentSessionSync('manual')
     }
     this.activeProjectId = projectId
+    this.activeProjectFolderPath = folderPath ?? ''
+    this.activeProjectName = projectName ?? ''
     this.activeDbSessionId = null
+    this.activeSessionNumber = 0
     this.chatHistory = []
+    this._bridgeBuffer = null
     this.budgeter.reset()
     this.sessionManager.startSession()
     console.log(`[KAIRO_ORCHESTRATOR] Active project: ${projectId ?? 'none'}`)
@@ -94,17 +162,51 @@ export class Orchestrator {
     return this.activeProjectId
   }
 
-  // ─── Public archive request (for kill switch / external triggers) ──
+  // ─── Ports: runtime injection ─────────────────────────────────
 
-  requestArchive(reason: CutReason): void {
-    this.abortStream()
-    this.archiveCurrentSession(reason)
+  setMemoryPort(port: MemoryPort): void {
+    this.memoryPort = port
+  }
+
+  setUploadQueuePort(port: UploadQueuePort): void {
+    this.uploadQueuePort = port
+  }
+
+  // ─── Public archive request (async 12-step pipeline) ──────────
+
+  /**
+   * Request session archive — triggers the full 12-step cut pipeline.
+   * Codex guard #1: rejects if already cutting (idempotent).
+   * Codex guard #5: emits terminal state in finally (UI unlock guarantee).
+   */
+  async requestArchive(reason: CutReason): Promise<void> {
+    // Codex guard #2: idempotent — reject re-entry
+    if (this._isCutting) {
+      console.warn('[KAIRO_ORCHESTRATOR] requestArchive rejected: cut already in progress')
+      return
+    }
+
+    this._isCutting = true
+    try {
+      await this.executeCutPipeline(reason)
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err)
+      console.error(`[KAIRO_CUT_PIPELINE] Pipeline error: ${msg}`)
+      // Codex guard #5: always emit terminal error state
+      this.emitCutState('error', msg)
+    } finally {
+      this._isCutting = false
+    }
   }
 
   // ─── Streaming Guard ──────────────────────────────────────────
 
   isStreaming(): boolean {
     return this._isStreaming
+  }
+
+  isCutting(): boolean {
+    return this._isCutting
   }
 
   // ─── Abort ────────────────────────────────────────────────────
@@ -129,6 +231,14 @@ export class Orchestrator {
     request: SendMessageRequest,
     sendChunk: StreamChunkSender,
   ): Promise<IpcResult<{ messageId: string }>> {
+    // Codex guard #1: reject chat while cutting
+    if (this._isCutting) {
+      return {
+        success: false,
+        error: 'Session cut in progress. Please wait.',
+      }
+    }
+
     // Single-flight guard: reject overlapping sends
     if (this._isStreaming) {
       return {
@@ -285,6 +395,154 @@ export class Orchestrator {
     return this.chatHistory.length
   }
 
+  /** Expose bridge buffer for testing */
+  getBridgeBuffer(): BridgeBuffer | null {
+    return this._bridgeBuffer
+  }
+
+  // ─── Private: 12-Step Cut Pipeline (PRD §5.3) ─────────────────
+
+  private async executeCutPipeline(reason: CutReason): Promise<void> {
+    // Step 1: Block UI
+    this.emitCutState('blocking')
+    this.abortStream()
+
+    const sessionId = this.activeDbSessionId
+    const sessionNumber = this.activeSessionNumber
+    const history = [...this.chatHistory] // snapshot before clearing
+    const projectFolder = this.activeProjectFolderPath
+
+    // Step 2: Count tokens (informational — budget already tracked)
+    this.emitCutState('counting')
+
+    // Step 3-4: Generate summary + save to disk
+    this.emitCutState('generating')
+    let snapshot: SnapshotResult | null = null
+    if (projectFolder && history.length > 0) {
+      try {
+        snapshot = await createSnapshot(projectFolder, sessionNumber, history)
+      } catch (err) {
+        console.error(`[KAIRO_CUT_PIPELINE] Snapshot failed: ${err instanceof Error ? err.message : String(err)}`)
+      }
+    }
+
+    // Step 4b: Save paths to DB
+    this.emitCutState('saving')
+    if (snapshot && sessionId && this.sessionPersistence?.updatePaths) {
+      try {
+        this.sessionPersistence.updatePaths(sessionId, snapshot.transcriptPath, snapshot.summaryPath)
+      } catch (err) {
+        console.error(`[KAIRO_CUT_PIPELINE] Failed to update session paths: ${err instanceof Error ? err.message : String(err)}`)
+      }
+    }
+
+    // Step 5: Enqueue upload
+    this.emitCutState('uploading')
+    if (snapshot && sessionId && this.uploadQueuePort) {
+      try {
+        this.uploadQueuePort.enqueue(sessionId, snapshot.transcriptPath, 'transcript')
+        this.uploadQueuePort.enqueue(sessionId, snapshot.summaryPath, 'summary')
+      } catch (err) {
+        console.error(`[KAIRO_CUT_PIPELINE] Enqueue failed: ${err instanceof Error ? err.message : String(err)}`)
+      }
+    }
+
+    // Step 6: Upload happens async via SyncWorker (non-blocking)
+
+    // Step 7: Clear history — archive current session in DB
+    if (this.sessionPersistence && sessionId) {
+      try {
+        this.sessionPersistence.archiveSession(sessionId, reason)
+        console.log(`[KAIRO_ORCHESTRATOR] Session archived (reason: ${reason})`)
+      } catch (err) {
+        console.error('[KAIRO_ORCHESTRATOR] Failed to archive session:', err)
+      }
+    }
+
+    // Step 8: Extract bridge buffer (last ~10K tokens of history)
+    this._bridgeBuffer = this.extractBridgeBuffer(history, sessionNumber)
+
+    // Reset orchestrator state for new session
+    this.activeDbSessionId = null
+    this.chatHistory = []
+    this.budgeter.reset()
+    this.sessionManager.startSession()
+
+    // Step 9-10: Recall from memory (query last summary)
+    this.emitCutState('recalling')
+    let recallContext = ''
+    if (this.memoryPort) {
+      try {
+        const queryText = snapshot?.summaryText
+          ? snapshot.summaryText.slice(0, 500)
+          : `session ${sessionNumber} summary`
+        const recallResult = await this.memoryPort.query(queryText, 3)
+        if (recallResult.success && recallResult.data) {
+          recallContext = recallResult.data.results
+            .map(r => r.content)
+            .join('\n---\n')
+        }
+      } catch {
+        // Fallback: read local summary file directly
+        if (snapshot?.summaryPath) {
+          try {
+            recallContext = await readFile(snapshot.summaryPath, 'utf-8')
+          } catch {
+            // No recall available — proceed without
+          }
+        }
+      }
+    } else if (snapshot?.summaryPath) {
+      // No memory port — fallback to local file
+      try {
+        recallContext = await readFile(snapshot.summaryPath, 'utf-8')
+      } catch {
+        // No recall available — proceed without
+      }
+    }
+
+    // Step 11: Build new context (system prompt with recall + bridge)
+    const bridgeSummary = this._bridgeBuffer
+      ? this._bridgeBuffer.messages.map(m => `${m.role}: ${m.text}`).join('\n')
+      : ''
+
+    // System prompt is built for potential future injection (Gemini systemInstruction)
+    buildSystemPrompt(this.activeProjectName, recallContext, bridgeSummary)
+
+    // Step 12: Unblock UI
+    this.emitCutState('ready')
+    console.log(`[KAIRO_CUT_PIPELINE] Pipeline complete for session #${sessionNumber}`)
+  }
+
+  // ─── Private: Bridge Buffer Extraction ────────────────────────
+
+  private extractBridgeBuffer(history: Content[], sessionNumber: number): BridgeBuffer {
+    const messages: Array<{ role: string; text: string }> = []
+    let tokenEstimate = 0
+    let lastUserTurn = ''
+
+    // Walk history backwards, collecting turns until we hit target
+    for (let i = history.length - 1; i >= 0 && tokenEstimate < BRIDGE_BUFFER_TOKEN_TARGET; i--) {
+      const turn = history[i]
+      const text = turn.parts?.map(p => ('text' in p ? p.text : '')).join('') ?? ''
+      const turnTokens = estimateTokens(text)
+
+      messages.unshift({ role: turn.role ?? 'user', text })
+      tokenEstimate += turnTokens
+
+      if (turn.role === 'user' && !lastUserTurn) {
+        lastUserTurn = text
+      }
+    }
+
+    return {
+      messages,
+      lastUserTurn,
+      tokenEstimate,
+      sourceSessionNumber: sessionNumber,
+    }
+  }
+
   // ─── Private: DB Session Lifecycle ──────────────────────────
 
   private ensureDbSession(): void {
@@ -293,10 +551,12 @@ export class Orchestrator {
     const active = this.sessionPersistence.getActiveSession(this.activeProjectId)
     if (active.success && active.data?.session) {
       this.activeDbSessionId = active.data.session.id
+      this.activeSessionNumber = active.data.session.sessionNumber
     } else {
       const created = this.sessionPersistence.createSession(this.activeProjectId)
       if (created.success && created.data) {
         this.activeDbSessionId = created.data.session.id
+        this.activeSessionNumber = created.data.session.sessionNumber
       }
     }
   }
@@ -316,21 +576,30 @@ export class Orchestrator {
   private checkSessionLimits(): void {
     const sessionState = this.sessionManager.getState()
     if (sessionState.turnCount >= MAX_TURNS_PER_SESSION) {
-      this.archiveCurrentSession('turns')
+      // Fire-and-forget: auto-archive on limit hit
+      this.requestArchive('turns').catch(err => {
+        console.error('[KAIRO_ORCHESTRATOR] Auto-archive failed:', err)
+      })
       return
     }
 
     const budgetState = this.budgeter.getState()
     if (budgetState.totalUsed >= budgetState.totalBudget * SESSION_CUT_THRESHOLD_PERCENT) {
-      this.archiveCurrentSession('tokens')
+      this.requestArchive('tokens').catch(err => {
+        console.error('[KAIRO_ORCHESTRATOR] Auto-archive failed:', err)
+      })
     }
   }
 
-  private archiveCurrentSession(reason: CutReason): void {
+  /**
+   * Synchronous session archive — used only for project switch (setActiveProject).
+   * Does NOT trigger the full 12-step pipeline (no snapshot/upload/recall).
+   */
+  private archiveCurrentSessionSync(reason: CutReason): void {
     if (this.sessionPersistence && this.activeDbSessionId) {
       try {
         this.sessionPersistence.archiveSession(this.activeDbSessionId, reason)
-        console.log(`[KAIRO_ORCHESTRATOR] Session archived (reason: ${reason})`)
+        console.log(`[KAIRO_ORCHESTRATOR] Session archived sync (reason: ${reason})`)
       } catch (err) {
         console.error('[KAIRO_ORCHESTRATOR] Failed to archive session:', err)
       }

@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import type { ChatMessage } from '@shared/types'
+import type { ChatMessage, CutPipelinePhase } from '@shared/types'
 
 interface ChatState {
   messages: ChatMessage[]
@@ -7,6 +7,9 @@ interface ChatState {
   isStreaming: boolean
   streamingMessageId: string | null
   error: string | null
+
+  // Cut pipeline state (Phase 4 Sprint D)
+  cutPhase: CutPipelinePhase | null
 
   addMessage: (message: ChatMessage) => void
   setLoading: (loading: boolean) => void
@@ -18,6 +21,9 @@ interface ChatState {
   appendDelta: (messageId: string, delta: string) => void
   finishStreaming: (messageId: string, tokenCount?: number) => void
   failStreaming: (messageId: string, error: string) => void
+
+  // Cut pipeline actions (Phase 4 Sprint D)
+  setCutPhase: (phase: CutPipelinePhase | null) => void
 }
 
 export const useChatStore = create<ChatState>()((set) => ({
@@ -26,6 +32,7 @@ export const useChatStore = create<ChatState>()((set) => ({
   isStreaming: false,
   streamingMessageId: null,
   error: null,
+  cutPhase: null,
 
   addMessage: (message) => set((state) => ({ messages: [...state.messages, message] })),
   setLoading: (isLoading) => set({ isLoading }),
@@ -77,4 +84,6 @@ export const useChatStore = create<ChatState>()((set) => ({
         (m) => !(m.id === messageId && m.content === '')
       ),
     })),
+
+  setCutPhase: (cutPhase) => set({ cutPhase }),
 }))

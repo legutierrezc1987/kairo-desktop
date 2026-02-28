@@ -78,3 +78,26 @@ export const MEMORY_MAX_RESULTS_MIN = 1
 
 /** Maximum allowed value for maxResults parameter */
 export const MEMORY_MAX_RESULTS_MAX = 50
+
+// ─── Cut Pipeline Configuration (Phase 4 Sprint D) ─────────
+
+/** Target token count for bridge buffer preserved across session cuts (PRD §5.3 Step 8) */
+export const BRIDGE_BUFFER_TOKEN_TARGET = 10_000
+
+/** Timeout for overall cut pipeline when triggered by kill switch / before-quit (ms) */
+export const CUT_PIPELINE_TIMEOUT_MS = 30_000
+
+/** Timeout per single upload attempt via MemoryProvider.index() (ms) */
+export const UPLOAD_TIMEOUT_MS = 60_000
+
+/** Maximum upload retry attempts before escalating to MANUAL_INTERVENTION */
+export const UPLOAD_MAX_RETRIES = 10
+
+/** Base delay for upload retry exponential backoff (ms) — 5 minutes */
+export const UPLOAD_RETRY_BASE_MS = 300_000
+
+/** Timeout for snapshot generation via LLM (ms) */
+export const SNAPSHOT_GENERATION_TIMEOUT_MS = 15_000
+
+/** Interval for SyncWorker tick cycle (ms) — 2 minutes */
+export const SYNC_WORKER_INTERVAL_MS = 120_000

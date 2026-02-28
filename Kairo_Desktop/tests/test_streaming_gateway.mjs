@@ -261,7 +261,7 @@ assert(
   'T37: orchestrator.shutdown() calls abortStream()'
 )
 assert(
-  orchestratorSrc.includes('requestArchive(reason: CutReason): void {') &&
+  orchestratorSrc.includes('requestArchive(reason: CutReason)') &&
   orchestratorSrc.includes('this.abortStream()'),
   'T38: requestArchive aborts stream before archiving'
 )
