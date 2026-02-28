@@ -23,9 +23,9 @@ Do not duplicate full DEC or long rationale content.
 
 ## Current Snapshot
 
-- Active phase: Phase 4 (Memory + MCP) — Sprint C (Streaming Chat E2E) implemented, audited, pending commit.
-- Sealed commits: `326071a` (Sprint A hardening), `3c5799c` (Sprint B + stabilization).
-- Current objective: Seal Sprint C commit and then define Sprint D scope.
+- Active phase: Phase 4 (Memory + MCP) — Sprint C (Streaming Chat E2E) sealed.
+- Sealed commits: `326071a` (Sprint A hardening), `3c5799c` (Sprint B + stabilization), `756ad33` (Sprint C streaming e2e).
+- Current objective: Define Phase 4 Sprint D scope (cut pipeline integration).
 - Active debates: none.
 - Open RFCs: none.
 - IPC channels: 38 (`CHAT_STREAM_CHUNK` added, `CHAT_ABORT` wired).
@@ -77,10 +77,10 @@ Total: 1100 assertions, all passing (20 test files, 0 failures).
 
 ## Pending (Priority Ordered)
 
-1. Commit Phase 4 Sprint C implementation (Codex orchestrator).
-2. Define Phase 4 Sprint D scope (full 12-step cut pipeline + prompt/tooling foundation).
-3. Resolve Gemini API quota for real streaming smoke test (billing/project action).
-4. MCP provider package resolution checkpoint (fallback still active).
+1. Define Phase 4 Sprint D scope (full 12-step cut pipeline + prompt/tooling foundation).
+2. Resolve Gemini API quota for real streaming smoke test (billing/project action).
+3. MCP provider package resolution checkpoint (fallback still active).
+4. Clean scratch untracked artifacts from working tree (`diff*.txt`, `*_diff.txt`, bundle, audit scratch test).
 
 ## Known Risks
 
@@ -103,10 +103,10 @@ Total: 1100 assertions, all passing (20 test files, 0 failures).
 
 ## Next Step (Exact)
 
-Create Sprint C seal commit from current working tree (excluding scratch artifacts), then start Sprint D scope definition.
+Codex issues Sprint D scope packet to Claude, then Gemini audits it for GO/NO-GO before implementation.
 
 ## Next Owner
 
-- Codex (orchestrator): seal Sprint C commit, then frame Sprint D scope packet.
+- Codex (orchestrator): frame Sprint D scope packet and synthesize tribunal verdict.
 - Claude (implementer): standby for Sprint D implementation packet.
 - Gemini (auditor): standby for Sprint D scope audit.
