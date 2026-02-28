@@ -152,6 +152,13 @@ export async function generateContent(prompt: string, modelId: string) {
   return { text: 'mock-response', tokenCount: { prompt: 10, completion: 20, total: 30 } }
 }
 export async function countTokens(content: string, modelId: string): Promise<number> { return 10 }
+export interface GeminiResponse { text: string; tokenCount: { prompt: number; completion: number; total: number } }
+export interface StreamCallbacks { onChunk: (text: string) => void; onComplete: (response: GeminiResponse) => void; onError: (error: Error) => void }
+export async function streamChatMessage(prompt: string, modelId: string, history: any[], callbacks: StreamCallbacks): Promise<void> {
+  callbacks.onChunk('mock ');
+  callbacks.onComplete({ text: 'mock response', tokenCount: { prompt: 10, completion: 15, total: 25 } });
+}
+export function abortActiveStream(): boolean { return false }
 `)
 
 // Model router shim at shim-services/model-router.ts
@@ -182,7 +189,7 @@ buildSync({
   platform: 'node',
   format: 'esm',
   outfile: join(buildDir, 'orchestrator.mjs'),
-  external: ['better-sqlite3', 'node:crypto'],
+  external: ['better-sqlite3', 'node:crypto', '@google/generative-ai'],
   logLevel: 'silent',
 })
 

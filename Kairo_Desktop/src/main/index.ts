@@ -115,7 +115,7 @@ app.whenReady().then(async () => {
     sessionPersistence,
     totalBudget,
   })
-  registerChatHandlers(orchestrator)
+  registerChatHandlers(orchestrator, () => mainWindow)
 
   // ── Initialize execution broker + terminal service ──────────
   // SECURITY: workspacePath anchors sandbox validation for all terminal spawns (DEC-025)
@@ -269,6 +269,7 @@ app.whenReady().then(async () => {
 
   // Cleanup before quit
   app.on('before-quit', () => {
+    orchestrator.shutdown()
     broker.destroy()
     terminalService.killAll()
     memoryService.shutdown().catch(() => {})

@@ -8,6 +8,7 @@ export const IPC_CHANNELS = {
   // Chat domain
   CHAT_SEND_MESSAGE: 'chat:send-message',
   CHAT_ABORT: 'chat:abort',
+  CHAT_STREAM_CHUNK: 'chat:stream-chunk',
 
   // Settings domain
   SETTINGS_GET: 'settings:get',

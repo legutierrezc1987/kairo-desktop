@@ -25,6 +25,21 @@ export interface SendMessageResponse {
   }
 }
 
+/** Streaming chunk pushed from main→renderer via CHAT_STREAM_CHUNK (Phase 4 Sprint C) */
+export interface StreamChunk {
+  messageId: string
+  delta: string
+  done: boolean
+  tokenCount?: number
+  error?: string
+}
+
+/** Abort response from CHAT_ABORT handler */
+export interface ChatAbortResponse {
+  aborted: boolean
+  reason?: string
+}
+
 // ─── Model Domain ────────────────────────────────────────────
 
 export type ModelId = 'gemini-2.5-pro' | 'gemini-2.0-flash' | 'gemini-2.0-flash-lite'

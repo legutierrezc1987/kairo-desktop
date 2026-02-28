@@ -101,10 +101,18 @@ let initialized = true
 export function initGeminiGateway(apiKey: string): void { initialized = true }
 export function resetGeminiGateway(): void { initialized = false }
 export function isInitialized(): boolean { return initialized }
+export function isStreaming(): boolean { return false }
 export async function generateContent(prompt: string, modelId: string) {
   return { text: 'mock-response', tokenCount: { prompt: 10, completion: 20, total: 30 } }
 }
 export async function countTokens(content: string, modelId: string): Promise<number> { return 10 }
+export interface GeminiResponse { text: string; tokenCount: { prompt: number; completion: number; total: number } }
+export interface StreamCallbacks { onChunk: (text: string) => void; onComplete: (response: GeminiResponse) => void; onError: (error: Error) => void }
+export async function streamChatMessage(prompt: string, modelId: string, history: any[], callbacks: StreamCallbacks): Promise<void> {
+  callbacks.onChunk('mock-response')
+  callbacks.onComplete({ text: 'mock-response', tokenCount: { prompt: 10, completion: 20, total: 30 } })
+}
+export function abortActiveStream(): boolean { return false }
 `)
 
 writeFileSync(join(shimServicesDir, 'model-router.ts'), `
@@ -130,7 +138,7 @@ buildSync({
   entryPoints: [join(shimCoreDir, 'orchestrator.ts')],
   bundle: true, platform: 'node', format: 'esm',
   outfile: join(buildDir, 'orchestrator.mjs'),
-  external: ['better-sqlite3', 'node:crypto'],
+  external: ['better-sqlite3', 'node:crypto', '@google/generative-ai'],
   logLevel: 'silent',
 })
 

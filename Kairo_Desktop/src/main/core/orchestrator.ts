@@ -1,4 +1,5 @@
 import { randomUUID } from 'node:crypto'
+import type { Content } from '@google/generative-ai'
 import type {
   SendMessageRequest,
   SendMessageResponse,
@@ -8,8 +9,16 @@ import type {
   SessionRecord,
   CreateSessionResponse,
   GetActiveSessionResponse,
+  StreamChunk,
 } from '../../shared/types'
-import { generateContent, countTokens, isInitialized } from '../services/gemini-gateway'
+import {
+  isInitialized,
+  generateContent,
+  countTokens,
+  streamChatMessage,
+  abortActiveStream,
+  type GeminiResponse,
+} from '../services/gemini-gateway'
 import { routeModel } from '../services/model-router'
 import { TokenBudgeter } from '../services/token-budgeter'
 import { SessionManager } from '../services/session-manager'
@@ -30,6 +39,12 @@ export interface OrchestratorOptions {
 }
 
 /**
+ * Callback for sending stream chunks to the renderer via IPC push.
+ * Registered by chat.handlers.ts at handler-registration time.
+ */
+export type StreamChunkSender = (chunk: StreamChunk) => void
+
+/**
  * Fallback token estimate when countTokens API is unavailable (e.g. 429 quota).
  * Uses ~4 characters per token heuristic — conservative for English text.
  * Documented: DEC-021 budget allocations require metering even when API is down.
@@ -45,6 +60,12 @@ export class Orchestrator {
   private activeProjectId: string | null = null
   private activeDbSessionId: string | null = null
 
+  /** Multi-turn chat history (Gemini Content[] format). Lives ONLY in main. */
+  private chatHistory: Content[] = []
+
+  /** Single-flight guard: true while a stream is in progress. */
+  private _isStreaming = false
+
   constructor(options?: OrchestratorOptions) {
     this.budgeter = new TokenBudgeter(options?.totalBudget)
     this.sessionManager = new SessionManager()
@@ -55,12 +76,15 @@ export class Orchestrator {
 
   setActiveProject(projectId: string | null): void {
     if (projectId === this.activeProjectId) return
+    // Abort any in-flight stream before switching projects
+    this.abortStream()
     // Archive current session if switching projects
     if (this.activeDbSessionId) {
       this.archiveCurrentSession('manual')
     }
     this.activeProjectId = projectId
     this.activeDbSessionId = null
+    this.chatHistory = []
     this.budgeter.reset()
     this.sessionManager.startSession()
     console.log(`[KAIRO_ORCHESTRATOR] Active project: ${projectId ?? 'none'}`)
@@ -73,13 +97,132 @@ export class Orchestrator {
   // ─── Public archive request (for kill switch / external triggers) ──
 
   requestArchive(reason: CutReason): void {
+    this.abortStream()
     this.archiveCurrentSession(reason)
   }
 
-  // ─── Chat Message Handler ───────────────────────────────────
+  // ─── Streaming Guard ──────────────────────────────────────────
+
+  isStreaming(): boolean {
+    return this._isStreaming
+  }
+
+  // ─── Abort ────────────────────────────────────────────────────
+
+  /** Abort active stream + cleanup. Safe to call when idle. */
+  abortStream(): void {
+    if (this._isStreaming) {
+      abortActiveStream()
+      this._isStreaming = false
+    }
+  }
+
+  // ─── Shutdown (app quit) ──────────────────────────────────────
+
+  shutdown(): void {
+    this.abortStream()
+  }
+
+  // ─── Streaming Chat Message Handler (Phase 4 Sprint C) ────────
+
+  async handleStreamingChat(
+    request: SendMessageRequest,
+    sendChunk: StreamChunkSender,
+  ): Promise<IpcResult<{ messageId: string }>> {
+    // Single-flight guard: reject overlapping sends
+    if (this._isStreaming) {
+      return {
+        success: false,
+        error: 'A generation is already in progress. Wait or abort first.',
+      }
+    }
+
+    if (!isInitialized()) {
+      return {
+        success: false,
+        error: 'Gemini API not initialized. Configure an account or set GEMINI_API_KEY environment variable.',
+      }
+    }
+
+    const messageId = randomUUID()
+    const modelId = routeModel('foreground', request.model)
+
+    // Ensure DB session exists (lazy creation)
+    this.ensureDbSession()
+
+    // Append user turn to history
+    this.chatHistory.push({
+      role: 'user',
+      parts: [{ text: request.content }],
+    })
+
+    this._isStreaming = true
+
+    try {
+      await streamChatMessage(
+        request.content,
+        modelId,
+        // Pass history WITHOUT the current user message (SDK adds it internally)
+        this.chatHistory.slice(0, -1),
+        {
+          onChunk: (text: string) => {
+            sendChunk({ messageId, delta: text, done: false })
+          },
+
+          onComplete: (response: GeminiResponse) => {
+            // Append model turn to history
+            this.chatHistory.push({
+              role: 'model',
+              parts: [{ text: response.text }],
+            })
+
+            // Token accounting: authoritative, at completion only
+            const totalTokens = response.tokenCount.total
+            this.budgeter.record('chat', totalTokens)
+            this.sessionManager.incrementTurn(totalTokens)
+            this.persistTokens(totalTokens)
+
+            // Terminal chunk with token count
+            sendChunk({
+              messageId,
+              delta: '',
+              done: true,
+              tokenCount: totalTokens,
+            })
+          },
+
+          onError: (error: Error) => {
+            // P1 FIX: ALWAYS send terminal error chunk to prevent UI zombie
+            sendChunk({
+              messageId,
+              delta: '',
+              done: true,
+              error: error.message,
+            })
+
+            // Roll back the user turn from history on error
+            if (this.chatHistory.length > 0 && this.chatHistory[this.chatHistory.length - 1].role === 'user') {
+              this.chatHistory.pop()
+            }
+          },
+        },
+      )
+
+      return { success: true, data: { messageId } }
+    } catch (error: unknown) {
+      // Defensive: should not reach here (streamChatMessage catches internally)
+      const msg = error instanceof Error ? error.message : 'Unknown streaming error'
+      sendChunk({ messageId, delta: '', done: true, error: msg })
+      return { success: false, error: msg }
+    } finally {
+      this._isStreaming = false
+    }
+  }
+
+  // ─── Legacy one-shot (kept for backward compat / tests) ──────
 
   async handleChatMessage(
-    request: SendMessageRequest
+    request: SendMessageRequest,
   ): Promise<IpcResult<SendMessageResponse>> {
     if (!isInitialized()) {
       return {
@@ -91,11 +234,8 @@ export class Orchestrator {
     try {
       const modelId = routeModel('foreground', request.model)
 
-      // Ensure DB session exists (lazy creation)
       this.ensureDbSession()
 
-      // Pre-count input tokens via countTokens API.
-      // If countTokens fails (429 quota, network, etc.), fall back to estimate.
       let inputTokenCount: number
       try {
         inputTokenCount = await countTokens(request.content, modelId)
@@ -103,20 +243,11 @@ export class Orchestrator {
         inputTokenCount = estimateTokens(request.content)
       }
 
-      // Record input tokens BEFORE the generation call.
-      // This ensures ContextMeter reflects usage even if generation fails midway.
       this.budgeter.record('chat', inputTokenCount)
-
       const result = await generateContent(request.content, modelId)
-
-      // Record output tokens (completion) from the actual response.
-      // Subtract the input we already recorded to avoid double-counting
-      // if usageMetadata.total includes both prompt + completion.
       const outputTokens = result.tokenCount.completion
       this.budgeter.record('chat', outputTokens)
       this.sessionManager.incrementTurn(result.tokenCount.total)
-
-      // Persist tokens to DB (best-effort, never blocks response)
       this.persistTokens(result.tokenCount.total)
 
       const responseMessage: ChatMessage = {
@@ -147,6 +278,11 @@ export class Orchestrator {
 
   getSessionState() {
     return this.sessionManager.getState()
+  }
+
+  /** Expose history length for testing/diagnostics */
+  getChatHistoryLength(): number {
+    return this.chatHistory.length
   }
 
   // ─── Private: DB Session Lifecycle ──────────────────────────
@@ -200,6 +336,7 @@ export class Orchestrator {
       }
     }
     this.activeDbSessionId = null
+    this.chatHistory = []
     this.budgeter.reset()
     this.sessionManager.startSession()
   }
