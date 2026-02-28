@@ -22,6 +22,7 @@ export default function ChatPanel(): React.JSX.Element {
   const isLoading = useChatStore((s) => s.isLoading)
   const isStreaming = useChatStore((s) => s.isStreaming)
   const cutPhase = useChatStore((s) => s.cutPhase)
+  const recallPhase = useChatStore((s) => s.recallPhase)
   const error = useChatStore((s) => s.error)
   const { sendMessage, abortGeneration } = useChat()
   const messagesEndRef = useRef<HTMLDivElement>(null)
@@ -95,6 +96,24 @@ export default function ChatPanel(): React.JSX.Element {
         </div>
       )}
 
+      {/* Non-blocking recall status indicator (Phase 5 Sprint A) */}
+      {recallPhase && (
+        <div style={{
+          position: 'absolute',
+          top: '48px',
+          right: '12px',
+          backgroundColor: '#1e3a5f',
+          border: '1px solid #2563eb',
+          borderRadius: '8px',
+          padding: '6px 12px',
+          fontSize: '11px',
+          color: '#93c5fd',
+          zIndex: 40,
+        }}>
+          {recallPhase === 'querying' ? 'Recalling memory...' : 'Injecting context...'}
+        </div>
+      )}
+
       {/* Recall popover (positioned relative to this container) */}
       <RecallButton />
 
@@ -118,8 +137,8 @@ export default function ChatPanel(): React.JSX.Element {
         </div>
       )}
 
-      {/* Input — disabled during loading or cut pipeline */}
-      <InputBar onSend={sendMessage} disabled={isLoading || !!cutPhase} />
+      {/* Input — disabled during loading, cut pipeline, or recall (NO-GO remediation) */}
+      <InputBar onSend={sendMessage} disabled={isLoading || !!cutPhase || !!recallPhase} />
     </div>
   )
 }

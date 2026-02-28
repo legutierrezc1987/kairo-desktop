@@ -101,3 +101,14 @@ export const SNAPSHOT_GENERATION_TIMEOUT_MS = 15_000
 
 /** Interval for SyncWorker tick cycle (ms) — 2 minutes */
 export const SYNC_WORKER_INTERVAL_MS = 120_000
+
+// ─── Recall Strategy Configuration (Phase 5 Sprint A, DEC-026) ──
+
+/** Maximum tokens for recall injection (DEC-021: memory channel = 10% of budget) */
+export const RECALL_BUDGET_TOKENS = 20_000
+
+/** Number of turns between periodic recall triggers (DEC-026 trigger #4) */
+export const RECALL_PERIODIC_INTERVAL = 8
+
+/** Timeout for a single recall query (ms) */
+export const RECALL_QUERY_TIMEOUT_MS = 10_000

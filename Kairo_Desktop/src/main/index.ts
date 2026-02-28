@@ -20,7 +20,7 @@ import { UploadQueueService } from './services/upload-queue.service'
 import { SyncWorker } from './workers/sync-worker'
 import { IPC_CHANNELS } from '../shared/ipc-channels'
 import { KILL_SWITCH_ACCELERATOR, DEFAULT_BUDGET, BUDGET_PRESETS, MEMORY_SETTINGS_KEY_MCP_PATH, CUT_PIPELINE_TIMEOUT_MS } from '../shared/constants'
-import type { BrokerMode, CutReason, CutPipelineEvent } from '../shared/types'
+import type { BrokerMode, CutReason, CutPipelineEvent, RecallStatusEvent } from '../shared/types'
 
 // ── Startup guard: bail early if Electron is not running as a proper app ──
 if (process.env['ELECTRON_RUN_AS_NODE']) {
@@ -195,6 +195,11 @@ app.whenReady().then(async () => {
   // ── Register cut pipeline state push (Sprint D) ───────────
   orchestrator.setCutStateSender((event: CutPipelineEvent) => {
     mainWindow?.webContents.send(IPC_CHANNELS.CUT_PIPELINE_STATE, event)
+  })
+
+  // ── Register recall status push (Phase 5 Sprint A, DEC-026) ───
+  orchestrator.setRecallStatusSender((event: RecallStatusEvent) => {
+    mainWindow?.webContents.send(IPC_CHANNELS.RECALL_STATUS, event)
   })
 
   // ── Kill switch — Ctrl+Shift+K emergency stop (DEC-025) ────

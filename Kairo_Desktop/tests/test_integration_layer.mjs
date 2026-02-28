@@ -198,6 +198,7 @@ const patchedSource = orchestratorOrigSource
   .replace("from '../services/session-manager'", `from '${srcMain}/services/session-manager'`)
   .replace("from '../config/system-prompt'", `from '${shimCfgDir}/system-prompt.ts'`)
   .replace("from '../services/snapshot.service'", `from '${shimSvcDir}/snapshot.service.ts'`)
+  .replace("from '../memory/recall-strategy'", `from '${srcMain}/memory/recall-strategy'`)
   .replace("from '../../shared/types'", `from '${resolve(__dirname, '../src/shared/types').replace(/\\/g, '/')}'`)
   .replace("from '../../shared/constants'", `from '${resolve(__dirname, '../src/shared/constants').replace(/\\/g, '/')}'`)
 writeFileSync(join(shimCoreDir, 'orchestrator.ts'), patchedSource)

@@ -68,6 +68,9 @@ export const IPC_CHANNELS = {
   // Cut pipeline domain (Phase 4 Sprint D)
   CUT_PIPELINE_STATE: 'cut:pipeline-state',
 
+  // Recall strategy domain (Phase 5 Sprint A, DEC-026)
+  RECALL_STATUS: 'recall:status',
+
   // App domain
   APP_GET_CWD: 'app:get-cwd',
   APP_SELECT_FOLDER: 'app:select-folder',

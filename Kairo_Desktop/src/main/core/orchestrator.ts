@@ -15,6 +15,9 @@ import type {
   CutPipelineEvent,
   BridgeBuffer,
   MemoryQueryResponse,
+  RecallTrigger,
+  RecallStatusPhase,
+  RecallStatusEvent,
 } from '../../shared/types'
 import {
   isInitialized,
@@ -29,10 +32,12 @@ import { TokenBudgeter } from '../services/token-budgeter'
 import { SessionManager } from '../services/session-manager'
 import { buildSystemPrompt } from '../config/system-prompt'
 import { createSnapshot, type SnapshotResult } from '../services/snapshot.service'
+import { shouldRecall, buildQuery, truncateToRecallBudget, type RecallContext } from '../memory/recall-strategy'
 import {
   MAX_TURNS_PER_SESSION,
   SESSION_CUT_THRESHOLD_PERCENT,
   BRIDGE_BUFFER_TOKEN_TARGET,
+  RECALL_QUERY_TIMEOUT_MS,
 } from '../../shared/constants'
 
 // ─── Port Interfaces (interface segregation — no circular imports) ────
@@ -75,6 +80,12 @@ export type StreamChunkSender = (chunk: StreamChunk) => void
 export type CutPipelineStateSender = (event: CutPipelineEvent) => void
 
 /**
+ * Callback for sending recall status to renderer via IPC push.
+ * Registered by index.ts at startup. Codex guard #3: must always emit terminal state.
+ */
+export type RecallStatusSender = (event: RecallStatusEvent) => void
+
+/**
  * Fallback token estimate when countTokens API is unavailable (e.g. 429 quota).
  * Uses ~4 characters per token heuristic — conservative for English text.
  * Documented: DEC-021 budget allocations require metering even when API is down.
@@ -104,11 +115,20 @@ export class Orchestrator {
   /** Concurrency guard: true while the cut pipeline is executing (Codex guard #1). */
   private _isCutting = false
 
+  /** Concurrency guard: true while a recall query is in-flight (NO-GO remediation). */
+  private _isRecalling = false
+
   /** Bridge buffer from last session cut (injected into next session context). */
   private _bridgeBuffer: BridgeBuffer | null = null
 
   /** Callback for pushing cut pipeline state to renderer. */
   private _cutStateSender: CutPipelineStateSender | null = null
+
+  /** Callback for pushing recall status to renderer (Codex guard #3). */
+  private _recallStatusSender: RecallStatusSender | null = null
+
+  /** Turns since last recall was executed (for periodic trigger). */
+  private _turnsSinceLastRecall = 0
 
   constructor(options?: OrchestratorOptions) {
     this.budgeter = new TokenBudgeter(options?.totalBudget)
@@ -136,6 +156,22 @@ export class Orchestrator {
     this._cutStateSender?.(event)
   }
 
+  // ─── Recall Status Sender Registration (Phase 5 Sprint A) ────
+
+  setRecallStatusSender(sender: RecallStatusSender): void {
+    this._recallStatusSender = sender
+  }
+
+  /**
+   * Emit recall status event. Codex guard #3: MUST always emit a terminal
+   * state ('done' | 'skipped' | 'error') to prevent UI stale indicator.
+   */
+  private emitRecallStatus(phase: RecallStatusPhase, trigger: RecallTrigger, error?: string): void {
+    const event: RecallStatusEvent = { phase, trigger, error }
+    console.log(`[KAIRO_RECALL] Phase: ${phase}, trigger: ${trigger}${error ? ` (error: ${error})` : ''}`)
+    this._recallStatusSender?.(event)
+  }
+
   // ─── Project Context ────────────────────────────────────────
 
   setActiveProject(projectId: string | null, folderPath?: string, projectName?: string): void {
@@ -153,6 +189,7 @@ export class Orchestrator {
     this.activeSessionNumber = 0
     this.chatHistory = []
     this._bridgeBuffer = null
+    this._turnsSinceLastRecall = 0
     this.budgeter.reset()
     this.sessionManager.startSession()
     console.log(`[KAIRO_ORCHESTRATOR] Active project: ${projectId ?? 'none'}`)
@@ -209,6 +246,10 @@ export class Orchestrator {
     return this._isCutting
   }
 
+  isRecalling(): boolean {
+    return this._isRecalling
+  }
+
   // ─── Abort ────────────────────────────────────────────────────
 
   /** Abort active stream + cleanup. Safe to call when idle. */
@@ -244,6 +285,14 @@ export class Orchestrator {
       return {
         success: false,
         error: 'A generation is already in progress. Wait or abort first.',
+      }
+    }
+
+    // NO-GO remediation: reject chat while recall is injecting into history
+    if (this._isRecalling) {
+      return {
+        success: false,
+        error: 'Memory recall in progress. Please wait.',
       }
     }
 
@@ -291,6 +340,10 @@ export class Orchestrator {
             this.budgeter.record('chat', totalTokens)
             this.sessionManager.incrementTurn(totalTokens)
             this.persistTokens(totalTokens)
+
+            // Recall strategy: increment turn counter, check periodic trigger
+            this._turnsSinceLastRecall++
+            this.maybePeriodicRecall(request.content)
 
             // Terminal chunk with token count
             sendChunk({
@@ -468,34 +521,19 @@ export class Orchestrator {
     this.budgeter.reset()
     this.sessionManager.startSession()
 
-    // Step 9-10: Recall from memory (query last summary)
+    // Step 9-10: Recall from memory via RecallStrategy (session_start trigger)
     this.emitCutState('recalling')
     let recallContext = ''
-    if (this.memoryPort) {
+    try {
+      recallContext = await this.executeRecall('session_start')
+    } catch {
+      // executeRecall already handles errors and emits status — fallback to local file
+    }
+    // Fallback: if recall returned nothing and we have a local summary, use it
+    if (!recallContext && snapshot?.summaryPath) {
       try {
-        const queryText = snapshot?.summaryText
-          ? snapshot.summaryText.slice(0, 500)
-          : `session ${sessionNumber} summary`
-        const recallResult = await this.memoryPort.query(queryText, 3)
-        if (recallResult.success && recallResult.data) {
-          recallContext = recallResult.data.results
-            .map(r => r.content)
-            .join('\n---\n')
-        }
-      } catch {
-        // Fallback: read local summary file directly
-        if (snapshot?.summaryPath) {
-          try {
-            recallContext = await readFile(snapshot.summaryPath, 'utf-8')
-          } catch {
-            // No recall available — proceed without
-          }
-        }
-      }
-    } else if (snapshot?.summaryPath) {
-      // No memory port — fallback to local file
-      try {
-        recallContext = await readFile(snapshot.summaryPath, 'utf-8')
+        const localContent = await readFile(snapshot.summaryPath, 'utf-8')
+        recallContext = truncateToRecallBudget(localContent)
       } catch {
         // No recall available — proceed without
       }
@@ -512,6 +550,103 @@ export class Orchestrator {
     // Step 12: Unblock UI
     this.emitCutState('ready')
     console.log(`[KAIRO_CUT_PIPELINE] Pipeline complete for session #${sessionNumber}`)
+  }
+
+  // ─── Private: Recall Execution (Phase 5 Sprint A, DEC-026) ────
+
+  /**
+   * Check and fire periodic recall (trigger #4). Called after each completed turn.
+   * Fire-and-forget: does not block the chat response.
+   * Codex guard #1: runs inside single-flight lifecycle (stream already done).
+   * Codex guard #3: always emits terminal recall status.
+   */
+  private maybePeriodicRecall(lastUserMessage: string): void {
+    const context = this.buildRecallContext(lastUserMessage, false)
+    if (!shouldRecall('periodic', context)) return
+
+    // Fire-and-forget async recall
+    this.executeRecall('periodic', context).catch(err => {
+      console.error('[KAIRO_RECALL] Periodic recall error:', err)
+    })
+  }
+
+  /**
+   * Execute a recall query against long-term memory and inject results into chat history.
+   * Codex guard #2: truncates to RECALL_BUDGET_TOKENS.
+   * Codex guard #3: ALWAYS emits terminal state (done/skipped/error) in finally.
+   */
+  async executeRecall(trigger: RecallTrigger, context?: RecallContext): Promise<string> {
+    const ctx = context ?? this.buildRecallContext('', trigger === 'session_start')
+
+    if (!shouldRecall(trigger, ctx)) {
+      this.emitRecallStatus('skipped', trigger)
+      return ''
+    }
+
+    // NO-GO remediation: single-flight recall guard — prevents history corruption
+    this._isRecalling = true
+    this.emitRecallStatus('querying', trigger)
+    try {
+      const query = buildQuery(trigger, ctx)
+
+      // Timeout guard for recall query
+      const recallPromise = this.memoryPort!.query(query, 5)
+      const timeoutPromise = new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error('Recall query timeout')), RECALL_QUERY_TIMEOUT_MS),
+      )
+      const result = await Promise.race([recallPromise, timeoutPromise])
+
+      if (!result.success || !result.data || result.data.results.length === 0) {
+        this.emitRecallStatus('done', trigger)
+        this._turnsSinceLastRecall = 0
+        return ''
+      }
+
+      // Merge results and truncate to budget (Codex guard #2)
+      const rawContent = result.data.results.map(r => r.content).join('\n---\n')
+      const truncated = truncateToRecallBudget(rawContent)
+
+      // Inject as system-like context into chat history
+      this.emitRecallStatus('injecting', trigger)
+      this.chatHistory.push({
+        role: 'user',
+        parts: [{ text: `[RECALL — ${trigger}]\n${truncated}` }],
+      })
+      this.chatHistory.push({
+        role: 'model',
+        parts: [{ text: 'Understood. I have integrated the recalled context.' }],
+      })
+
+      // Record recall tokens in memory channel
+      const recallTokens = Math.ceil(truncated.length / 4)
+      this.budgeter.record('memory', recallTokens)
+
+      this._turnsSinceLastRecall = 0
+      this.emitRecallStatus('done', trigger)
+      return truncated
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err)
+      // Codex guard #3: always emit terminal error state
+      this.emitRecallStatus('error', trigger, msg)
+      this._turnsSinceLastRecall = 0
+      return ''
+    } finally {
+      this._isRecalling = false
+    }
+  }
+
+  /** Build RecallContext from current orchestrator state */
+  private buildRecallContext(lastUserMessage: string, isPostCut: boolean): RecallContext {
+    const budgetState = this.budgeter.getState()
+    return {
+      turnsSinceLastRecall: this._turnsSinceLastRecall,
+      isPostCut,
+      lastUserMessage,
+      currentTokensUsed: budgetState.totalUsed,
+      totalBudget: budgetState.totalBudget,
+      projectName: this.activeProjectName,
+      hasMemoryPort: this.memoryPort !== null,
+    }
   }
 
   // ─── Private: Bridge Buffer Extraction ────────────────────────

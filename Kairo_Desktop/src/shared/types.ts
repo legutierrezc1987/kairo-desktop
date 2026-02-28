@@ -393,6 +393,24 @@ export interface BridgeBuffer {
 export type UploadQueueStatus = 'pending' | 'uploading' | 'synced' | 'failed' | 'manual'
 export type UploadFileType = 'transcript' | 'summary' | 'master_summary'
 
+// ─── Recall Strategy Domain (Phase 5 Sprint A, DEC-026) ────
+
+export type RecallTrigger =
+  | 'session_start'
+  | 'task_change'
+  | 'critical_action'
+  | 'periodic'
+  | 'contradiction'
+  | 'manual'
+
+export type RecallStatusPhase = 'querying' | 'injecting' | 'done' | 'skipped' | 'error'
+
+export interface RecallStatusEvent {
+  phase: RecallStatusPhase
+  trigger: RecallTrigger
+  error?: string
+}
+
 // ─── App Domain ────────────────────────────────────────────
 
 export interface SelectFolderResponse {

@@ -9,6 +9,7 @@ import type {
   StreamChunk,
   ChatAbortResponse,
   CutPipelineEvent,
+  RecallStatusEvent,
   IpcResult,
 } from '@shared/types'
 
@@ -24,6 +25,7 @@ export function useChat() {
   const failStreaming = useChatStore((s) => s.failStreaming)
   const setError = useChatStore((s) => s.setError)
   const setCutPhase = useChatStore((s) => s.setCutPhase)
+  const setRecallPhase = useChatStore((s) => s.setRecallPhase)
   const selectedModel = useSettingsStore((s) => s.selectedModel)
 
   // ── Register streaming listener (mount-once) ──────────────
@@ -74,6 +76,29 @@ export function useChat() {
 
     return unsubscribe
   }, [setCutPhase])
+
+  // ── Register recall status listener (Phase 5 Sprint A) ──────
+  useEffect(() => {
+    if (!hasKairoApi()) return
+
+    const api = getKairoApiOrThrow()
+    const unsubscribe = api.on(
+      IPC_CHANNELS.RECALL_STATUS,
+      (event: unknown) => {
+        const e = event as RecallStatusEvent
+        if (!e || typeof e.phase !== 'string') return
+
+        // Terminal states → clear recall phase
+        if (e.phase === 'done' || e.phase === 'skipped' || e.phase === 'error') {
+          setRecallPhase(null)
+        } else {
+          setRecallPhase(e.phase)
+        }
+      },
+    )
+
+    return unsubscribe
+  }, [setRecallPhase])
 
   // ── Send message (initiates streaming) ─────────────────────
   const sendMessage = useCallback(

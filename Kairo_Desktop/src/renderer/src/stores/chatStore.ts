@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import type { ChatMessage, CutPipelinePhase } from '@shared/types'
+import type { ChatMessage, CutPipelinePhase, RecallStatusPhase } from '@shared/types'
 
 interface ChatState {
   messages: ChatMessage[]
@@ -10,6 +10,9 @@ interface ChatState {
 
   // Cut pipeline state (Phase 4 Sprint D)
   cutPhase: CutPipelinePhase | null
+
+  // Recall status (Phase 5 Sprint A, DEC-026)
+  recallPhase: RecallStatusPhase | null
 
   addMessage: (message: ChatMessage) => void
   setLoading: (loading: boolean) => void
@@ -24,6 +27,9 @@ interface ChatState {
 
   // Cut pipeline actions (Phase 4 Sprint D)
   setCutPhase: (phase: CutPipelinePhase | null) => void
+
+  // Recall status actions (Phase 5 Sprint A)
+  setRecallPhase: (phase: RecallStatusPhase | null) => void
 }
 
 export const useChatStore = create<ChatState>()((set) => ({
@@ -33,6 +39,7 @@ export const useChatStore = create<ChatState>()((set) => ({
   streamingMessageId: null,
   error: null,
   cutPhase: null,
+  recallPhase: null,
 
   addMessage: (message) => set((state) => ({ messages: [...state.messages, message] })),
   setLoading: (isLoading) => set({ isLoading }),
@@ -86,4 +93,6 @@ export const useChatStore = create<ChatState>()((set) => ({
     })),
 
   setCutPhase: (cutPhase) => set({ cutPhase }),
+
+  setRecallPhase: (recallPhase) => set({ recallPhase }),
 }))
