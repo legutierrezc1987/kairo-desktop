@@ -1,6 +1,7 @@
 import { useEffect, useCallback } from 'react'
 import { IPC_CHANNELS } from '@shared/ipc-channels'
 import { useBrokerStore } from '@renderer/stores/brokerStore'
+import { hasKairoApi, getKairoApiOrThrow } from '@renderer/lib/kairoApi'
 import type {
   IpcResult,
   PendingCommandNotification,
@@ -17,7 +18,8 @@ export function usePendingCommands(): {
 
   // Fetch existing pending commands on mount
   useEffect(() => {
-    window.kairoApi
+    if (!hasKairoApi()) return
+    getKairoApiOrThrow()
       .invoke(IPC_CHANNELS.BROKER_GET_PENDING)
       .then((result) => {
         const res = result as IpcResult<PendingCommandNotification[]>
@@ -30,7 +32,10 @@ export function usePendingCommands(): {
 
   // Listen for push events from main process
   useEffect(() => {
-    const unsubAdded = window.kairoApi.on(
+    if (!hasKairoApi()) return
+    const api = getKairoApiOrThrow()
+
+    const unsubAdded = api.on(
       IPC_CHANNELS.BROKER_PENDING_ADDED,
       (...args: unknown[]) => {
         const payload = args[0] as PendingCommandNotification
@@ -38,7 +43,7 @@ export function usePendingCommands(): {
       }
     )
 
-    const unsubResolved = window.kairoApi.on(
+    const unsubResolved = api.on(
       IPC_CHANNELS.BROKER_PENDING_RESOLVED,
       (...args: unknown[]) => {
         const payload = args[0] as PendingResolvedNotification
@@ -53,13 +58,15 @@ export function usePendingCommands(): {
   }, [addPending, removePending])
 
   const approve = useCallback(async (commandId: string): Promise<ApprovalResponse | null> => {
-    const result = await window.kairoApi.invoke(IPC_CHANNELS.BROKER_APPROVE, { commandId })
+    const api = getKairoApiOrThrow()
+    const result = await api.invoke(IPC_CHANNELS.BROKER_APPROVE, { commandId })
     const res = result as IpcResult<ApprovalResponse>
     return res.data ?? null
   }, [])
 
   const reject = useCallback(async (commandId: string): Promise<ApprovalResponse | null> => {
-    const result = await window.kairoApi.invoke(IPC_CHANNELS.BROKER_REJECT, { commandId })
+    const api = getKairoApiOrThrow()
+    const result = await api.invoke(IPC_CHANNELS.BROKER_REJECT, { commandId })
     const res = result as IpcResult<ApprovalResponse>
     return res.data ?? null
   }, [])

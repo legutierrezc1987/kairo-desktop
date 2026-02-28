@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useTerminal } from '@renderer/hooks/useTerminal'
+import { hasKairoApi, getKairoApiOrThrow } from '@renderer/lib/kairoApi'
 import { IPC_CHANNELS } from '@shared/ipc-channels'
 import type { IpcResult } from '@shared/types'
 import CommandApproval from './CommandApproval'
@@ -10,7 +11,8 @@ export default function TerminalPanel(): React.JSX.Element {
   const [cwdError, setCwdError] = useState<string | null>(null)
 
   useEffect(() => {
-    window.kairoApi
+    if (!hasKairoApi()) return
+    getKairoApiOrThrow()
       .invoke(IPC_CHANNELS.APP_GET_CWD)
       .then((result) => {
         const res = result as IpcResult<string>

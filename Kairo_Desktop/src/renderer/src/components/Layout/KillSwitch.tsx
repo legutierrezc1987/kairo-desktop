@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { IPC_CHANNELS } from '../../../../shared/ipc-channels'
 import { KILL_SWITCH_BANNER_DURATION_MS } from '../../../../shared/constants'
+import { hasKairoApi, getKairoApiOrThrow } from '@renderer/lib/kairoApi'
 
 /**
  * Kill switch emergency banner — DEC-025.
@@ -19,7 +20,8 @@ export default function KillSwitch(): React.JSX.Element | null {
   }, [])
 
   useEffect(() => {
-    const unsub = window.kairoApi.on(IPC_CHANNELS.KILLSWITCH_ACTIVATED, handleActivation)
+    if (!hasKairoApi()) return
+    const unsub = getKairoApiOrThrow().on(IPC_CHANNELS.KILLSWITCH_ACTIVATED, handleActivation)
     return unsub
   }, [handleActivation])
 

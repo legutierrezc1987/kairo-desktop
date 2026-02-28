@@ -1,6 +1,7 @@
 import { useRef, useEffect, useState } from 'react'
 import { Terminal } from 'xterm'
 import { FitAddon } from '@xterm/addon-fit'
+import { hasKairoApi, getKairoApiOrThrow } from '@renderer/lib/kairoApi'
 import { IPC_CHANNELS } from '@shared/ipc-channels'
 import type { TerminalSpawnResponse, IpcResult } from '@shared/types'
 
@@ -23,8 +24,9 @@ export function useTerminal(options: UseTerminalOptions): UseTerminalReturn {
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    if (!terminalRef.current || !options.cwd) return
+    if (!terminalRef.current || !options.cwd || !hasKairoApi()) return
 
+    const api = getKairoApiOrThrow()
     const xterm = new Terminal({
       cursorBlink: true,
       fontFamily: 'Menlo, Monaco, "Courier New", monospace',
@@ -43,7 +45,7 @@ export function useTerminal(options: UseTerminalOptions): UseTerminalReturn {
     xtermRef.current = xterm
 
     // Spawn pty in main process
-    window.kairoApi
+    api
       .invoke(IPC_CHANNELS.TERMINAL_SPAWN, {
         cwd: options.cwd,
         cols: xterm.cols,
@@ -64,7 +66,7 @@ export function useTerminal(options: UseTerminalOptions): UseTerminalReturn {
       })
 
     // Listen for pty output (main → renderer push)
-    const removeDataListener = window.kairoApi.on(
+    const removeDataListener = api.on(
       IPC_CHANNELS.TERMINAL_DATA,
       (...args: unknown[]) => {
         const payload = args[0] as { terminalId: string; data: string }
@@ -76,7 +78,7 @@ export function useTerminal(options: UseTerminalOptions): UseTerminalReturn {
     cleanupFnsRef.current.push(removeDataListener)
 
     // Listen for pty exit
-    const removeExitListener = window.kairoApi.on(
+    const removeExitListener = api.on(
       IPC_CHANNELS.TERMINAL_EXIT,
       (...args: unknown[]) => {
         const payload = args[0] as { terminalId: string; exitCode: number }
@@ -91,7 +93,7 @@ export function useTerminal(options: UseTerminalOptions): UseTerminalReturn {
     // Forward user keystrokes to pty
     const onDataDisposable = xterm.onData((data: string) => {
       if (terminalIdRef.current) {
-        window.kairoApi.invoke(IPC_CHANNELS.TERMINAL_INPUT, {
+        api.invoke(IPC_CHANNELS.TERMINAL_INPUT, {
           terminalId: terminalIdRef.current,
           data,
         })
@@ -103,7 +105,7 @@ export function useTerminal(options: UseTerminalOptions): UseTerminalReturn {
     const resizeObserver = new ResizeObserver(() => {
       fitAddon.fit()
       if (terminalIdRef.current) {
-        window.kairoApi.invoke(IPC_CHANNELS.TERMINAL_RESIZE, {
+        api.invoke(IPC_CHANNELS.TERMINAL_RESIZE, {
           terminalId: terminalIdRef.current,
           cols: xterm.cols,
           rows: xterm.rows,
@@ -119,7 +121,7 @@ export function useTerminal(options: UseTerminalOptions): UseTerminalReturn {
       cleanupFnsRef.current = []
 
       if (terminalIdRef.current) {
-        window.kairoApi.invoke(IPC_CHANNELS.TERMINAL_KILL, {
+        api.invoke(IPC_CHANNELS.TERMINAL_KILL, {
           terminalId: terminalIdRef.current,
         })
       }

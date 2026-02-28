@@ -1,4 +1,4 @@
-import { app, shell, BrowserWindow, ipcMain, globalShortcut } from 'electron'
+import { app, shell, BrowserWindow, ipcMain, globalShortcut, dialog } from 'electron'
 import { join } from 'path'
 import { Orchestrator } from './core/orchestrator'
 import { registerChatHandlers } from './ipc/chat.handlers'
@@ -7,7 +7,6 @@ import { registerBrokerHandlers } from './ipc/broker.handlers'
 import { registerProjectHandlers } from './ipc/project.handlers'
 import { registerSettingsHandlers } from './ipc/settings.handlers'
 import { validateSender } from './ipc/validate-sender'
-import { DatabaseService } from './services/database.service'
 import { initGeminiGateway, resetGeminiGateway } from './services/gemini-gateway'
 import { ProjectService } from './services/project.service'
 import { SessionPersistenceService } from './services/session-persistence.service'
@@ -19,7 +18,21 @@ import { MemoryService } from './memory/memory.service'
 import { registerMemoryHandlers } from './ipc/memory.handlers'
 import { IPC_CHANNELS } from '../shared/ipc-channels'
 import { KILL_SWITCH_ACCELERATOR, DEFAULT_BUDGET, BUDGET_PRESETS, MEMORY_SETTINGS_KEY_MCP_PATH } from '../shared/constants'
-import type { BrokerMode } from '../shared/types'
+import type { BrokerMode, CutReason } from '../shared/types'
+
+// ── Startup guard: bail early if Electron is not running as a proper app ──
+if (process.env['ELECTRON_RUN_AS_NODE']) {
+  console.error(
+    '[KAIRO] ELECTRON_RUN_AS_NODE is set — Electron app module is unavailable.\n' +
+    'Unset this variable before launching Kairo Desktop.'
+  )
+  process.exit(1)
+}
+
+if (typeof app === 'undefined' || app === null) {
+  console.error('[KAIRO] Electron app module failed to load. Aborting.')
+  process.exit(1)
+}
 
 const icon = join(__dirname, '../../resources/icon.png')
 
@@ -58,11 +71,15 @@ function createWindow(): BrowserWindow {
   return win
 }
 
-app.whenReady().then(() => {
+app.whenReady().then(async () => {
   app.setAppUserModelId('com.orionocg.kairo-desktop')
 
-  // ── Initialize SQLite database (DEC-023) ────────────────────
-  const dbService = new DatabaseService(app.getPath('userData'))
+  try {
+    // Load native DB service lazily so startup failures are handled deterministically.
+    const { DatabaseService } = await import('./services/database.service')
+
+    // ── Initialize SQLite database (DEC-023) ────────────────────
+    const dbService = new DatabaseService(app.getPath('userData'))
   const projectService = new ProjectService(dbService.getDb())
   const sessionPersistence = new SessionPersistenceService(dbService.getDb())
   const accountService = new AccountService(dbService.getDb())
@@ -203,6 +220,47 @@ app.whenReady().then(() => {
     return { success: true, data: classifyCommand(obj.command) }
   })
 
+  // Session archive handler — manual consolidation (Phase 4 Sprint B)
+  ipcMain.handle(IPC_CHANNELS.SESSION_ARCHIVE, (event, data: unknown) => {
+    try {
+      validateSender(event)
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Sender validation failed'
+      return { success: false, error: msg }
+    }
+    const VALID_REASONS: CutReason[] = ['tokens', 'turns', 'manual', 'emergency']
+    let reason: CutReason = 'manual'
+    if (typeof data === 'object' && data !== null) {
+      const obj = data as Record<string, unknown>
+      if (typeof obj.reason === 'string' && VALID_REASONS.includes(obj.reason as CutReason)) {
+        reason = obj.reason as CutReason
+      }
+    }
+    orchestrator.requestArchive(reason)
+    return { success: true, data: { archived: true } }
+  })
+
+  // Folder picker handler — native OS dialog (Phase 4 Sprint B)
+  ipcMain.handle(IPC_CHANNELS.APP_SELECT_FOLDER, async (event) => {
+    try {
+      validateSender(event)
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Sender validation failed'
+      return { success: false, error: msg }
+    }
+    if (!mainWindow) {
+      return { success: false, error: 'No window available' }
+    }
+    const result = await dialog.showOpenDialog(mainWindow, {
+      properties: ['openDirectory'],
+      title: 'Select Project Folder',
+    })
+    if (result.canceled || result.filePaths.length === 0) {
+      return { success: true, data: { folderPath: null } }
+    }
+    return { success: true, data: { folderPath: result.filePaths[0] } }
+  })
+
   app.on('activate', function () {
     if (BrowserWindow.getAllWindows().length === 0) {
       mainWindow = createWindow()
@@ -216,6 +274,17 @@ app.whenReady().then(() => {
     memoryService.shutdown().catch(() => {})
     dbService.close()
   })
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error)
+    const isNativeAbiError = message.includes('better_sqlite3.node') && message.includes('NODE_MODULE_VERSION')
+    const hint = isNativeAbiError
+      ? 'Run: npx electron-builder install-app-deps'
+      : 'Check terminal logs for details.'
+    const details = `Kairo failed during startup.\n\n${message}\n\n${hint}`
+    console.error(`[KAIRO] Startup failure: ${details}`)
+    dialog.showErrorBox('Kairo startup error', details)
+    app.quit()
+  }
 })
 
 app.on('will-quit', () => {

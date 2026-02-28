@@ -7,24 +7,30 @@ import TerminalPanel from '@renderer/components/Terminal/TerminalPanel'
 import ChatPanel from '@renderer/components/Chat/ChatPanel'
 import ModeToggle from '@renderer/components/Layout/ModeToggle'
 import KillSwitch from '@renderer/components/Layout/KillSwitch'
+import StatusBar from '@renderer/components/Layout/StatusBar'
+import SettingsPanel from '@renderer/components/Settings/SettingsPanel'
 
 export default function MainLayout(): React.JSX.Element {
   return (
     <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column' }}>
       {/* Kill switch emergency banner (renders as fixed overlay) */}
       <KillSwitch />
-      {/* Status bar — mode toggle */}
+      {/* Status bar — project info + settings + mode toggle */}
       <div style={{
         height: '32px',
         minHeight: '32px',
         display: 'flex',
         alignItems: 'center',
-        justifyContent: 'flex-end',
-        paddingRight: '12px',
+        justifyContent: 'space-between',
+        padding: '0 12px',
         backgroundColor: '#171717',
         borderBottom: '1px solid #404040',
       }}>
-        <ModeToggle />
+        <StatusBar />
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <SettingsPanel />
+          <ModeToggle />
+        </div>
       </div>
 
       {/* Main vertical split: top (panels) + bottom (chat) */}

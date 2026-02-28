@@ -5,6 +5,8 @@ import MessageBubble from './MessageBubble'
 import InputBar from './InputBar'
 import ModelSelector from './ModelSelector'
 import ContextMeter from './ContextMeter'
+import ConsolidateButton from './ConsolidateButton'
+import RecallButton from './RecallButton'
 
 export default function ChatPanel(): React.JSX.Element {
   const messages = useChatStore((s) => s.messages)
@@ -18,11 +20,14 @@ export default function ChatPanel(): React.JSX.Element {
   }, [messages])
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', backgroundColor: '#171717' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', backgroundColor: '#171717', position: 'relative' }}>
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 12px', borderBottom: '1px solid #404040' }}>
         <ContextMeter />
-        <ModelSelector />
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <ConsolidateButton />
+          <ModelSelector />
+        </div>
       </div>
 
       {/* Messages */}
@@ -49,6 +54,9 @@ export default function ChatPanel(): React.JSX.Element {
         )}
         <div ref={messagesEndRef} />
       </div>
+
+      {/* Recall popover (positioned relative to this container) */}
+      <RecallButton />
 
       {/* Input */}
       <InputBar onSend={sendMessage} disabled={isLoading} />

@@ -1,14 +1,18 @@
 import { useState, useEffect } from 'react'
 import type { TokenBudgetState } from '@shared/types'
 import { IPC_CHANNELS } from '@shared/ipc-channels'
+import { hasKairoApi, getKairoApiOrThrow } from '@renderer/lib/kairoApi'
 
 export default function ContextMeter(): React.JSX.Element {
   const [budget, setBudget] = useState<TokenBudgetState | null>(null)
 
   useEffect(() => {
+    if (!hasKairoApi()) return
+
+    const api = getKairoApiOrThrow()
     const fetchBudget = async (): Promise<void> => {
       try {
-        const state = (await window.kairoApi.invoke(
+        const state = (await api.invoke(
           IPC_CHANNELS.TOKEN_GET_BUDGET
         )) as TokenBudgetState
         setBudget(state)

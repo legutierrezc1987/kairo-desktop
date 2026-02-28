@@ -56,6 +56,7 @@ export const IPC_CHANNELS = {
   // Session persistence domain
   SESSION_CREATE: 'session:create',
   SESSION_GET_ACTIVE: 'session:get-active',
+  SESSION_ARCHIVE: 'session:archive',
 
   // Memory domain
   MEMORY_QUERY: 'memory:query',
@@ -65,6 +66,7 @@ export const IPC_CHANNELS = {
 
   // App domain
   APP_GET_CWD: 'app:get-cwd',
+  APP_SELECT_FOLDER: 'app:select-folder',
 } as const
 
 /** Type representing any valid IPC channel value */

@@ -1,6 +1,7 @@
 import { useCallback } from 'react'
 import { useChatStore } from '@renderer/stores/chatStore'
 import { useSettingsStore } from '@renderer/stores/settingsStore'
+import { getKairoApiOrThrow } from '@renderer/lib/kairoApi'
 import { IPC_CHANNELS } from '@shared/ipc-channels'
 import type { ChatMessage, SendMessageRequest, SendMessageResponse, IpcResult } from '@shared/types'
 
@@ -27,8 +28,9 @@ export function useChat() {
       setLoading(true)
 
       try {
+        const api = getKairoApiOrThrow()
         const request: SendMessageRequest = { content, model: selectedModel }
-        const result = (await window.kairoApi.invoke(
+        const result = (await api.invoke(
           IPC_CHANNELS.CHAT_SEND_MESSAGE,
           request
         )) as IpcResult<SendMessageResponse>

@@ -268,6 +268,9 @@ export interface UpdateSessionTokensRequest {
   tokensToAdd: number
 }
 
+export interface SessionArchiveRequest { reason: CutReason }
+export interface SessionArchiveResponse { archived: boolean }
+
 // ─── Settings Persistence Domain ───────────────────────────
 
 export interface SettingEntry {
@@ -343,4 +346,10 @@ export interface MemoryProviderChangedNotification {
   currentProvider: MemoryProviderType
   reason: string
   timestamp: number
+}
+
+// ─── App Domain ────────────────────────────────────────────
+
+export interface SelectFolderResponse {
+  folderPath: string | null
 }
