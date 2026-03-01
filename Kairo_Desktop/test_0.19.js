@@ -1,5 +1,5 @@
 // Item 0.19 — Gemini API countTokens validation
-// Model: gemini-2.0-flash (aligned with PRD and runtime evidence)
+// Model: gemini-2.5-flash (aligned with PRD and runtime evidence)
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 const key = process.env.GEMINI_API_KEY;
 if (!key) {
@@ -8,7 +8,7 @@ if (!key) {
 }
 const genAI = new GoogleGenerativeAI(key);
 async function run() {
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
     const result = await model.countTokens('Hello Kairo');
     if (result.totalTokens > 0) {
         console.log('PASS: totalTokens=' + result.totalTokens);
@@ -21,3 +21,4 @@ run().catch(err => {
     console.error('FAIL: ' + err.message);
     process.exit(1);
 });
+
