@@ -1,6 +1,6 @@
 # PROJECT MEMORY (Single Living Context)
 
-Version: 3.31
+Version: 3.32
 Last Updated: 2026-03-01
 Status: ACTIVE
 
@@ -23,26 +23,25 @@ Do not duplicate full DEC or long rationale content.
 
 ## Current Snapshot
 
-- Active phase: Phase 6 (Editor + Polish) — Sprint B SEALED + AUDITED GO (`9fc53df`).
-- Sealed commits: `326071a` (Sprint A hardening), `3c5799c` (Sprint B + stabilization), `756ad33` (Sprint C streaming e2e), `07831d4` (Sprint D cut-pipeline e2e), `64c3813` (Phase 5 Sprint A recall), `a0b30d8` (Phase 5 Sprint B consolidation), `da6c092` (Phase 5 Sprint C rate-limit, GO), `5df7b7a` (Phase 6 Sprint A Monaco editor read/write, GO), `9fc53df` (Phase 6 Sprint B File Explorer lazy tree, GO).
-- Current objective: Implement Phase 6 Sprint C (Settings panel completeness) under Gemini GO pre-implementation verdict.
+- Active phase: Phase 6 (Editor + Polish) — Sprint C SEALED + AUDITED GO (`5e3a168`).
+- Sealed commits: `326071a` (Sprint A hardening), `3c5799c` (Sprint B + stabilization), `756ad33` (Sprint C streaming e2e), `07831d4` (Sprint D cut-pipeline e2e), `64c3813` (Phase 5 Sprint A recall), `a0b30d8` (Phase 5 Sprint B consolidation), `da6c092` (Phase 5 Sprint C rate-limit, GO), `5df7b7a` (Phase 6 Sprint A Monaco editor read/write, GO), `9fc53df` (Phase 6 Sprint B File Explorer lazy tree, GO), `5e3a168` (Phase 6 Sprint C Settings completeness, GO).
+- Current objective: Scope audit of Phase 6 Sprint D (Impact Analyzer + UndoManager) for GO/NO-GO pre-implementation.
 - Active debates: none.
 - Open RFCs: none.
 - IPC channels: 45 (`FS_LIST_DIR` added in Phase 6 Sprint B).
 
 ## Completed This Session
 
-- **Phase 6 Sprint B seal** — commit `9fc53df`:
-  - File Explorer tree implemented with lazy-load expansion and click-to-open integration into Monaco (`openFile`).
-  - New IPC channel `FS_LIST_DIR` with strict DEC-025 workspace sandbox validation.
-  - Directory listing protections: exclusion list (`.git`, `node_modules`, `__pycache__`, `.kairo`), max depth cap, max entries cap + truncation flag.
-  - Async-only filesystem traversal (`node:fs/promises`) to avoid main-thread blocking.
-  - Renderer hook `useFileExplorer` with anti-stale guard for rapid project switches.
-  - IPC channels expanded 44→45 (`FS_LIST_DIR`).
+- **Phase 6 Sprint C seal** — commit `5e3a168`:
+  - Settings panel completed (presets + cuentas + visibilidad) with global persistence via existing `SETTINGS_GET`/`SETTINGS_SET`.
+  - New `useSettings` hydration/persistence hook mounted at app boot.
+  - New `BudgetPresetSelector` + full `VisibilityToggle` implementation.
+  - Custom budget hard guards (`CUSTOM_BUDGET_MIN`/`CUSTOM_BUDGET_MAX`) with clamped input.
+  - Visibility mode wired into orchestrator/system prompt path (`concise`/`detailed`) with runtime propagation from settings updates.
+  - IPC channels unchanged: 45 total.
   - Gemini post-implementation audit verdict: GO TOTAL.
-  - Gates: `test_editor_sprint_b` 111/111, `test_editor_sprint_a` 130/130, `test_renderer_sprint_b` 119/119, `test_rate_limit` 66/66, `test_renderer_streaming` 54/54, `tsc` exit 0, `electron-vite build` PASS.
-  - 11 files committed (9 production + 2 tests updates + 1 new test). Scratch artifacts excluded.
-- **Phase 6 Sprint C scope audit** — Gemini verdict: GO (planning audit complete; implementation authorized with global settings persistence + active visibility-mode effect in system prompt).
+  - Gates: `test_settings_sprint_c` 94/94, `test_editor_sprint_b` 111/111, `test_editor_sprint_a` 130/130, `test_renderer_sprint_b` 119/119, `test_renderer_streaming` 54/54, `test_rate_limit` 66/66, `tsc` exit 0, `electron-vite build` PASS.
+  - 14 files committed (11 modified + 3 created). Scratch artifacts excluded.
 
 ## Validation Ledger (Latest)
 
@@ -61,6 +60,7 @@ Do not duplicate full DEC or long rationale content.
 | Renderer bridge guard test | `node tests/test_renderer_bridge_guard.mjs` | 44/44 PASS |
 | Editor Sprint A test | `node tests/test_editor_sprint_a.mjs` | 130/130 PASS |
 | Editor Sprint B test | `node tests/test_editor_sprint_b.mjs` | 111/111 PASS |
+| Settings Sprint C test | `node tests/test_settings_sprint_c.mjs` | 94/94 PASS |
 | Rate-limit handler test | `node tests/test_rate_limit.mjs` | 66/66 PASS |
 | Renderer Sprint B test | `node tests/test_renderer_sprint_b.mjs` | 119/119 PASS |
 | Renderer streaming test | `node tests/test_renderer_streaming.mjs` | 54/54 PASS |
@@ -68,15 +68,15 @@ Do not duplicate full DEC or long rationale content.
 | Snapshot service test | `node tests/test_snapshot_service.mjs` | 18/18 PASS |
 | Streaming gateway test | `node tests/test_streaming_gateway.mjs` | 40/40 PASS |
 | TypeScript strict | `npx tsc --noEmit` | exit 0 |
-| Electron-vite build | `npx electron-vite build` | PASS (main 189KB, preload 3KB, renderer 1079KB) |
+| Electron-vite build | `npx electron-vite build` | PASS (main 208KB, preload 4KB, renderer 8332KB) |
 
-Non-sqlite runnable total: 1313 assertions / 0 failures (21 test files).
+Non-sqlite runnable total: 1407 assertions / 0 failures (22 test files).
 SQLite-dependent tests (8 files): blocked by `ERR_DLOPEN_FAILED` (pre-existing `better-sqlite3` ABI mismatch in headless Node — requires `npm rebuild better-sqlite3`).
 PTY-dependent test (`test_terminal_blocked_execution.mjs`): blocked by `node-pty` ABI mismatch.
 
 ## Pending (Priority Ordered)
 
-1. Implement Phase 6 Sprint C (Settings panel completeness: presets + cuentas + visibilidad).
+1. Scope audit of Phase 6 Sprint D (Impact Analyzer + UndoManager) for GO/NO-GO pre-implementation.
 2. Resolve handling policy for `test_audit_memory_hacks.mjs` (fix, quarantine, or remove from canonical ledgers).
 3. Resolve Gemini API quota for real streaming smoke test (billing/project action).
 4. MCP provider package resolution checkpoint (fallback still active).
@@ -94,6 +94,7 @@ PTY-dependent test (`test_terminal_blocked_execution.mjs`): blocked by `node-pty
 - `test_audit_memory_hacks.mjs` fails due to ESM `.ts` import resolution and remains untracked scratch.
 - Monaco worker bundle size is high (`ts.worker`/language chunks), with potential renderer memory overhead on low-end devices.
 - Large directory payloads can still stress renderer if users expand very large trees repeatedly (mitigated by exclusions + caps + truncation).
+- Lowering custom budget aggressively during active usage can trigger immediate session cut behavior; safe but potentially abrupt UX.
 
 ## Mitigations
 
@@ -109,13 +110,14 @@ PTY-dependent test (`test_terminal_blocked_execution.mjs`): blocked by `node-pty
 - Recall race CLOSED: `_isRecalling` guard + UI input disable + `handleStreamingChat` rejection.
 - Rate-limit race CLOSED: `retryWithBackoff` is purely sequential per call, no shared mutable state. Non-429 errors propagate immediately.
 - Keep file operations async-only and workspace-bound (`FileOperationsService`) to avoid main-thread stalls and sandbox escapes.
+- Clamp and validate custom budgets (`CUSTOM_BUDGET_MIN/MAX`) before persistence to prevent invalid runtime budget states.
 
 ## Next Step (Exact)
 
-Claude implementa Fase 6 Sprint C (Settings panel completeness) con scope auditado. Al sellar, Gemini ejecuta auditoría post-implementación GO/NO-GO.
+Gemini audita scope de Fase 6 Sprint D (Impact Analyzer + UndoManager) para GO/NO-GO pre-implementación.
 
 ## Next Owner
 
-- Claude (implementer): implement Phase 6 Sprint C.
-- Gemini (auditor): post-implementation audit Phase 6 Sprint C.
-- Codex (orchestrator): synthesize verdict and route next sprint.
+- Gemini (auditor): scope audit Phase 6 Sprint D.
+- Codex (orchestrator): route Phase 6 Sprint D packet on GO.
+- Claude (implementer): awaits Phase 6 Sprint D scope packet.
