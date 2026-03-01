@@ -25,7 +25,7 @@ Do not duplicate full DEC or long rationale content.
 
 - Active phase: Phase 7 (Testing + Hardening) — Sprint H SEALED.
 - Sealed commits: `326071a` (Sprint A hardening), `3c5799c` (Sprint B + stabilization), `756ad33` (Sprint C streaming e2e), `07831d4` (Sprint D cut-pipeline e2e), `64c3813` (Phase 5 Sprint A recall), `a0b30d8` (Phase 5 Sprint B consolidation), `da6c092` (Phase 5 Sprint C rate-limit, GO), `5df7b7a` (Phase 6 Sprint A Monaco editor read/write, GO), `9fc53df` (Phase 6 Sprint B File Explorer lazy tree, GO), `5e3a168` (Phase 6 Sprint C Settings completeness, GO), `88489d1` (Phase 6 Sprint D Impact Analyzer + UndoManager, GO), `9e3e7c5` (Phase 7 Sprint A Safety Net), `856824c` (Phase 7 Sprint A Delta — extracted suites), `9295c31` (cleanup scratch + .gitignore), `ddf6952` (Phase 7 Sprint B Integration Tests), `90c8dc2` (Phase 7 Sprint C E2E Tests), `37c8cbc` (Phase 7 Sprint D electron-builder Windows installer), `e44c117` (Phase 7 Sprint E Docs + Onboarding), `e6df7ba` (Phase 7 Sprint F Beta Ops), `798c5ff` (Phase 7 Sprint G Beta Distribution + Intake), `7ca4b9b` (Phase 7 Sprint H Beta Ops Automation).
-- Current objective: Execute closed beta per docs/11. Automate daily ops with run-beta-day.ps1.
+- Current objective: Distribute beta to external testers. D0-D2 executed: all automated gates PASS, zero bugs, zero external testers. NO-GO for Phase 8 (operational gap). Continue beta recruitment.
 - Active debates: none.
 - Open RFCs: none.
 - IPC channels: 47 (unchanged — docs/scripts/tests-only sprint).
@@ -98,11 +98,11 @@ PTY-dependent test (`test_terminal_blocked_execution.mjs`): blocked by `node-pty
 
 ## Pending (Priority Ordered)
 
-1. Distribute beta ZIP to testers per `docs/11_KAIRO_BETA_EXECUTION_PLAN.md`.
-2. Run `scripts/qa/run-beta-day.ps1` daily during beta to orchestrate evidence + classify + snapshot.
-3. Monitor beta intake via GitHub Issues (`.github/ISSUE_TEMPLATE/`).
-4. Evaluate exit criteria at D5 (mid-beta) and D10 (beta close) per `docs/14_KAIRO_BETA_EXIT_CRITERIA.md`.
-5. Route next phase (Phase 8 or 7.7 hotfix) based on GO/NO-GO decision.
+1. **IMMEDIATE**: Distribute beta ZIP to >= 3 external testers with paid Gemini API keys.
+2. Testers run smoke checklist (docs/09) + collect evidence via collect-beta-evidence.ps1.
+3. Run `scripts/qa/run-beta-day.ps1` daily during beta.
+4. Re-evaluate exit criteria at D5 with real tester data per `docs/14_KAIRO_BETA_EXIT_CRITERIA.md`.
+5. Fix T6.05 test fragility in test_beta_distribution_integrity.mjs (P3, deferred).
 6. Resolve Gemini API quota for real streaming smoke test (billing/project action).
 7. MCP provider package resolution checkpoint (fallback still active).
 
@@ -141,10 +141,10 @@ PTY-dependent test (`test_terminal_blocked_execution.mjs`): blocked by `node-pty
 
 ## Next Step (Exact)
 
-Distribute beta ZIP (`kairo-beta-v0.1.0-*.zip`) to testers. Run `run-beta-day.ps1` daily. Evaluate exit criteria at D5/D10.
+Distribute beta ZIP to >= 3 external testers IMMEDIATELY. Wave 1 report: `docs/beta/WAVE1_EXECUTION_REPORT.md`. Re-evaluate at D5.
 
 ## Next Owner
 
-- User: distribute beta ZIP to testers, run daily ops, evaluate GO/NO-GO at D10.
-- Codex (orchestrator): synthesize Phase 7 closure and route Phase 8.
-- Claude (implementer): standby until next sprint routed.
+- User: recruit testers, distribute beta ZIP, ensure paid Gemini API keys.
+- Codex (orchestrator): evaluate D5 checkpoint, route Phase 8 or 7.7 based on tester data.
+- Claude (implementer): standby. If P0 filed, implement hotfix. If beta continues, fix T6.05 test fragility.
