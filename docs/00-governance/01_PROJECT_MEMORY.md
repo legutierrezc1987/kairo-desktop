@@ -1,6 +1,6 @@
 # PROJECT MEMORY (Single Living Context)
 
-Version: 3.43
+Version: 3.44
 Last Updated: 2026-03-01
 Status: ACTIVE
 
@@ -23,27 +23,24 @@ Do not duplicate full DEC or long rationale content.
 
 ## Current Snapshot
 
-- Active phase: Phase 7 (Testing + Hardening) — Sprint G SEALED.
-- Sealed commits: `326071a` (Sprint A hardening), `3c5799c` (Sprint B + stabilization), `756ad33` (Sprint C streaming e2e), `07831d4` (Sprint D cut-pipeline e2e), `64c3813` (Phase 5 Sprint A recall), `a0b30d8` (Phase 5 Sprint B consolidation), `da6c092` (Phase 5 Sprint C rate-limit, GO), `5df7b7a` (Phase 6 Sprint A Monaco editor read/write, GO), `9fc53df` (Phase 6 Sprint B File Explorer lazy tree, GO), `5e3a168` (Phase 6 Sprint C Settings completeness, GO), `88489d1` (Phase 6 Sprint D Impact Analyzer + UndoManager, GO), `9e3e7c5` (Phase 7 Sprint A Safety Net), `856824c` (Phase 7 Sprint A Delta — extracted suites), `9295c31` (cleanup scratch + .gitignore), `ddf6952` (Phase 7 Sprint B Integration Tests), `90c8dc2` (Phase 7 Sprint C E2E Tests), `37c8cbc` (Phase 7 Sprint D electron-builder Windows installer), `e44c117` (Phase 7 Sprint E Docs + Onboarding), `e6df7ba` (Phase 7 Sprint F Beta Ops), `798c5ff` (Phase 7 Sprint G Beta Distribution + Intake).
-- Current objective: Distribute beta ZIP to testers. Execute closed beta per docs/11.
+- Active phase: Phase 7 (Testing + Hardening) — Sprint H SEALED.
+- Sealed commits: `326071a` (Sprint A hardening), `3c5799c` (Sprint B + stabilization), `756ad33` (Sprint C streaming e2e), `07831d4` (Sprint D cut-pipeline e2e), `64c3813` (Phase 5 Sprint A recall), `a0b30d8` (Phase 5 Sprint B consolidation), `da6c092` (Phase 5 Sprint C rate-limit, GO), `5df7b7a` (Phase 6 Sprint A Monaco editor read/write, GO), `9fc53df` (Phase 6 Sprint B File Explorer lazy tree, GO), `5e3a168` (Phase 6 Sprint C Settings completeness, GO), `88489d1` (Phase 6 Sprint D Impact Analyzer + UndoManager, GO), `9e3e7c5` (Phase 7 Sprint A Safety Net), `856824c` (Phase 7 Sprint A Delta — extracted suites), `9295c31` (cleanup scratch + .gitignore), `ddf6952` (Phase 7 Sprint B Integration Tests), `90c8dc2` (Phase 7 Sprint C E2E Tests), `37c8cbc` (Phase 7 Sprint D electron-builder Windows installer), `e44c117` (Phase 7 Sprint E Docs + Onboarding), `e6df7ba` (Phase 7 Sprint F Beta Ops), `798c5ff` (Phase 7 Sprint G Beta Distribution + Intake), `7ca4b9b` (Phase 7 Sprint H Beta Ops Automation).
+- Current objective: Execute closed beta per docs/11. Automate daily ops with run-beta-day.ps1.
 - Active debates: none.
 - Open RFCs: none.
 - IPC channels: 47 (unchanged — docs/scripts/tests-only sprint).
 
 ## Completed This Session
 
-- **Phase 7 Sprint G — Beta Distribution + Intake Automation**:
-  - `scripts/qa/create-beta-zip.ps1`: packages setup.exe + onboarding + checklist + bug template + release checklist + SHA256SUMS + README-BETA into timestamped ZIP. 8 checks.
-  - `scripts/qa/aggregate-beta-evidence.ps1`: consolidates `beta-evidence-*.txt` reports into `docs/beta/BETA_DASHBOARD.md` with machine summary, hash consistency check, health metrics.
-  - `docs/beta/BETA_DASHBOARD.md` v1.0: auto-generated dashboard template (updated by aggregate script).
-  - `.github/ISSUE_TEMPLATE/beta_bug_report.md`: structured bug report with priority checkboxes, repro steps, environment, evidence collection reference.
-  - `.github/ISSUE_TEMPLATE/beta_feedback.md`: general feedback template with categories, suggestions, "would you use" question.
-  - `.github/ISSUE_TEMPLATE/config.yml`: disables blank issues, links to docs and onboarding guide.
-  - `package.json`: added `beta:zip` npm script.
-  - `.gitignore`: added `beta-evidence-*.txt`, `kairo-beta-*.zip`, `beta-staging/` exclusions.
-  - `tests/test_beta_distribution_integrity.mjs`: 41 assertions (beta zip script, aggregate script, QA prerequisites, npm script, gitignore, dashboard template, distribution docs).
-  - `tests/test_issue_templates_integrity.mjs`: 46 assertions (directory structure, bug report 18 checks, feedback 12 checks, config.yml 6 checks, cross-references 6 checks).
-  - `docs/INDEX.md`: updated canonical tree and status with dashboard + issue templates.
+- **Phase 7 Sprint H — Beta Ops Automation**:
+  - `scripts/qa/run-beta-day.ps1`: daily orchestration (collect -> aggregate -> classify -> daily snapshot). Uses `Start-Process` with quoted `-File` arg for path-with-spaces safety.
+  - `scripts/qa/classify-beta-issues.ps1`: scans `docs/beta/issues/*.md`, parses Priority/Status/Reporter/Date fields, auto-classifies by keywords (crash->P0, broken->P1, slow->P2, default->P3), sorts by priority, generates `docs/beta/BETA_BACKLOG.md` with summary table + health assessment (GREEN/AMBER/RED) + exit criteria status.
+  - `docs/14_KAIRO_BETA_EXIT_CRITERIA.md` v1.0: 10-criterion decision matrix (P0=0, P1<=2, smoke>=80%, install=100%, machines>=2, multi-turn chat 3+, terminal 2+, file editing 1+, test regression 0, release checklist GO). GO/CONDITIONAL GO/NO-GO decision rules. D5 mid-beta escalation + D10 close process.
+  - `docs/beta/BETA_BACKLOG.md`: auto-generated by classify script (currently 0 issues, GREEN health).
+  - `docs/beta/daily/`: auto-generated daily snapshots by run-beta-day.ps1.
+  - `scripts/qa/collect-beta-evidence.ps1`: fixed `1KB` parse error in string interpolation + em-dash replacement.
+  - `tests/test_beta_ops_pipeline_integrity.mjs`: 58 assertions (run-beta-day structure 10, classify structure 14, exit criteria content 20, pipeline prerequisites 6, cross-references 8).
+  - `docs/INDEX.md`: added 14_KAIRO_BETA_EXIT_CRITERIA, BETA_BACKLOG, issues/, daily/ to canonical tree.
   - Zero production files modified.
 
 ## Validation Ledger (Latest)
@@ -85,13 +82,16 @@ Do not duplicate full DEC or long rationale content.
 | Beta docs integrity test | `node tests/test_beta_docs_integrity.mjs` | 55/55 PASS |
 | Beta distribution integrity | `node tests/test_beta_distribution_integrity.mjs` | 41/41 PASS |
 | Issue templates integrity | `node tests/test_issue_templates_integrity.mjs` | 46/46 PASS |
+| Beta ops pipeline integrity | `node tests/test_beta_ops_pipeline_integrity.mjs` | 58/58 PASS |
 | QA verify-packaging | `powershell -File scripts/qa/verify-packaging.ps1` | 14/14 PASS |
 | QA create-beta-zip | `powershell -File scripts/qa/create-beta-zip.ps1` | 8/8 PASS |
 | QA aggregate-evidence | `powershell -File scripts/qa/aggregate-beta-evidence.ps1` | 3/3 PASS |
+| QA classify-beta-issues | `powershell -File scripts/qa/classify-beta-issues.ps1` | 3/3 PASS |
+| QA run-beta-day | `powershell -File scripts/qa/run-beta-day.ps1` | 7/7 PASS |
 | TypeScript strict | `npx tsc --noEmit` | exit 0 |
 | Electron-vite build | `npx electron-vite build` | PASS (main 216KB, preload 4KB, renderer 8340KB) |
 
-Non-sqlite runnable total: 2042 assertions / 0 failures (34 test files).
+Non-sqlite runnable total: 2100 assertions / 0 failures (35 test files).
 Note: The 3 extracted suites (test_tool_schema, test_system_prompt, test_model_router) verify the same contracts as T2/T3/T4 in test_safety_net_sprint_a — they do not add new unique assertions but provide standalone runnable coverage.
 SQLite-dependent tests (8 files): blocked by `ERR_DLOPEN_FAILED` (pre-existing `better-sqlite3` ABI mismatch in headless Node — requires `npm rebuild better-sqlite3`).
 PTY-dependent test (`test_terminal_blocked_execution.mjs`): blocked by `node-pty` ABI mismatch.
@@ -99,10 +99,10 @@ PTY-dependent test (`test_terminal_blocked_execution.mjs`): blocked by `node-pty
 ## Pending (Priority Ordered)
 
 1. Distribute beta ZIP to testers per `docs/11_KAIRO_BETA_EXECUTION_PLAN.md`.
-2. Smoke-test installer on fresh Windows (install -> launch -> verify terminal/chat/settings).
+2. Run `scripts/qa/run-beta-day.ps1` daily during beta to orchestrate evidence + classify + snapshot.
 3. Monitor beta intake via GitHub Issues (`.github/ISSUE_TEMPLATE/`).
-4. Run `aggregate-beta-evidence.ps1` daily during beta to update dashboard.
-5. Route next phase (Phase 8 or beyond) based on beta results.
+4. Evaluate exit criteria at D5 (mid-beta) and D10 (beta close) per `docs/14_KAIRO_BETA_EXIT_CRITERIA.md`.
+5. Route next phase (Phase 8 or 7.7 hotfix) based on GO/NO-GO decision.
 6. Resolve Gemini API quota for real streaming smoke test (billing/project action).
 7. MCP provider package resolution checkpoint (fallback still active).
 
@@ -111,6 +111,7 @@ PTY-dependent test (`test_terminal_blocked_execution.mjs`): blocked by `node-pty
 - Gemini API abort is client-side; aborted requests may still consume provider-side tokens.
 - Gemini generateContent quota remains zero in current GCP project.
 - Path-with-spaces requires `SUBST` drive + winpty.gyp patch for node-pty rebuild (`scripts/rebuild-native.js` automates this). `npm install` from a spaceless path avoids the issue entirely.
+- Path-with-spaces also affects PS sub-process invocation: use `Start-Process -ArgumentList` with quoted `-File` string (not array).
 - MCP provider package remains unresolved in npm registry.
 - ConPTY "AttachConsole failed" noise persists in tests; non-blocking.
 - `better-sqlite3`/`node-pty` ABI dual-rebuild workflow remains required between Node tests and Electron runtime.
@@ -140,10 +141,10 @@ PTY-dependent test (`test_terminal_blocked_execution.mjs`): blocked by `node-pty
 
 ## Next Step (Exact)
 
-Distribute beta ZIP (`kairo-beta-v0.1.0-*.zip`) to testers. Execute closed beta per docs/11.
+Distribute beta ZIP (`kairo-beta-v0.1.0-*.zip`) to testers. Run `run-beta-day.ps1` daily. Evaluate exit criteria at D5/D10.
 
 ## Next Owner
 
-- User: distribute beta ZIP to testers, smoke-test on clean Windows, monitor GitHub Issues intake.
+- User: distribute beta ZIP to testers, run daily ops, evaluate GO/NO-GO at D10.
 - Codex (orchestrator): synthesize Phase 7 closure and route Phase 8.
 - Claude (implementer): standby until next sprint routed.

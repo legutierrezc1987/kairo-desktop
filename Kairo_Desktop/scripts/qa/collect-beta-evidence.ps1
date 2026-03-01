@@ -105,8 +105,9 @@ if (Test-Path $asarUnpacked) {
     $nodes = Get-ChildItem -Path $asarUnpacked -Recurse -Filter '*.node'
     if ($nodes) {
         foreach ($n in $nodes) {
-            $nSize = [math]::Round($n.Length / 1KB, 1)
-            Out "  $($n.Name) — $nSize KB ($($n.FullName))"
+            $nKB = 1KB
+            $nSize = [math]::Round($n.Length / $nKB, 1)
+            Out "  $($n.Name) - $nSize KB ($($n.FullName))"
         }
     } else {
         Out "  No .node files found"
@@ -123,7 +124,9 @@ if (Test-Path $appData) {
     Out "App data dir: $appData"
     $files = Get-ChildItem $appData -ErrorAction SilentlyContinue
     foreach ($f in $files) {
-        Out "  $($f.Name) ($([math]::Round($f.Length / 1KB, 1)) KB)"
+        $fKB = 1KB
+        $fSize = [math]::Round($f.Length / $fKB, 1)
+        Out "  $($f.Name) ($fSize KB)"
     }
 
     # Check for log files
