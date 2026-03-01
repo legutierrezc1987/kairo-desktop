@@ -1,6 +1,6 @@
 # PROJECT MEMORY (Single Living Context)
 
-Version: 3.32
+Version: 3.33
 Last Updated: 2026-03-01
 Status: ACTIVE
 
@@ -25,7 +25,7 @@ Do not duplicate full DEC or long rationale content.
 
 - Active phase: Phase 6 (Editor + Polish) — Sprint C SEALED + AUDITED GO (`5e3a168`).
 - Sealed commits: `326071a` (Sprint A hardening), `3c5799c` (Sprint B + stabilization), `756ad33` (Sprint C streaming e2e), `07831d4` (Sprint D cut-pipeline e2e), `64c3813` (Phase 5 Sprint A recall), `a0b30d8` (Phase 5 Sprint B consolidation), `da6c092` (Phase 5 Sprint C rate-limit, GO), `5df7b7a` (Phase 6 Sprint A Monaco editor read/write, GO), `9fc53df` (Phase 6 Sprint B File Explorer lazy tree, GO), `5e3a168` (Phase 6 Sprint C Settings completeness, GO).
-- Current objective: Scope audit of Phase 6 Sprint D (Impact Analyzer + UndoManager) for GO/NO-GO pre-implementation.
+- Current objective: Implement Phase 6 Sprint D (Impact Analyzer + UndoManager) under Gemini GO pre-implementation verdict.
 - Active debates: none.
 - Open RFCs: none.
 - IPC channels: 45 (`FS_LIST_DIR` added in Phase 6 Sprint B).
@@ -42,6 +42,7 @@ Do not duplicate full DEC or long rationale content.
   - Gemini post-implementation audit verdict: GO TOTAL.
   - Gates: `test_settings_sprint_c` 94/94, `test_editor_sprint_b` 111/111, `test_editor_sprint_a` 130/130, `test_renderer_sprint_b` 119/119, `test_renderer_streaming` 54/54, `test_rate_limit` 66/66, `tsc` exit 0, `electron-vite build` PASS.
   - 14 files committed (11 modified + 3 created). Scratch artifacts excluded.
+- **Phase 6 Sprint D scope audit** — Gemini verdict: GO (planning audit complete; implementation authorized with ephemeral undo stack, collision guards, and Monaco diff UI).
 
 ## Validation Ledger (Latest)
 
@@ -76,7 +77,7 @@ PTY-dependent test (`test_terminal_blocked_execution.mjs`): blocked by `node-pty
 
 ## Pending (Priority Ordered)
 
-1. Scope audit of Phase 6 Sprint D (Impact Analyzer + UndoManager) for GO/NO-GO pre-implementation.
+1. Implement Phase 6 Sprint D (Impact Analyzer + UndoManager) per audited scope.
 2. Resolve handling policy for `test_audit_memory_hacks.mjs` (fix, quarantine, or remove from canonical ledgers).
 3. Resolve Gemini API quota for real streaming smoke test (billing/project action).
 4. MCP provider package resolution checkpoint (fallback still active).
@@ -114,10 +115,10 @@ PTY-dependent test (`test_terminal_blocked_execution.mjs`): blocked by `node-pty
 
 ## Next Step (Exact)
 
-Gemini audita scope de Fase 6 Sprint D (Impact Analyzer + UndoManager) para GO/NO-GO pre-implementación.
+Claude implementa Fase 6 Sprint D (Impact Analyzer + UndoManager) con scope auditado. Al sellar, Gemini ejecuta auditoría post-implementación GO/NO-GO.
 
 ## Next Owner
 
-- Gemini (auditor): scope audit Phase 6 Sprint D.
-- Codex (orchestrator): route Phase 6 Sprint D packet on GO.
-- Claude (implementer): awaits Phase 6 Sprint D scope packet.
+- Claude (implementer): implement Phase 6 Sprint D.
+- Gemini (auditor): post-implementation audit Phase 6 Sprint D.
+- Codex (orchestrator): synthesize verdict and route next sprint.
