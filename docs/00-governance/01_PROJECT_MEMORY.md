@@ -1,7 +1,7 @@
 # PROJECT MEMORY (Single Living Context)
 
-Version: 3.33
-Last Updated: 2026-03-01
+Version: 3.34
+Last Updated: 2026-02-28
 Status: ACTIVE
 
 ## Editing Rule (MANDATORY)
@@ -23,26 +23,24 @@ Do not duplicate full DEC or long rationale content.
 
 ## Current Snapshot
 
-- Active phase: Phase 6 (Editor + Polish) — Sprint C SEALED + AUDITED GO (`5e3a168`).
-- Sealed commits: `326071a` (Sprint A hardening), `3c5799c` (Sprint B + stabilization), `756ad33` (Sprint C streaming e2e), `07831d4` (Sprint D cut-pipeline e2e), `64c3813` (Phase 5 Sprint A recall), `a0b30d8` (Phase 5 Sprint B consolidation), `da6c092` (Phase 5 Sprint C rate-limit, GO), `5df7b7a` (Phase 6 Sprint A Monaco editor read/write, GO), `9fc53df` (Phase 6 Sprint B File Explorer lazy tree, GO), `5e3a168` (Phase 6 Sprint C Settings completeness, GO).
-- Current objective: Implement Phase 6 Sprint D (Impact Analyzer + UndoManager) under Gemini GO pre-implementation verdict.
+- Active phase: Phase 6 (Editor + Polish) — Sprint D SEALED (`88489d1`), pending Gemini post-implementation audit.
+- Sealed commits: `326071a` (Sprint A hardening), `3c5799c` (Sprint B + stabilization), `756ad33` (Sprint C streaming e2e), `07831d4` (Sprint D cut-pipeline e2e), `64c3813` (Phase 5 Sprint A recall), `a0b30d8` (Phase 5 Sprint B consolidation), `da6c092` (Phase 5 Sprint C rate-limit, GO), `5df7b7a` (Phase 6 Sprint A Monaco editor read/write, GO), `9fc53df` (Phase 6 Sprint B File Explorer lazy tree, GO), `5e3a168` (Phase 6 Sprint C Settings completeness, GO), `88489d1` (Phase 6 Sprint D Impact Analyzer + UndoManager).
+- Current objective: Gemini post-implementation audit of Phase 6 Sprint D. Then route next sprint.
 - Active debates: none.
 - Open RFCs: none.
-- IPC channels: 45 (`FS_LIST_DIR` added in Phase 6 Sprint B).
+- IPC channels: 47 (`FS_UNDO_PREVIEW` + `FS_UNDO_APPLY` added in Phase 6 Sprint D).
 
 ## Completed This Session
 
-- **Phase 6 Sprint C seal** — commit `5e3a168`:
-  - Settings panel completed (presets + cuentas + visibilidad) with global persistence via existing `SETTINGS_GET`/`SETTINGS_SET`.
-  - New `useSettings` hydration/persistence hook mounted at app boot.
-  - New `BudgetPresetSelector` + full `VisibilityToggle` implementation.
-  - Custom budget hard guards (`CUSTOM_BUDGET_MIN`/`CUSTOM_BUDGET_MAX`) with clamped input.
-  - Visibility mode wired into orchestrator/system prompt path (`concise`/`detailed`) with runtime propagation from settings updates.
-  - IPC channels unchanged: 45 total.
-  - Gemini post-implementation audit verdict: GO TOTAL.
-  - Gates: `test_settings_sprint_c` 94/94, `test_editor_sprint_b` 111/111, `test_editor_sprint_a` 130/130, `test_renderer_sprint_b` 119/119, `test_renderer_streaming` 54/54, `test_rate_limit` 66/66, `tsc` exit 0, `electron-vite build` PASS.
-  - 14 files committed (11 modified + 3 created). Scratch artifacts excluded.
-- **Phase 6 Sprint D scope audit** — Gemini verdict: GO (planning audit complete; implementation authorized with ephemeral undo stack, collision guards, and Monaco diff UI).
+- **Phase 6 Sprint D seal** — commit `88489d1`:
+  - UndoManagerService: ephemeral LIFO stack (15 entries max, 2MB file cap), content-based collision guard.
+  - Snapshot capture wired into FileOperationsService.writeFile() (non-fatal try/catch).
+  - IPC: FS_UNDO_PREVIEW + FS_UNDO_APPLY (45→47 channels).
+  - Monaco DiffEditor panel in CodeEditor for side-by-side impact preview.
+  - editorStore + useEditor extended with undo state and actions.
+  - 118 new assertions (test_impact_analyzer_sprint_d.mjs).
+  - Gates: `test_impact_analyzer_sprint_d` 118/118, `test_settings_sprint_c` 94/94, `test_editor_sprint_b` 111/111, `test_editor_sprint_a` 130/130, `test_renderer_sprint_b` 119/119, `test_renderer_streaming` 54/54, `test_rate_limit` 66/66, `tsc` exit 0, `electron-vite build` PASS.
+  - 16 files committed (10 modified + 2 created + 4 test updates).
 
 ## Validation Ledger (Latest)
 
@@ -59,6 +57,7 @@ Do not duplicate full DEC or long rationale content.
 | MCP process test | `node tests/test_mcp_process.mjs` | 41/41 PASS |
 | Memory provider test | `node tests/test_memory_provider.mjs` | 61/61 PASS |
 | Renderer bridge guard test | `node tests/test_renderer_bridge_guard.mjs` | 44/44 PASS |
+| Impact Analyzer Sprint D | `node tests/test_impact_analyzer_sprint_d.mjs` | 118/118 PASS |
 | Editor Sprint A test | `node tests/test_editor_sprint_a.mjs` | 130/130 PASS |
 | Editor Sprint B test | `node tests/test_editor_sprint_b.mjs` | 111/111 PASS |
 | Settings Sprint C test | `node tests/test_settings_sprint_c.mjs` | 94/94 PASS |
@@ -71,17 +70,18 @@ Do not duplicate full DEC or long rationale content.
 | TypeScript strict | `npx tsc --noEmit` | exit 0 |
 | Electron-vite build | `npx electron-vite build` | PASS (main 208KB, preload 4KB, renderer 8332KB) |
 
-Non-sqlite runnable total: 1407 assertions / 0 failures (22 test files).
+Non-sqlite runnable total: 1525 assertions / 0 failures (23 test files).
 SQLite-dependent tests (8 files): blocked by `ERR_DLOPEN_FAILED` (pre-existing `better-sqlite3` ABI mismatch in headless Node — requires `npm rebuild better-sqlite3`).
 PTY-dependent test (`test_terminal_blocked_execution.mjs`): blocked by `node-pty` ABI mismatch.
 
 ## Pending (Priority Ordered)
 
-1. Implement Phase 6 Sprint D (Impact Analyzer + UndoManager) per audited scope.
-2. Resolve handling policy for `test_audit_memory_hacks.mjs` (fix, quarantine, or remove from canonical ledgers).
-3. Resolve Gemini API quota for real streaming smoke test (billing/project action).
-4. MCP provider package resolution checkpoint (fallback still active).
-5. Clean scratch untracked artifacts from working tree (`diff*.txt`, `*_diff.txt`, bundle, audit scratch test).
+1. Gemini post-implementation audit of Phase 6 Sprint D (`88489d1`).
+2. Route next sprint (Phase 6 Sprint E or Phase 7).
+3. Resolve handling policy for `test_audit_memory_hacks.mjs` (fix, quarantine, or remove from canonical ledgers).
+4. Resolve Gemini API quota for real streaming smoke test (billing/project action).
+5. MCP provider package resolution checkpoint (fallback still active).
+6. Clean scratch untracked artifacts from working tree (`diff*.txt`, `*_diff.txt`, bundle, audit scratch test).
 
 ## Known Risks
 
@@ -112,13 +112,15 @@ PTY-dependent test (`test_terminal_blocked_execution.mjs`): blocked by `node-pty
 - Rate-limit race CLOSED: `retryWithBackoff` is purely sequential per call, no shared mutable state. Non-429 errors propagate immediately.
 - Keep file operations async-only and workspace-bound (`FileOperationsService`) to avoid main-thread stalls and sandbox escapes.
 - Clamp and validate custom budgets (`CUSTOM_BUDGET_MIN/MAX`) before persistence to prevent invalid runtime budget states.
+- UndoManager uses content-based collision guard (not mtime) — Windows mtime resolution is unreliable for sub-second comparisons.
+- Ephemeral undo stack cleared on project switch and app restart — no persistent state leak.
 
 ## Next Step (Exact)
 
-Claude implementa Fase 6 Sprint D (Impact Analyzer + UndoManager) con scope auditado. Al sellar, Gemini ejecuta auditoría post-implementación GO/NO-GO.
+Gemini ejecuta auditoría post-implementación GO/NO-GO de Phase 6 Sprint D (`88489d1`). Codex sintetiza veredicto y enruta siguiente sprint.
 
 ## Next Owner
 
-- Claude (implementer): implement Phase 6 Sprint D.
 - Gemini (auditor): post-implementation audit Phase 6 Sprint D.
 - Codex (orchestrator): synthesize verdict and route next sprint.
+- Claude (implementer): standby until next sprint routed.
