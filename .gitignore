@@ -35,3 +35,9 @@ Desktop.ini
 logs/
 *.log
 
+# Scratch / debug artifacts (session diffs, bundles, transcripts)
+*_diff.txt
+diff*.txt
+*.bundle
+sprint*.txt
+
