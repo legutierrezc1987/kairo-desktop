@@ -77,6 +77,10 @@ export const IPC_CHANNELS = {
   // Rate-limit handler domain (Phase 5 Sprint C, PRD §14)
   RATE_LIMIT_STATUS: 'rate-limit:status',
 
+  // File operations domain (Phase 6 Sprint A, PRD §6.1)
+  FS_READ_FILE: 'fs:read-file',
+  FS_WRITE_FILE: 'fs:write-file',
+
   // App domain
   APP_GET_CWD: 'app:get-cwd',
   APP_SELECT_FOLDER: 'app:select-folder',

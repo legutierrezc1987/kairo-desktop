@@ -30,6 +30,9 @@ export default defineConfig({
         '@shared': resolve('src/shared')
       }
     },
-    plugins: [react(), tailwindcss()]
+    plugins: [react(), tailwindcss()],
+    optimizeDeps: {
+      include: ['monaco-editor']
+    }
   }
 })

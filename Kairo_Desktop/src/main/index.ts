@@ -16,6 +16,8 @@ import { ExecutionBroker } from './execution/execution-broker'
 import { TerminalService } from './services/terminal.service'
 import { MemoryService } from './memory/memory.service'
 import { registerMemoryHandlers } from './ipc/memory.handlers'
+import { FileOperationsService } from './services/file-operations.service'
+import { registerEditorHandlers } from './ipc/editor.handlers'
 import { UploadQueueService } from './services/upload-queue.service'
 import { SyncWorker } from './workers/sync-worker'
 import { IPC_CHANNELS } from '../shared/ipc-channels'
@@ -154,6 +156,9 @@ app.whenReady().then(async () => {
     console.error(`[KAIRO] Memory service init failed: ${err instanceof Error ? err.message : String(err)}`)
   })
 
+  // ── Initialize FileOperationsService (Phase 6 Sprint A, PRD §6.1) ──
+  const fileOps = new FileOperationsService()
+
   // ── Wire orchestrator ports (Sprint D) ────────────────────
   orchestrator.setMemoryPort(memoryService)
   orchestrator.setUploadQueuePort(uploadQueue)
@@ -218,6 +223,8 @@ app.whenReady().then(async () => {
     memoryService.updateWorkspace(folderPath).catch((err) => {
       console.error(`[KAIRO] Memory workspace update failed: ${err instanceof Error ? err.message : String(err)}`)
     })
+    // Phase 6 Sprint A: Bind file operations workspace
+    fileOps.setWorkspacePath(folderPath)
     // Phase 5 Sprint B: update SyncWorker project context for consolidation
     syncWorker.setProjectContext(folderPath, projectId)
   })
@@ -233,6 +240,7 @@ app.whenReady().then(async () => {
     }
   })
   registerMemoryHandlers(memoryService, () => mainWindow)
+  registerEditorHandlers(fileOps)
 
   // ── Register cut pipeline state push (Sprint D) ───────────
   orchestrator.setCutStateSender((event: CutPipelineEvent) => {

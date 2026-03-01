@@ -447,6 +447,29 @@ export interface RateLimitStatus {
   error?: string
 }
 
+// ─── File Operations Domain (Phase 6 Sprint A, PRD §6.1) ──
+
+export interface FsReadFileRequest {
+  filePath: string
+}
+
+export interface FsReadFileResponse {
+  content: string
+  filePath: string
+  sizeBytes: number
+  languageId: string
+}
+
+export interface FsWriteFileRequest {
+  filePath: string
+  content: string
+}
+
+export interface FsWriteFileResponse {
+  filePath: string
+  bytesWritten: number
+}
+
 // ─── App Domain ────────────────────────────────────────────
 
 export interface SelectFolderResponse {

@@ -143,3 +143,11 @@ export const RATE_LIMIT_BACKOFF_MAX_MS = 60_000
 
 /** Jitter factor: ±25% randomization on each delay */
 export const RATE_LIMIT_JITTER_FACTOR = 0.25
+
+// ─── File Operations Configuration (Phase 6 Sprint A, PRD §6.1) ──
+
+/** Maximum file size allowed for read operations (bytes) — 5 MB */
+export const FS_READ_FILE_MAX_BYTES = 5_242_880
+
+/** Number of initial bytes to scan for binary (null byte) detection */
+export const FS_BINARY_DETECTION_BYTES = 8_192

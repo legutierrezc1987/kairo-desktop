@@ -448,8 +448,8 @@ test('T41: RATE_LIMIT_STATUS channel exists', () => {
   assert.equal(IPC_CHANNELS.RATE_LIMIT_STATUS, 'rate-limit:status')
 })
 
-test('T42: Total IPC channels = 42', () => {
-  assert.equal(IPC_CHANNEL_ALLOWLIST.length, 42)
+test('T42: Total IPC channels = 44', () => {
+  assert.equal(IPC_CHANNEL_ALLOWLIST.length, 44)
 })
 
 console.log('\n═══ Renderer assertions (source-level) ═══')
