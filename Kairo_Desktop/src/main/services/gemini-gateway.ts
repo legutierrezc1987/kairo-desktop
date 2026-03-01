@@ -94,13 +94,18 @@ export async function streamChatMessage(
   modelId: ModelId,
   history: Content[],
   callbacks: StreamCallbacks,
+  systemInstruction?: string,
 ): Promise<void> {
   const model = getModel(modelId)
   const controller = new AbortController()
   activeAbortController = controller
 
   try {
-    const chat = model.startChat({ history })
+    const chatParams: { history: Content[]; systemInstruction?: string } = { history }
+    if (systemInstruction) {
+      chatParams.systemInstruction = systemInstruction
+    }
+    const chat = model.startChat(chatParams)
     const streamResult = await chat.sendMessageStream(prompt, {
       signal: controller.signal,
     })

@@ -238,6 +238,11 @@ app.whenReady().then(async () => {
       resetGeminiGateway()
       console.warn('[KAIRO] No API key available after account change. Gateway reset.')
     }
+  }, (key, value) => {
+    // Phase 6 Sprint C: propagate visibility_mode changes to orchestrator in real-time
+    if (key === 'visibility_mode' && (value === 'concise' || value === 'detailed')) {
+      orchestrator.setVisibilityMode(value)
+    }
   })
   registerMemoryHandlers(memoryService, () => mainWindow)
   registerEditorHandlers(fileOps)
@@ -262,6 +267,15 @@ app.whenReady().then(async () => {
   orchestrator.setRateLimitEmitter((status: RateLimitStatus) => {
     mainWindow?.webContents.send(IPC_CHANNELS.RATE_LIMIT_STATUS, status)
   })
+
+  // ── Hydrate visibility mode from settings (Phase 6 Sprint C) ───
+  const visSetting = settingsService.getSetting('visibility_mode')
+  if (visSetting.success && visSetting.data?.value) {
+    const mode = visSetting.data.value
+    if (mode === 'concise' || mode === 'detailed') {
+      orchestrator.setVisibilityMode(mode)
+    }
+  }
 
   // ── Kill switch — Ctrl+Shift+K emergency stop (DEC-025) ────
   // Codex guard #4: fire-and-forget with timeout — never blocks indefinitely

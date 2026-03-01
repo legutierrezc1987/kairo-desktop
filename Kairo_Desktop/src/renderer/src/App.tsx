@@ -2,11 +2,15 @@ import { useEffect } from 'react'
 import MainLayout from '@renderer/components/Layout/MainLayout'
 import { useProjectStore } from '@renderer/stores/projectStore'
 import { hasKairoApi, getKairoApiOrThrow } from '@renderer/lib/kairoApi'
+import { useSettings } from '@renderer/hooks/useSettings'
 import { IPC_CHANNELS } from '@shared/ipc-channels'
 import type { IpcResult, GetSettingResponse, LoadProjectResponse } from '@shared/types'
 
 function App(): React.JSX.Element {
   const setActiveProject = useProjectStore((s) => s.setActiveProject)
+
+  // Hydrate settings from backend + persist on change (Phase 6 Sprint C)
+  useSettings()
 
   // Restore last active project on startup (optional, best-effort)
   useEffect(() => {

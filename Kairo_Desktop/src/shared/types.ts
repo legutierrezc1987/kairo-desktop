@@ -65,10 +65,13 @@ export interface TokenBudgetState {
 
 // ─── Settings Domain ─────────────────────────────────────────
 
+export type VisibilityMode = 'concise' | 'detailed'
+
 export interface SettingsState {
   selectedModel: ModelId
   budgetPreset: 'conservative' | 'balanced' | 'extended' | 'custom'
   customBudget?: number
+  visibilityMode: VisibilityMode
 }
 
 // ─── Session Domain ──────────────────────────────────────────

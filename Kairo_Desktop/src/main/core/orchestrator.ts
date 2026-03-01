@@ -135,6 +135,9 @@ export class Orchestrator {
   /** Turns since last recall was executed (for periodic trigger). */
   private _turnsSinceLastRecall = 0
 
+  /** Current visibility mode for system prompt injection (Phase 6 Sprint C). */
+  private _visibilityMode: import('../../shared/types').VisibilityMode = 'detailed'
+
   constructor(options?: OrchestratorOptions) {
     this.budgeter = new TokenBudgeter(options?.totalBudget)
     this.sessionManager = new SessionManager()
@@ -171,6 +174,12 @@ export class Orchestrator {
 
   setRateLimitEmitter(emitter: RateLimitEmitter): void {
     this._rateLimitEmitter = emitter
+  }
+
+  // ─── Visibility Mode (Phase 6 Sprint C) ────────────────────
+
+  setVisibilityMode(mode: import('../../shared/types').VisibilityMode): void {
+    this._visibilityMode = mode
   }
 
   /**
@@ -333,6 +342,9 @@ export class Orchestrator {
       // Each retry creates a fresh stream scope (P1 audit: no leaked listeners/AbortControllers).
       // streamChatMessage catches errors internally and calls onError — we reject on 429
       // so retryWithBackoff can intercept and retry with backoff.
+      // Build system instruction with current visibility mode (Phase 6 Sprint C)
+      const sysPrompt = buildSystemPrompt(this.activeProjectName, '', '', this._visibilityMode)
+
       const streamOnce = (tryModelId: ModelId): Promise<void> => {
         return new Promise<void>((resolve, reject) => {
           streamChatMessage(
@@ -386,6 +398,7 @@ export class Orchestrator {
                 }
               },
             },
+            sysPrompt,
           ).catch(reject) // Defensive: handle any unexpected throws from gateway
         })
       }
@@ -572,8 +585,8 @@ export class Orchestrator {
       ? this._bridgeBuffer.messages.map(m => `${m.role}: ${m.text}`).join('\n')
       : ''
 
-    // System prompt is built for potential future injection (Gemini systemInstruction)
-    buildSystemPrompt(this.activeProjectName, recallContext, bridgeSummary)
+    // System prompt built with visibility mode for Gemini systemInstruction
+    buildSystemPrompt(this.activeProjectName, recallContext, bridgeSummary, this._visibilityMode)
 
     // Step 12: Unblock UI
     this.emitCutState('ready')

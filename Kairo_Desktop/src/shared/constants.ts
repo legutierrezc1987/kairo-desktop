@@ -10,6 +10,12 @@ export const BUDGET_PRESETS = {
   extended: 300_000,
 } as const
 
+/** Minimum custom budget (tokens) */
+export const CUSTOM_BUDGET_MIN = 50_000
+
+/** Maximum custom budget (tokens) */
+export const CUSTOM_BUDGET_MAX = 1_000_000
+
 /** DEC-021: Channel allocation percentages (of total budget) */
 export const CHANNEL_ALLOCATIONS: Record<TokenChannel, number> = {
   chat: 0.55,

@@ -70,6 +70,7 @@ export function registerSettingsHandlers(
   sessionPersistence: SessionPersistenceService,
   accountService: AccountService,
   onAccountChanged?: () => void,
+  onSettingChanged?: (key: string, value: string) => void,
 ): void {
   // ── Settings ────────────────────────────────────────────────
 
@@ -99,7 +100,11 @@ export function registerSettingsHandlers(
     if (!isValidSetSettingRequest(data)) {
       return { success: false, error: 'Invalid set setting request: key and value required.' }
     }
-    return settingsService.setSetting(data.key, data.value, data.description)
+    const result = settingsService.setSetting(data.key, data.value, data.description)
+    if (result.success) {
+      onSettingChanged?.(data.key, data.value)
+    }
+    return result
   })
 
   // ── Session Persistence ─────────────────────────────────────

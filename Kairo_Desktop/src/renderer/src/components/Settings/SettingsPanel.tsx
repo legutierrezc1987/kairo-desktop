@@ -1,5 +1,20 @@
 import { useState } from 'react'
 import AccountManager from './AccountManager'
+import BudgetPresetSelector from './BudgetPresetSelector'
+import VisibilityToggle from './VisibilityToggle'
+
+const sectionStyle: React.CSSProperties = {
+  borderTop: '1px solid #333',
+  paddingTop: '14px',
+  marginTop: '14px',
+}
+
+const sectionHeaderStyle: React.CSSProperties = {
+  fontSize: '13px',
+  fontWeight: 600,
+  color: '#d4d4d4',
+  marginBottom: '10px',
+}
 
 export default function SettingsPanel(): React.JSX.Element {
   const [isOpen, setIsOpen] = useState(false)
@@ -44,7 +59,20 @@ export default function SettingsPanel(): React.JSX.Element {
           </button>
         </div>
 
+        {/* Section: Accounts */}
         <AccountManager />
+
+        {/* Section: Token Budget */}
+        <div style={sectionStyle}>
+          <div style={sectionHeaderStyle}>Token Budget</div>
+          <BudgetPresetSelector />
+        </div>
+
+        {/* Section: Response Style */}
+        <div style={sectionStyle}>
+          <div style={sectionHeaderStyle}>Response Style</div>
+          <VisibilityToggle />
+        </div>
       </div>
     </div>
   )
