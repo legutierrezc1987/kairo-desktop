@@ -1,6 +1,6 @@
 # PROJECT MEMORY (Single Living Context)
 
-Version: 3.50
+Version: 3.51
 Last Updated: 2026-03-01
 Status: ACTIVE
 
@@ -25,7 +25,7 @@ Do not duplicate full DEC or long rationale content.
 
 - Active phase: Phase 7 (Testing + Hardening) — Hotfix J + Patch K SEALED. Working tree CLEAN.
 - Sealed commits: `326071a` (Sprint A hardening), `3c5799c` (Sprint B + stabilization), `756ad33` (Sprint C streaming e2e), `07831d4` (Sprint D cut-pipeline e2e), `64c3813` (Phase 5 Sprint A recall), `a0b30d8` (Phase 5 Sprint B consolidation), `da6c092` (Phase 5 Sprint C rate-limit, GO), `5df7b7a` (Phase 6 Sprint A Monaco editor read/write, GO), `9fc53df` (Phase 6 Sprint B File Explorer lazy tree, GO), `5e3a168` (Phase 6 Sprint C Settings completeness, GO), `88489d1` (Phase 6 Sprint D Impact Analyzer + UndoManager, GO), `9e3e7c5` (Phase 7 Sprint A Safety Net), `856824c` (Phase 7 Sprint A Delta — extracted suites), `9295c31` (cleanup scratch + .gitignore), `ddf6952` (Phase 7 Sprint B Integration Tests), `90c8dc2` (Phase 7 Sprint C E2E Tests), `37c8cbc` (Phase 7 Sprint D electron-builder Windows installer), `e44c117` (Phase 7 Sprint E Docs + Onboarding), `e6df7ba` (Phase 7 Sprint F Beta Ops), `798c5ff` (Phase 7 Sprint G Beta Distribution + Intake), `7ca4b9b` (Phase 7 Sprint H Beta Ops Automation).
-- Current objective: D5 checkpoint executed. 4/10 exit criteria met (identical to Wave 1). Zero external testers. Zero bugs. Decision: CONTINUE BETA (no hotfix, no Phase 8). Blocker is human operational: recruit and distribute.
+- Current objective: **Wave 2 D0 executed**. Engineering readiness confirmed. Beta ZIP staged (`kairo-beta-v0.1.0-2026-03-01_17-52-06.zip`). 5 tester slots created. Pipeline baseline: `run-beta-day` 7/7, `validate-wave-inputs` 9/10 (FAIL: 1 unique machine). Blocker remains operational: User must recruit testers and distribute ZIP.
 - Model catalog refresh completed (runtime + UI): deprecated `gemini-2.0-*` and `gemini-2.5-pro` removed from app paths. Active catalog now uses `gemini-2.5-flash`, `gemini-3-flash-preview`, `gemini-3.1-pro-preview`, `gemini-3.1-pro-preview-customtools`.
 - Routing updated for practical quota behavior: foreground=`gemini-2.5-flash`, background/fallback=`gemini-3-flash-preview`.
 - Active debates: none.
@@ -57,6 +57,14 @@ Do not duplicate full DEC or long rationale content.
   - Fixed missed channel count in `test_rate_limit.mjs` (48→49).
   - Aligned API smoke scripts (`test_0.18.js`, `test_0.19.js`) from `gemini-2.0-flash` to `gemini-2.5-flash`.
   - Working tree confirmed CLEAN (zero unstaged/untracked files).
+- **Wave 2 D0 Execution**:
+  - `verify-packaging.ps1`: 14/14 PASS.
+  - `create-beta-zip.ps1`: 8/8 PASS. ZIP: `kairo-beta-v0.1.0-2026-03-01_17-52-06.zip` (105.69 MB).
+  - `run-beta-day.ps1`: 7/7 PASS. Daily snapshot: `docs/beta/daily/2026-03-01.md`.
+  - `validate-wave-inputs.ps1`: 9/10 PASS (1 FAIL: 1 unique machine < 2 required).
+  - Created `docs/beta/WAVE2_DISTRIBUTION_LOG.md` with artifact hashes + 5 tester slots.
+  - Created `docs/beta/WAVE2_DAY0_READINESS.md` with full readiness report.
+  - Zero changes to `src/`.
 
 ## Validation Ledger (Latest)
 
@@ -162,10 +170,10 @@ PTY-dependent test (`test_terminal_blocked_execution.mjs`): blocked by `node-pty
 
 ## Next Step (Exact)
 
-User decides: (A) recruit testers and distribute, or (B) accept CONDITIONAL GO to Phase 8. D5 decision: `docs/beta/D5_DECISION.md`. Wave 2 report: `docs/beta/WAVE2_EXECUTION_REPORT.md`. Operational runtime model for immediate chat should remain `gemini-2.5-flash`.
+Wave 2 D0 complete. Beta ZIP staged. User must recruit 3-5 external testers (Windows + paid Gemini API) and distribute `kairo-beta-v0.1.0-2026-03-01_17-52-06.zip` + `EXTERNAL_TESTER_PACKET.md`. Fill tester slots in `docs/beta/WAVE2_DISTRIBUTION_LOG.md`. After testers return evidence, run `run-beta-day.ps1` daily until `validate-wave-inputs.ps1` shows GO.
 
 ## Next Owner
 
-- User (Director): decide path (A) recruit testers or (B) CONDITIONAL GO. Both documented in `D5_DECISION.md`.
-- Codex (orchestrator): route next phase based on User decision.
-- Claude (implementer): Hotfix J + Patch K complete. Standby for next hotfix or Phase 8.
+- User (Director): recruit testers, distribute ZIP, collect evidence files into `Kairo_Desktop/`.
+- Codex (orchestrator): route daily pipeline and D5 re-evaluation when evidence arrives.
+- Claude (implementer): D0 complete. Standby for triage, hotfixes, or Phase 8.
