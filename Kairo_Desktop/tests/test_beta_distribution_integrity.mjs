@@ -213,8 +213,13 @@ if (dashboardExists) {
     assert.ok(dashboard.includes('Evidence Reports'));
   });
 
-  test('T6.05 - references collect-beta-evidence.ps1', () => {
-    assert.ok(dashboard.includes('collect-beta-evidence'));
+  test('T6.05 - references collect-beta-evidence.ps1 (template or footer)', () => {
+    // Dashboard always references collect-beta-evidence via the fixed footer line,
+    // regardless of whether it contains template instructions or real aggregate data.
+    assert.ok(
+      dashboard.includes('collect-beta-evidence'),
+      'Dashboard must reference collect-beta-evidence.ps1 (in template instructions or footer)'
+    );
   });
 
   test('T6.06 - has P0 Bugs field', () => {
