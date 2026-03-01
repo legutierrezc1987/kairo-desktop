@@ -5,6 +5,7 @@ import type {
   SendMessageRequest,
   SendMessageResponse,
   ChatMessage,
+  ModelId,
   IpcResult,
   CutReason,
   SessionRecord,
@@ -27,6 +28,7 @@ import {
   abortActiveStream,
   type GeminiResponse,
 } from '../services/gemini-gateway'
+import { is429, retryWithBackoff, type RateLimitEmitter } from '../services/rate-limit.service'
 import { routeModel } from '../services/model-router'
 import { TokenBudgeter } from '../services/token-budgeter'
 import { SessionManager } from '../services/session-manager'
@@ -127,6 +129,9 @@ export class Orchestrator {
   /** Callback for pushing recall status to renderer (Codex guard #3). */
   private _recallStatusSender: RecallStatusSender | null = null
 
+  /** Callback for pushing rate-limit status to renderer (Phase 5 Sprint C, PRD §14). */
+  private _rateLimitEmitter: RateLimitEmitter | null = null
+
   /** Turns since last recall was executed (for periodic trigger). */
   private _turnsSinceLastRecall = 0
 
@@ -160,6 +165,12 @@ export class Orchestrator {
 
   setRecallStatusSender(sender: RecallStatusSender): void {
     this._recallStatusSender = sender
+  }
+
+  // ─── Rate-Limit Emitter Registration (Phase 5 Sprint C, PRD §14) ────
+
+  setRateLimitEmitter(emitter: RateLimitEmitter): void {
+    this._rateLimitEmitter = emitter
   }
 
   /**
@@ -318,64 +329,81 @@ export class Orchestrator {
     this._isStreaming = true
 
     try {
-      await streamChatMessage(
-        request.content,
-        modelId,
-        // Pass history WITHOUT the current user message (SDK adds it internally)
-        this.chatHistory.slice(0, -1),
-        {
-          onChunk: (text: string) => {
-            sendChunk({ messageId, delta: text, done: false })
-          },
+      // Rate-limit aware streaming (Phase 5 Sprint C, PRD §14)
+      // Each retry creates a fresh stream scope (P1 audit: no leaked listeners/AbortControllers).
+      // streamChatMessage catches errors internally and calls onError — we reject on 429
+      // so retryWithBackoff can intercept and retry with backoff.
+      const streamOnce = (tryModelId: ModelId): Promise<void> => {
+        return new Promise<void>((resolve, reject) => {
+          streamChatMessage(
+            request.content,
+            tryModelId,
+            this.chatHistory.slice(0, -1),
+            {
+              onChunk: (text: string) => {
+                sendChunk({ messageId, delta: text, done: false })
+              },
 
-          onComplete: (response: GeminiResponse) => {
-            // Append model turn to history
-            this.chatHistory.push({
-              role: 'model',
-              parts: [{ text: response.text }],
-            })
+              onComplete: (response: GeminiResponse) => {
+                this.chatHistory.push({
+                  role: 'model',
+                  parts: [{ text: response.text }],
+                })
 
-            // Token accounting: authoritative, at completion only
-            const totalTokens = response.tokenCount.total
-            this.budgeter.record('chat', totalTokens)
-            this.sessionManager.incrementTurn(totalTokens)
-            this.persistTokens(totalTokens)
+                const totalTokens = response.tokenCount.total
+                this.budgeter.record('chat', totalTokens)
+                this.sessionManager.incrementTurn(totalTokens)
+                this.persistTokens(totalTokens)
 
-            // Recall strategy: increment turn counter, check periodic trigger
-            this._turnsSinceLastRecall++
-            this.maybePeriodicRecall(request.content)
+                this._turnsSinceLastRecall++
+                this.maybePeriodicRecall(request.content)
 
-            // Terminal chunk with token count
-            sendChunk({
-              messageId,
-              delta: '',
-              done: true,
-              tokenCount: totalTokens,
-            })
-          },
+                sendChunk({
+                  messageId,
+                  delta: '',
+                  done: true,
+                  tokenCount: totalTokens,
+                })
+                resolve()
+              },
 
-          onError: (error: Error) => {
-            // P1 FIX: ALWAYS send terminal error chunk to prevent UI zombie
-            sendChunk({
-              messageId,
-              delta: '',
-              done: true,
-              error: error.message,
-            })
+              onError: (error: Error) => {
+                if (is429(error)) {
+                  // 429/transient: reject so retryWithBackoff can retry
+                  reject(error)
+                } else {
+                  // Non-retryable: send error chunk, roll back user turn, resolve
+                  sendChunk({
+                    messageId,
+                    delta: '',
+                    done: true,
+                    error: error.message,
+                  })
+                  if (this.chatHistory.length > 0 && this.chatHistory[this.chatHistory.length - 1].role === 'user') {
+                    this.chatHistory.pop()
+                  }
+                  resolve()
+                }
+              },
+            },
+          ).catch(reject) // Defensive: handle any unexpected throws from gateway
+        })
+      }
 
-            // Roll back the user turn from history on error
-            if (this.chatHistory.length > 0 && this.chatHistory[this.chatHistory.length - 1].role === 'user') {
-              this.chatHistory.pop()
-            }
-          },
-        },
-      )
+      await retryWithBackoff(streamOnce, {
+        model: modelId,
+        emitStatus: this._rateLimitEmitter ?? undefined,
+      })
 
       return { success: true, data: { messageId } }
     } catch (error: unknown) {
-      // Defensive: should not reach here (streamChatMessage catches internally)
+      // Reached on: "Cuota agotada" (all retries + fallback exhausted) or unexpected errors
       const msg = error instanceof Error ? error.message : 'Unknown streaming error'
       sendChunk({ messageId, delta: '', done: true, error: msg })
+      // Roll back user turn on final exhaustion
+      if (this.chatHistory.length > 0 && this.chatHistory[this.chatHistory.length - 1].role === 'user') {
+        this.chatHistory.pop()
+      }
       return { success: false, error: msg }
     } finally {
       this._isStreaming = false

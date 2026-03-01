@@ -126,3 +126,20 @@ export const CONSOLIDATION_INPUT_CAP_CHARS = 80_000
 
 /** Timeout for consolidation LLM generation (ms) */
 export const CONSOLIDATION_TIMEOUT_MS = 60_000
+
+// ─── Rate-Limit Handler Configuration (Phase 5 Sprint C, PRD §14) ──
+
+/** Maximum retry attempts before fallback (PRD §14: 3 retries) */
+export const RATE_LIMIT_MAX_RETRIES = 3
+
+/** Base delay for exponential backoff (ms) — first retry waits ~1s */
+export const RATE_LIMIT_BACKOFF_BASE_MS = 1_000
+
+/** Multiplier for exponential backoff — 1s, 2s, 4s */
+export const RATE_LIMIT_BACKOFF_MULTIPLIER = 2
+
+/** Maximum backoff delay cap (ms) — PRD §14: max 60s */
+export const RATE_LIMIT_BACKOFF_MAX_MS = 60_000
+
+/** Jitter factor: ±25% randomization on each delay */
+export const RATE_LIMIT_JITTER_FACTOR = 0.25

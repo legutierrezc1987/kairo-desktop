@@ -11,6 +11,7 @@ import type {
   CutPipelineEvent,
   RecallStatusEvent,
   ConsolidationStatusEvent,
+  RateLimitStatus,
   IpcResult,
 } from '@shared/types'
 
@@ -28,6 +29,7 @@ export function useChat() {
   const setCutPhase = useChatStore((s) => s.setCutPhase)
   const setRecallPhase = useChatStore((s) => s.setRecallPhase)
   const setConsolidationPhase = useChatStore((s) => s.setConsolidationPhase)
+  const setRateLimitPhase = useChatStore((s) => s.setRateLimitPhase)
   const selectedModel = useSettingsStore((s) => s.selectedModel)
 
   // ── Register streaming listener (mount-once) ──────────────
@@ -124,6 +126,29 @@ export function useChat() {
 
     return unsubscribe
   }, [setConsolidationPhase])
+
+  // ── Register rate-limit status listener (Phase 5 Sprint C) ──
+  useEffect(() => {
+    if (!hasKairoApi()) return
+
+    const api = getKairoApiOrThrow()
+    const unsubscribe = api.on(
+      IPC_CHANNELS.RATE_LIMIT_STATUS,
+      (event: unknown) => {
+        const e = event as RateLimitStatus
+        if (!e || typeof e.phase !== 'string') return
+
+        // Terminal states → clear rate-limit phase
+        if (e.phase === 'resolved' || e.phase === 'exhausted') {
+          setRateLimitPhase(null)
+        } else {
+          setRateLimitPhase(e.phase)
+        }
+      },
+    )
+
+    return unsubscribe
+  }, [setRateLimitPhase])
 
   // ── Send message (initiates streaming) ─────────────────────
   const sendMessage = useCallback(

@@ -24,6 +24,11 @@ const CONSOLIDATION_PHASE_LABELS: Record<string, string> = {
   deleting: 'Deleting old sources...',
 }
 
+const RATE_LIMIT_PHASE_LABELS: Record<string, string> = {
+  retrying: 'Rate limited — retrying...',
+  fallback: 'Switching to fallback model...',
+}
+
 export default function ChatPanel(): React.JSX.Element {
   const messages = useChatStore((s) => s.messages)
   const isLoading = useChatStore((s) => s.isLoading)
@@ -31,6 +36,7 @@ export default function ChatPanel(): React.JSX.Element {
   const cutPhase = useChatStore((s) => s.cutPhase)
   const recallPhase = useChatStore((s) => s.recallPhase)
   const consolidationPhase = useChatStore((s) => s.consolidationPhase)
+  const rateLimitPhase = useChatStore((s) => s.rateLimitPhase)
   const error = useChatStore((s) => s.error)
   const { sendMessage, abortGeneration } = useChat()
   const messagesEndRef = useRef<HTMLDivElement>(null)
@@ -122,11 +128,29 @@ export default function ChatPanel(): React.JSX.Element {
         </div>
       )}
 
+      {/* Non-blocking rate-limit status indicator (Phase 5 Sprint C) */}
+      {rateLimitPhase && (
+        <div style={{
+          position: 'absolute',
+          top: recallPhase ? '80px' : '48px',
+          right: '12px',
+          backgroundColor: '#3a2e1e',
+          border: '1px solid #d97706',
+          borderRadius: '8px',
+          padding: '6px 12px',
+          fontSize: '11px',
+          color: '#fbbf24',
+          zIndex: 40,
+        }}>
+          {RATE_LIMIT_PHASE_LABELS[rateLimitPhase] ?? 'Handling rate limit...'}
+        </div>
+      )}
+
       {/* Non-blocking consolidation status indicator (Phase 5 Sprint B) */}
       {consolidationPhase && (
         <div style={{
           position: 'absolute',
-          top: recallPhase ? '80px' : '48px',
+          top: recallPhase || rateLimitPhase ? '80px' : '48px',
           right: '12px',
           backgroundColor: '#1e3a2f',
           border: '1px solid #16a34a',

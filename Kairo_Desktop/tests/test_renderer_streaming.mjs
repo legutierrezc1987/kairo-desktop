@@ -286,6 +286,56 @@ assert(
 )
 
 // ═════════════════════════════════════════════════════════════════════
+// T45-T54: Rate-limit status in renderer (Phase 5 Sprint C, PRD §14)
+// ═════════════════════════════════════════════════════════════════════
+console.log('\n── T45-T54: Rate-limit status in renderer ──')
+
+assert(
+  chatStoreSrc.includes('rateLimitPhase: RateLimitPhase | null'),
+  'T45: chatStore has rateLimitPhase state'
+)
+assert(
+  chatStoreSrc.includes('setRateLimitPhase: (phase: RateLimitPhase | null) => void'),
+  'T46: chatStore has setRateLimitPhase action'
+)
+assert(
+  chatStoreSrc.includes('rateLimitPhase: null,'),
+  'T47: rateLimitPhase initialized to null'
+)
+assert(
+  chatStoreSrc.includes('setRateLimitPhase: (rateLimitPhase) => set({ rateLimitPhase })'),
+  'T48: setRateLimitPhase setter implemented'
+)
+
+// useChat hook rate-limit listener
+assert(
+  useChatSrc.includes('RATE_LIMIT_STATUS'),
+  'T49: useChat registers RATE_LIMIT_STATUS listener'
+)
+assert(
+  useChatSrc.includes('RateLimitStatus'),
+  'T50: useChat imports RateLimitStatus type'
+)
+assert(
+  useChatSrc.includes('setRateLimitPhase'),
+  'T51: useChat calls setRateLimitPhase'
+)
+
+// ChatPanel rate-limit indicator
+assert(
+  chatPanelSrc.includes('rateLimitPhase'),
+  'T52: ChatPanel reads rateLimitPhase from store'
+)
+assert(
+  chatPanelSrc.includes('RATE_LIMIT_PHASE_LABELS'),
+  'T53: ChatPanel uses RATE_LIMIT_PHASE_LABELS for display'
+)
+assert(
+  chatPanelSrc.includes('Handling rate limit...'),
+  'T54: ChatPanel has fallback rate-limit label'
+)
+
+// ═════════════════════════════════════════════════════════════════════
 // Summary
 // ═════════════════════════════════════════════════════════════════════
 

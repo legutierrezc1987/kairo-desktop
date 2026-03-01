@@ -74,6 +74,9 @@ export const IPC_CHANNELS = {
   // Consolidation engine domain (Phase 5 Sprint B, DEC-022)
   CONSOLIDATION_STATUS: 'consolidation:status',
 
+  // Rate-limit handler domain (Phase 5 Sprint C, PRD §14)
+  RATE_LIMIT_STATUS: 'rate-limit:status',
+
   // App domain
   APP_GET_CWD: 'app:get-cwd',
   APP_SELECT_FOLDER: 'app:select-folder',

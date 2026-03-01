@@ -434,6 +434,19 @@ export interface DeleteSourceResult {
   error?: string
 }
 
+// ─── Rate-Limit Handler Domain (Phase 5 Sprint C, PRD §14) ──
+
+export type RateLimitPhase = 'retrying' | 'fallback' | 'resolved' | 'exhausted'
+
+export interface RateLimitStatus {
+  phase: RateLimitPhase
+  attempt: number
+  maxAttempts: number
+  model: string
+  delayMs?: number
+  error?: string
+}
+
 // ─── App Domain ────────────────────────────────────────────
 
 export interface SelectFolderResponse {

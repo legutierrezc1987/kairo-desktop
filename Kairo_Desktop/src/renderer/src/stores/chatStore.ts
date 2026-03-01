@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import type { ChatMessage, CutPipelinePhase, RecallStatusPhase, ConsolidationPhase } from '@shared/types'
+import type { ChatMessage, CutPipelinePhase, RecallStatusPhase, ConsolidationPhase, RateLimitPhase } from '@shared/types'
 
 interface ChatState {
   messages: ChatMessage[]
@@ -16,6 +16,9 @@ interface ChatState {
 
   // Consolidation status (Phase 5 Sprint B, DEC-022)
   consolidationPhase: ConsolidationPhase | null
+
+  // Rate-limit status (Phase 5 Sprint C, PRD §14)
+  rateLimitPhase: RateLimitPhase | null
 
   addMessage: (message: ChatMessage) => void
   setLoading: (loading: boolean) => void
@@ -36,6 +39,9 @@ interface ChatState {
 
   // Consolidation status actions (Phase 5 Sprint B)
   setConsolidationPhase: (phase: ConsolidationPhase | null) => void
+
+  // Rate-limit status actions (Phase 5 Sprint C)
+  setRateLimitPhase: (phase: RateLimitPhase | null) => void
 }
 
 export const useChatStore = create<ChatState>()((set) => ({
@@ -47,6 +53,7 @@ export const useChatStore = create<ChatState>()((set) => ({
   cutPhase: null,
   recallPhase: null,
   consolidationPhase: null,
+  rateLimitPhase: null,
 
   addMessage: (message) => set((state) => ({ messages: [...state.messages, message] })),
   setLoading: (isLoading) => set({ isLoading }),
@@ -104,4 +111,6 @@ export const useChatStore = create<ChatState>()((set) => ({
   setRecallPhase: (recallPhase) => set({ recallPhase }),
 
   setConsolidationPhase: (consolidationPhase) => set({ consolidationPhase }),
+
+  setRateLimitPhase: (rateLimitPhase) => set({ rateLimitPhase }),
 }))

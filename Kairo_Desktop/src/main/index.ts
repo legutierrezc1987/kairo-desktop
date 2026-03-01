@@ -20,7 +20,7 @@ import { UploadQueueService } from './services/upload-queue.service'
 import { SyncWorker } from './workers/sync-worker'
 import { IPC_CHANNELS } from '../shared/ipc-channels'
 import { KILL_SWITCH_ACCELERATOR, DEFAULT_BUDGET, BUDGET_PRESETS, MEMORY_SETTINGS_KEY_MCP_PATH, CUT_PIPELINE_TIMEOUT_MS } from '../shared/constants'
-import type { BrokerMode, CutReason, CutPipelineEvent, RecallStatusEvent, ConsolidationStatusEvent } from '../shared/types'
+import type { BrokerMode, CutReason, CutPipelineEvent, RecallStatusEvent, ConsolidationStatusEvent, RateLimitStatus } from '../shared/types'
 import { readFile, writeFile, mkdir } from 'node:fs/promises'
 import { MASTER_SUMMARY_PROMPT, type ConsolidationPort } from './memory/consolidation-engine'
 
@@ -248,6 +248,11 @@ app.whenReady().then(async () => {
   syncWorker.setConsolidationEmitter((phase) => {
     const event: ConsolidationStatusEvent = { phase }
     mainWindow?.webContents.send(IPC_CHANNELS.CONSOLIDATION_STATUS, event)
+  })
+
+  // ── Register rate-limit status push (Phase 5 Sprint C, PRD §14) ───
+  orchestrator.setRateLimitEmitter((status: RateLimitStatus) => {
+    mainWindow?.webContents.send(IPC_CHANNELS.RATE_LIMIT_STATUS, status)
   })
 
   // ── Kill switch — Ctrl+Shift+K emergency stop (DEC-025) ────
