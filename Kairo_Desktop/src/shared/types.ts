@@ -42,7 +42,11 @@ export interface ChatAbortResponse {
 
 // ─── Model Domain ────────────────────────────────────────────
 
-export type ModelId = 'gemini-2.5-pro' | 'gemini-2.0-flash' | 'gemini-2.0-flash-lite'
+export type ModelId =
+  | 'gemini-2.5-flash'
+  | 'gemini-3-flash-preview'
+  | 'gemini-3.1-pro-preview'
+  | 'gemini-3.1-pro-preview-customtools'
 
 export type RoutingContext = 'foreground' | 'background'
 
@@ -259,6 +263,15 @@ export interface ListAccountsResponse { accounts: Account[] }
 export interface SetActiveAccountRequest { accountId: string }
 export interface SetActiveAccountResponse { account: Account }
 export interface DeleteAccountRequest { accountId: string }
+
+// ─── Account Preflight Domain (Phase 7 Hotfix J) ──────────
+
+export type AccountGatewayStatus = 'validating' | 'valid' | 'invalid' | 'quota' | 'unknown'
+
+export interface AccountPreflightEvent {
+  status: AccountGatewayStatus
+  error?: string
+}
 
 // ─── Session Persistence Domain ────────────────────────────
 

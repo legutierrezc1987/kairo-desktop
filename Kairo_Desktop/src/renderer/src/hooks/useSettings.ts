@@ -13,7 +13,12 @@ const SETTINGS_KEYS = {
   visibilityMode: 'visibility_mode',
 } as const
 
-const VALID_MODELS: readonly string[] = ['gemini-2.5-pro', 'gemini-2.0-flash', 'gemini-2.0-flash-lite']
+const VALID_MODELS: readonly string[] = [
+  'gemini-2.5-flash',
+  'gemini-3-flash-preview',
+  'gemini-3.1-pro-preview',
+  'gemini-3.1-pro-preview-customtools',
+]
 const VALID_PRESETS: readonly string[] = ['conservative', 'balanced', 'extended', 'custom']
 const VALID_VISIBILITY: readonly string[] = ['concise', 'detailed']
 

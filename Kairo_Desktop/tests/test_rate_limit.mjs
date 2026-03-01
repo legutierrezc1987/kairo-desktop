@@ -225,7 +225,7 @@ await testAsync('T26: success on first try → no retries', async () => {
   let callCount = 0
   const result = await retryWithBackoff(
     async () => { callCount++; return 'ok' },
-    { model: 'gemini-2.0-flash' },
+    { model: 'gemini-3-flash-preview' },
   )
   assert.equal(result, 'ok')
   assert.equal(callCount, 1)
@@ -241,7 +241,7 @@ await testAsync('T27: 429 then success → retryCount=1 (G1 acceptance gate)', a
       return 'recovered'
     },
     {
-      model: 'gemini-2.0-flash',
+      model: 'gemini-3-flash-preview',
       emitStatus: (s) => phases.push(s.phase),
     },
   )
@@ -259,7 +259,7 @@ await testAsync('T28: 429 twice then success → retryCount=2', async () => {
       if (callCount <= 2) throw { status: 429, message: '429' }
       return 'recovered'
     },
-    { model: 'gemini-2.0-flash' },
+    { model: 'gemini-3-flash-preview' },
   )
   assert.equal(result, 'recovered')
   assert.equal(callCount, 3)
@@ -274,28 +274,28 @@ await testAsync('T29: primary exhausted → fallback succeeds (G2 acceptance gat
     async (model) => {
       callCount++
       models.push(model)
-      if (model === 'gemini-2.5-pro') throw { status: 429, message: '429' }
+      if (model === 'gemini-3.1-pro-preview') throw { status: 429, message: '429' }
       return 'fallback-ok'
     },
     {
-      model: 'gemini-2.5-pro',
-      fallbackModel: 'gemini-2.0-flash',
+      model: 'gemini-3.1-pro-preview',
+      fallbackModel: 'gemini-3-flash-preview',
     },
   )
   assert.equal(result, 'fallback-ok')
-  assert.ok(models.includes('gemini-2.0-flash'), 'Should try fallback model')
+  assert.ok(models.includes('gemini-3-flash-preview'), 'Should try fallback model')
 })
 
 await testAsync('T30: primary exhausted → emits fallback phase', async () => {
   const phases = []
   const result = await retryWithBackoff(
     async (model) => {
-      if (model === 'gemini-2.5-pro') throw { status: 429, message: '429' }
+      if (model === 'gemini-3.1-pro-preview') throw { status: 429, message: '429' }
       return 'ok'
     },
     {
-      model: 'gemini-2.5-pro',
-      fallbackModel: 'gemini-2.0-flash',
+      model: 'gemini-3.1-pro-preview',
+      fallbackModel: 'gemini-3-flash-preview',
       emitStatus: (s) => phases.push(s.phase),
     },
   )
@@ -312,8 +312,8 @@ await testAsync('T31: both models exhausted → "Cuota agotada" (G3 acceptance g
     await retryWithBackoff(
       async () => { throw { status: 429, message: '429' } },
       {
-        model: 'gemini-2.5-pro',
-        fallbackModel: 'gemini-2.0-flash',
+        model: 'gemini-3.1-pro-preview',
+        fallbackModel: 'gemini-3-flash-preview',
         emitStatus: (s) => phases.push(s),
       },
     )
@@ -332,8 +332,8 @@ await testAsync('T32: same model for primary and fallback → no double retry', 
     await retryWithBackoff(
       async () => { callCount++; throw { status: 429, message: '429' } },
       {
-        model: 'gemini-2.0-flash',
-        fallbackModel: 'gemini-2.0-flash', // Same model
+        model: 'gemini-3-flash-preview',
+        fallbackModel: 'gemini-3-flash-preview', // Same model
       },
     )
     assert.fail('Should have thrown')
@@ -351,7 +351,7 @@ await testAsync('T33: non-429 error propagates immediately (no retry)', async ()
   try {
     await retryWithBackoff(
       async () => { callCount++; throw new Error('Auth failed') },
-      { model: 'gemini-2.0-flash' },
+      { model: 'gemini-3-flash-preview' },
     )
     assert.fail('Should have thrown')
   } catch (err) {
@@ -369,7 +369,7 @@ await testAsync('T34: non-429 after successful retries still propagates', async 
         if (callCount === 1) throw { status: 429, message: '429' }
         throw new Error('Server error')
       },
-      { model: 'gemini-2.0-flash' },
+      { model: 'gemini-3-flash-preview' },
     )
     assert.fail('Should have thrown')
   } catch (err) {
@@ -386,8 +386,8 @@ await testAsync('T35: emitter receives attempt + maxAttempts + model + delayMs',
     await retryWithBackoff(
       async () => { throw { status: 429, message: '429' } },
       {
-        model: 'gemini-2.5-pro',
-        fallbackModel: 'gemini-2.0-flash',
+        model: 'gemini-3.1-pro-preview',
+        fallbackModel: 'gemini-3-flash-preview',
         emitStatus: (s) => statuses.push(s),
       },
     )
@@ -399,7 +399,7 @@ await testAsync('T35: emitter receives attempt + maxAttempts + model + delayMs',
   for (const s of retrying) {
     assert.equal(typeof s.attempt, 'number')
     assert.equal(s.maxAttempts, RATE_LIMIT_MAX_RETRIES)
-    assert.equal(s.model, 'gemini-2.5-pro')
+    assert.equal(s.model, 'gemini-3.1-pro-preview')
     assert.equal(typeof s.delayMs, 'number')
     assert.ok(s.delayMs > 0)
   }
@@ -411,8 +411,8 @@ await testAsync('T36: emitter receives fallback events with correct model', asyn
     await retryWithBackoff(
       async () => { throw { status: 429, message: '429' } },
       {
-        model: 'gemini-2.5-pro',
-        fallbackModel: 'gemini-2.0-flash',
+        model: 'gemini-3.1-pro-preview',
+        fallbackModel: 'gemini-3-flash-preview',
         emitStatus: (s) => statuses.push(s),
       },
     )
@@ -420,7 +420,7 @@ await testAsync('T36: emitter receives fallback events with correct model', asyn
 
   const fallbackEvents = statuses.filter(s => s.phase === 'fallback')
   assert.ok(fallbackEvents.length >= 1, 'Should have fallback events')
-  assert.equal(fallbackEvents[0].model, 'gemini-2.0-flash')
+  assert.equal(fallbackEvents[0].model, 'gemini-3-flash-preview')
 })
 
 console.log('\n═══ Constants validation ═══')
@@ -448,8 +448,8 @@ test('T41: RATE_LIMIT_STATUS channel exists', () => {
   assert.equal(IPC_CHANNELS.RATE_LIMIT_STATUS, 'rate-limit:status')
 })
 
-test('T42: Total IPC channels = 47', () => {
-  assert.equal(IPC_CHANNEL_ALLOWLIST.length, 47)
+test('T42: Total IPC channels = 48', () => {
+  assert.equal(IPC_CHANNEL_ALLOWLIST.length, 48)
 })
 
 console.log('\n═══ Renderer assertions (source-level) ═══')
@@ -588,3 +588,4 @@ if (failed > 0) {
 } else {
   console.log('\nAll tests PASSED!')
 }
+

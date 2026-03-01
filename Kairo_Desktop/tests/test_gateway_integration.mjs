@@ -139,12 +139,15 @@ const gatewaySrc = readFileSync(resolve(SRC, 'main', 'services', 'gemini-gateway
 const fakeSDKPath = join(fakeSDKDir, 'google-ai.ts').replace(/\\/g, '/')
 const sharedDir = resolve(SRC, 'shared').replace(/\\/g, '/')
 
+const servicesDir = resolve(SRC, 'main', 'services').replace(/\\/g, '/')
+
 const patchedGateway = gatewaySrc
   .replace(
     "import { GoogleGenerativeAI, type GenerativeModel, type Content } from '@google/generative-ai'",
     `import { GoogleGenerativeAI, type GenerativeModel, type Content, _fakeConfig, _resetFake } from '${fakeSDKPath}'`
   )
   .replace("from '../../shared/types'", `from '${sharedDir}/types'`)
+  .replace("from './rate-limit.service'", `from '${servicesDir}/rate-limit.service'`)
   + '\nexport { _fakeConfig, _resetFake }\n'
 
 const patchedGatewayFile = join(buildDir, 'gateway-integration.ts')
@@ -202,7 +205,7 @@ gw.initGeminiGateway('test-key')
 await testAsync('GW01: streamChatMessage calls onChunk with text', async () => {
   gw._resetFake()
   const col = collectCallbacks()
-  await gw.streamChatMessage('test', 'gemini-2.0-flash', [], col.callbacks)
+  await gw.streamChatMessage('test', 'gemini-3-flash-preview', [], col.callbacks)
   assert(col.chunks.length >= 2, `Expected >= 2 chunks, got ${col.chunks.length}`)
   assert(col.chunks.includes('Hello '), 'Missing first chunk')
   assert(col.chunks.includes('world!'), 'Missing second chunk')
@@ -211,7 +214,7 @@ await testAsync('GW01: streamChatMessage calls onChunk with text', async () => {
 await testAsync('GW02: onComplete receives full text + tokenCount', async () => {
   gw._resetFake()
   const col = collectCallbacks()
-  await gw.streamChatMessage('test', 'gemini-2.0-flash', [], col.callbacks)
+  await gw.streamChatMessage('test', 'gemini-3-flash-preview', [], col.callbacks)
   const resp = col.getCompleted()
   assert.equal(resp.text, 'Hello world!')
   assert.equal(resp.tokenCount.total, 30)
@@ -221,7 +224,7 @@ await testAsync('GW03: isStreaming() true during active stream', async () => {
   gw._resetFake()
   gw._fakeConfig.chunks = ['slow...']
   let wasMidStream = false
-  await gw.streamChatMessage('test', 'gemini-2.0-flash', [], {
+  await gw.streamChatMessage('test', 'gemini-3-flash-preview', [], {
     onChunk: () => { wasMidStream = gw.isStreaming() },
     onComplete: () => {},
     onError: () => {},
@@ -241,19 +244,19 @@ test('GW05: activeAbortController cleared after stream', () => {
 await testAsync('GW06: history passed to startChat', async () => {
   gw._resetFake()
   const history = [{ role: 'user', parts: [{ text: 'hi' }] }]
-  await gw.streamChatMessage('test', 'gemini-2.0-flash', history, collectCallbacks().callbacks)
+  await gw.streamChatMessage('test', 'gemini-3-flash-preview', history, collectCallbacks().callbacks)
   assert.deepEqual(gw._fakeConfig.startChatCalls[0].history, history)
 })
 
 await testAsync('GW07: systemInstruction forwarded when provided', async () => {
   gw._resetFake()
-  await gw.streamChatMessage('test', 'gemini-2.0-flash', [], collectCallbacks().callbacks, 'You are Kairo')
+  await gw.streamChatMessage('test', 'gemini-3-flash-preview', [], collectCallbacks().callbacks, 'You are Kairo')
   assert.equal(gw._fakeConfig.startChatCalls[0].systemInstruction, 'You are Kairo')
 })
 
 await testAsync('GW08: systemInstruction omitted when undefined', async () => {
   gw._resetFake()
-  await gw.streamChatMessage('test', 'gemini-2.0-flash', [], collectCallbacks().callbacks)
+  await gw.streamChatMessage('test', 'gemini-3-flash-preview', [], collectCallbacks().callbacks)
   assert.equal(gw._fakeConfig.startChatCalls[0].systemInstruction, undefined)
 })
 
@@ -266,7 +269,7 @@ await testAsync('GW09: network error → onError with Error instance', async () 
   gw._resetFake()
   gw._fakeConfig.throwOnSend = new Error('Network failure')
   const col = collectCallbacks()
-  await gw.streamChatMessage('test', 'gemini-2.0-flash', [], col.callbacks)
+  await gw.streamChatMessage('test', 'gemini-3-flash-preview', [], col.callbacks)
   assert(col.getError() instanceof Error, 'Expected Error instance')
 })
 
@@ -274,7 +277,7 @@ await testAsync('GW10: error message preserved', async () => {
   gw._resetFake()
   gw._fakeConfig.throwOnSend = new Error('ECONNRESET')
   const col = collectCallbacks()
-  await gw.streamChatMessage('test', 'gemini-2.0-flash', [], col.callbacks)
+  await gw.streamChatMessage('test', 'gemini-3-flash-preview', [], col.callbacks)
   assert(col.getError().message.includes('ECONNRESET'), 'Message not preserved')
 })
 
@@ -286,7 +289,7 @@ await testAsync('GW12: SDK throw during sendMessageStream → onError', async ()
   gw._resetFake()
   gw._fakeConfig.throwOnSend = new Error('SDK internal error')
   const col = collectCallbacks()
-  await gw.streamChatMessage('test', 'gemini-2.0-flash', [], col.callbacks)
+  await gw.streamChatMessage('test', 'gemini-3-flash-preview', [], col.callbacks)
   assert(col.getError() !== null, 'onError should be called')
   assert.equal(col.getCompleted(), null, 'onComplete should NOT be called')
 })
@@ -297,7 +300,7 @@ await testAsync('GW13: 429 error passes through onError', async () => {
   err429.status = 429
   gw._fakeConfig.throwOnSend = err429
   const col = collectCallbacks()
-  await gw.streamChatMessage('test', 'gemini-2.0-flash', [], col.callbacks)
+  await gw.streamChatMessage('test', 'gemini-3-flash-preview', [], col.callbacks)
   assert(col.getError() !== null, '429 should reach onError')
 })
 
@@ -309,7 +312,7 @@ await testAsync('GW15: onChunk NOT called on immediate error', async () => {
   gw._resetFake()
   gw._fakeConfig.throwOnSend = new Error('immediate fail')
   const col = collectCallbacks()
-  await gw.streamChatMessage('test', 'gemini-2.0-flash', [], col.callbacks)
+  await gw.streamChatMessage('test', 'gemini-3-flash-preview', [], col.callbacks)
   assert.equal(col.chunks.length, 0, 'No chunks on immediate error')
 })
 
@@ -317,7 +320,7 @@ await testAsync('GW16: onComplete NOT called on error', async () => {
   gw._resetFake()
   gw._fakeConfig.throwOnSend = new Error('fail')
   const col = collectCallbacks()
-  await gw.streamChatMessage('test', 'gemini-2.0-flash', [], col.callbacks)
+  await gw.streamChatMessage('test', 'gemini-3-flash-preview', [], col.callbacks)
   assert.equal(col.getCompleted(), null, 'onComplete should not fire')
 })
 
@@ -345,7 +348,7 @@ await testAsync('GW19: abort triggers onError with "aborted by user"', async () 
   gw._fakeConfig.chunks = []
   // Override to block: we'll use throwOnStream with abort signal check
   const col = collectCallbacks()
-  const streamPromise = gw.streamChatMessage('test', 'gemini-2.0-flash', [], col.callbacks)
+  const streamPromise = gw.streamChatMessage('test', 'gemini-3-flash-preview', [], col.callbacks)
   // The stream has zero chunks so it completes immediately
   await streamPromise
   // Since we can't truly block the async generator in this fake,
@@ -394,17 +397,18 @@ test('GW25: initGeminiGateway sets isInitialized true', () => {
   assert.equal(gw.isInitialized(), true)
 })
 
-test('GW26: 3 models accessible (source check)', () => {
+test('GW26: 4 models accessible (source check)', () => {
   const src = readFileSync(resolve(SRC, 'main', 'services', 'gemini-gateway.ts'), 'utf-8')
-  assert(src.includes("'gemini-2.5-pro'"), 'Pro model')
-  assert(src.includes("'gemini-2.0-flash'"), 'Flash model')
-  assert(src.includes("'gemini-2.0-flash-lite'"), 'Lite model')
+  assert(src.includes("'gemini-2.5-flash'"), '2.5 Flash model')
+  assert(src.includes("'gemini-3-flash-preview'"), '3 Flash model')
+  assert(src.includes("'gemini-3.1-pro-preview'"), '3.1 Pro High model')
+  assert(src.includes("'gemini-3.1-pro-preview-customtools'"), '3.1 Pro Low model')
 })
 
 await testAsync('GW27: getModel throws for uninitialized', async () => {
   gw.resetGeminiGateway()
   try {
-    await gw.streamChatMessage('test', 'gemini-2.0-flash', [], collectCallbacks().callbacks)
+    await gw.streamChatMessage('test', 'gemini-3-flash-preview', [], collectCallbacks().callbacks)
     assert.fail('Should throw')
   } catch (e) {
     assert(e.message.includes('not initialized'), 'Error mentions initialization')
@@ -426,14 +430,14 @@ test('GW29: re-init after reset works', () => {
 
 await testAsync('GW30: generateContent returns GeminiResponse shape', async () => {
   gw._resetFake()
-  const result = await gw.generateContent('test', 'gemini-2.0-flash')
+  const result = await gw.generateContent('test', 'gemini-3-flash-preview')
   assert.equal(typeof result.text, 'string')
   assert.equal(typeof result.tokenCount.total, 'number')
 })
 
 await testAsync('GW31: countTokens returns number', async () => {
   gw._resetFake()
-  const count = await gw.countTokens('hello', 'gemini-2.0-flash')
+  const count = await gw.countTokens('hello', 'gemini-3-flash-preview')
   assert.equal(typeof count, 'number')
 })
 
@@ -486,7 +490,7 @@ await testAsync('GW42: retryWithBackoff: success on 1st → returns result', asy
   let callCount = 0
   const result = await rl.retryWithBackoff(
     async () => { callCount++; return 'ok' },
-    { model: 'gemini-2.0-flash' },
+    { model: 'gemini-3-flash-preview' },
   )
   assert.equal(result, 'ok')
   assert.equal(callCount, 1)
@@ -500,7 +504,7 @@ await testAsync('GW43: retryWithBackoff: 429 then success → retries', async ()
       if (callCount === 1) { const e = new Error('429'); e.status = 429; throw e }
       return 'recovered'
     },
-    { model: 'gemini-2.0-flash' },
+    { model: 'gemini-3-flash-preview' },
   )
   assert.equal(result, 'recovered')
   assert(callCount >= 2, 'Should have retried at least once')
@@ -514,13 +518,13 @@ await testAsync('GW44: retryWithBackoff: all 429 → fallback model tried', asyn
         modelsUsed.push(model)
         const e = new Error('429'); e.status = 429; throw e
       },
-      { model: 'gemini-2.5-pro', fallbackModel: 'gemini-2.0-flash' },
+      { model: 'gemini-3.1-pro-preview', fallbackModel: 'gemini-3-flash-preview' },
     )
   } catch (e) {
     // Expected: Cuota agotada
   }
-  assert(modelsUsed.includes('gemini-2.5-pro'), 'Primary tried')
-  assert(modelsUsed.includes('gemini-2.0-flash'), 'Fallback tried')
+  assert(modelsUsed.includes('gemini-3.1-pro-preview'), 'Primary tried')
+  assert(modelsUsed.includes('gemini-3-flash-preview'), 'Fallback tried')
 })
 
 await testAsync('GW45: retryWithBackoff: non-429 → propagates immediately', async () => {
@@ -528,7 +532,7 @@ await testAsync('GW45: retryWithBackoff: non-429 → propagates immediately', as
   try {
     await rl.retryWithBackoff(
       async () => { callCount++; throw new Error('fatal') },
-      { model: 'gemini-2.0-flash' },
+      { model: 'gemini-3-flash-preview' },
     )
     assert.fail('Should throw')
   } catch (e) {
@@ -549,3 +553,4 @@ if (failed > 0) {
   console.log('\nPASSED — All gateway integration tests pass.\n')
   process.exit(0)
 }
+

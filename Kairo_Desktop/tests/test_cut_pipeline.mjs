@@ -119,7 +119,7 @@ export function buildSystemPrompt(projectName: string, recallContext: string, br
 
 // Model router shim
 writeFileSync(join(shimServicesDir, 'model-router.ts'), `
-export function routeModel(context: string, userOverride?: string): string { return userOverride || 'gemini-2.0-flash' }
+export function routeModel(context: string, userOverride?: string): string { return userOverride || 'gemini-2.5-flash' }
 `)
 
 // Source-patching approach (esbuild alias doesn't support relative paths)
@@ -487,3 +487,4 @@ if (failed > 0) {
   console.log('\nAll tests PASSED!')
   process.exit(0)
 }
+

@@ -7,7 +7,7 @@ import { registerBrokerHandlers } from './ipc/broker.handlers'
 import { registerProjectHandlers } from './ipc/project.handlers'
 import { registerSettingsHandlers } from './ipc/settings.handlers'
 import { validateSender } from './ipc/validate-sender'
-import { initGeminiGateway, resetGeminiGateway, generateContent, isInitialized as isGeminiInitialized } from './services/gemini-gateway'
+import { initGeminiGateway, resetGeminiGateway, generateContent, isInitialized as isGeminiInitialized, validateGateway } from './services/gemini-gateway'
 import { ProjectService } from './services/project.service'
 import { SessionPersistenceService } from './services/session-persistence.service'
 import { AccountService } from './services/account.service'
@@ -22,8 +22,8 @@ import { registerEditorHandlers } from './ipc/editor.handlers'
 import { UploadQueueService } from './services/upload-queue.service'
 import { SyncWorker } from './workers/sync-worker'
 import { IPC_CHANNELS } from '../shared/ipc-channels'
-import { KILL_SWITCH_ACCELERATOR, DEFAULT_BUDGET, BUDGET_PRESETS, MEMORY_SETTINGS_KEY_MCP_PATH, CUT_PIPELINE_TIMEOUT_MS } from '../shared/constants'
-import type { BrokerMode, CutReason, CutPipelineEvent, RecallStatusEvent, ConsolidationStatusEvent, RateLimitStatus } from '../shared/types'
+import { KILL_SWITCH_ACCELERATOR, DEFAULT_BUDGET, BUDGET_PRESETS, MEMORY_SETTINGS_KEY_MCP_PATH, CUT_PIPELINE_TIMEOUT_MS, MODEL_ROUTING } from '../shared/constants'
+import type { BrokerMode, CutReason, CutPipelineEvent, RecallStatusEvent, ConsolidationStatusEvent, RateLimitStatus, AccountPreflightEvent } from '../shared/types'
 import { readFile, writeFile, mkdir } from 'node:fs/promises'
 import { MASTER_SUMMARY_PROMPT, type ConsolidationPort } from './memory/consolidation-engine'
 
@@ -76,6 +76,32 @@ function createWindow(): BrowserWindow {
   }
 
   return win
+}
+
+/** Fire-and-forget gateway validation — pushes status to renderer via IPC push (Phase 7 Hotfix J). */
+function firePreflightCheck(win: BrowserWindow | null): void {
+  const send = (event: AccountPreflightEvent): void => {
+    try {
+      win?.webContents.send(IPC_CHANNELS.ACCOUNT_PREFLIGHT_STATUS, event)
+    } catch {
+      // Window may not be ready or may have been destroyed
+    }
+  }
+
+  send({ status: 'validating' })
+
+  validateGateway().then((result) => {
+    send({ status: result })
+    if (result === 'invalid') {
+      console.warn('[KAIRO] API key preflight FAILED: key is invalid or revoked.')
+    } else if (result === 'quota') {
+      console.warn('[KAIRO] API key preflight: quota exhausted (429).')
+    } else if (result === 'valid') {
+      console.log('[KAIRO] API key preflight: valid.')
+    }
+  }).catch(() => {
+    send({ status: 'unknown' })
+  })
 }
 
 app.whenReady().then(async () => {
@@ -190,7 +216,7 @@ app.whenReady().then(async () => {
         return `# Master Summary (no LLM available)\n\nConsolidated from ${sourceCount} sources.\n\n${mergedContent.slice(0, 20_000)}`
       }
       const prompt = `${MASTER_SUMMARY_PROMPT}\n\nNumber of sessions: ${sourceCount}\n\n---\n\n${mergedContent}`
-      const result = await generateContent(prompt, 'gemini-2.0-flash')
+      const result = await generateContent(prompt, MODEL_ROUTING.background)
       return result.text
     },
     saveMasterSummary: async (projectFolder: string, content: string) => {
@@ -220,6 +246,12 @@ app.whenReady().then(async () => {
 
   // ── Create window and register handlers ─────────────────────
   mainWindow = createWindow()
+
+  // ── Fire startup preflight if gateway was initialized (Phase 7 Hotfix J) ──
+  if (isGeminiInitialized()) {
+    firePreflightCheck(mainWindow)
+  }
+
   registerTerminalHandlers(terminalService, () => mainWindow)
   registerBrokerHandlers(broker, () => mainWindow, settingsService)
   registerProjectHandlers(projectService, (projectId, folderPath, projectName) => {
@@ -241,9 +273,15 @@ app.whenReady().then(async () => {
     if (resolvedKey) {
       initGeminiGateway(resolvedKey)
       console.log(`[KAIRO] Gemini gateway re-initialized (source: ${newKey ? 'account' : 'env'})`)
+      // Fire-and-forget preflight validation (Phase 7 Hotfix J)
+      firePreflightCheck(mainWindow)
     } else {
       resetGeminiGateway()
       console.warn('[KAIRO] No API key available after account change. Gateway reset.')
+      // No key → push unknown status (Phase 7 Hotfix J)
+      try {
+        mainWindow?.webContents.send(IPC_CHANNELS.ACCOUNT_PREFLIGHT_STATUS, { status: 'unknown' } satisfies AccountPreflightEvent)
+      } catch { /* window may be destroyed */ }
     }
   }, (key, value) => {
     // Phase 6 Sprint C: propagate visibility_mode changes to orchestrator in real-time

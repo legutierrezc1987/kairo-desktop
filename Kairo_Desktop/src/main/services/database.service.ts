@@ -1,5 +1,6 @@
 import Database from 'better-sqlite3'
 import { join } from 'node:path'
+import { DEFAULT_MODEL } from '../../shared/constants'
 
 /**
  * DatabaseService — Singleton SQLite manager.
@@ -109,7 +110,7 @@ export class DatabaseService {
         folder_path          TEXT NOT NULL UNIQUE,
         notebook_id          TEXT,
         notebook_url         TEXT,
-        model                TEXT NOT NULL DEFAULT 'gemini-2.0-flash',
+        model                TEXT NOT NULL DEFAULT '${DEFAULT_MODEL}',
         token_threshold_soft INTEGER NOT NULL DEFAULT 150000,
         token_threshold_hard INTEGER NOT NULL DEFAULT 200000,
         turn_limit           INTEGER NOT NULL DEFAULT 40,

@@ -98,7 +98,7 @@ export async function createSnapshot(projectFolderPath: string, sessionNumber: n
 `)
 
 writeFileSync(join(shimServicesDir, 'model-router.ts'), `
-export function routeModel(context: string, userOverride?: string): string { return userOverride || 'gemini-2.0-flash' }
+export function routeModel(context: string, userOverride?: string): string { return userOverride || 'gemini-2.5-flash' }
 `)
 
 const shimConfigDir = join(buildDir, 'shim-config-recall')
@@ -604,3 +604,4 @@ console.log(`Total: ${passed + failed} | Passed: ${passed} | Failed: ${failed}`)
 console.log(`${'─'.repeat(50)}\n`)
 
 process.exit(failed > 0 ? 1 : 0)
+

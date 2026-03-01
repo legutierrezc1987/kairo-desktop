@@ -28,7 +28,7 @@ import {
   abortActiveStream,
   type GeminiResponse,
 } from '../services/gemini-gateway'
-import { is429, retryWithBackoff, type RateLimitEmitter } from '../services/rate-limit.service'
+import { is401, is429, retryWithBackoff, type RateLimitEmitter } from '../services/rate-limit.service'
 import { routeModel } from '../services/model-router'
 import { TokenBudgeter } from '../services/token-budgeter'
 import { SessionManager } from '../services/session-manager'
@@ -323,6 +323,14 @@ export class Orchestrator {
       }
     }
 
+    // Phase 7 Hotfix J: reject chat without active project — prevents silent token loss
+    if (!this.activeProjectId) {
+      return {
+        success: false,
+        error: 'Abre o crea un proyecto antes de chatear.',
+      }
+    }
+
     const messageId = randomUUID()
     const modelId = routeModel('foreground', request.model)
 
@@ -383,6 +391,18 @@ export class Orchestrator {
                 if (is429(error)) {
                   // 429/transient: reject so retryWithBackoff can retry
                   reject(error)
+                } else if (is401(error)) {
+                  // Phase 7 Hotfix J: deterministic auth error message
+                  sendChunk({
+                    messageId,
+                    delta: '',
+                    done: true,
+                    error: 'API key inválida o revocada. Configura una nueva cuenta en Settings.',
+                  })
+                  if (this.chatHistory.length > 0 && this.chatHistory[this.chatHistory.length - 1].role === 'user') {
+                    this.chatHistory.pop()
+                  }
+                  resolve()
                 } else {
                   // Non-retryable: send error chunk, roll back user turn, resolve
                   sendChunk({

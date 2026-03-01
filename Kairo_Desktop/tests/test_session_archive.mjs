@@ -116,7 +116,7 @@ export function abortActiveStream(): boolean { return false }
 `)
 
 writeFileSync(join(shimServicesDir, 'model-router.ts'), `
-export function routeModel(context: string, userOverride?: string): string { return userOverride || 'gemini-2.0-flash' }
+export function routeModel(context: string, userOverride?: string): string { return userOverride || 'gemini-2.5-flash' }
 `)
 
 // System prompt + snapshot shims (Sprint D)
@@ -355,3 +355,4 @@ if (failed > 0) {
   console.log('\nPASSED — All session archive tests pass.\n')
   process.exit(0)
 }
+

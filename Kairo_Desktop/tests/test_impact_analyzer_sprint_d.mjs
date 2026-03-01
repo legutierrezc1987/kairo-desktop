@@ -2,7 +2,7 @@
  * test_impact_analyzer_sprint_d.mjs — Phase 6 Sprint D: Impact Analyzer + Ephemeral Undo
  *
  * Tests:
- * 1. Shared layer: IPC channels (47 total), types, constants
+ * 1. Shared layer: IPC channels (48 total), types, constants
  * 2. UndoManagerService: LIFO stack, collision guard, eviction, clear
  * 3. FileOperationsService: snapshot integration on writeFile
  * 4. IPC handler structure: FS_UNDO_PREVIEW, FS_UNDO_APPLY + type guards
@@ -120,7 +120,7 @@ console.log('\n=== T2: IPC Channels ===')
 
 assert(IPC_CHANNELS.FS_UNDO_PREVIEW === 'fs:undo-preview', 'T2a: FS_UNDO_PREVIEW channel exists')
 assert(IPC_CHANNELS.FS_UNDO_APPLY === 'fs:undo-apply', 'T2b: FS_UNDO_APPLY channel exists')
-assert(IPC_CHANNEL_ALLOWLIST.length === 47, `T2c: 47 channels total (got ${IPC_CHANNEL_ALLOWLIST.length})`)
+assert(IPC_CHANNEL_ALLOWLIST.length === 48, `T2c: 48 channels total (got ${IPC_CHANNEL_ALLOWLIST.length})`)
 assert(IPC_CHANNEL_ALLOWLIST.includes('fs:undo-preview'), 'T2d: allowlist includes fs:undo-preview')
 assert(IPC_CHANNEL_ALLOWLIST.includes('fs:undo-apply'), 'T2e: allowlist includes fs:undo-apply')
 

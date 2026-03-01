@@ -1,5 +1,6 @@
 import { useRef, useEffect } from 'react'
 import { useChatStore } from '@renderer/stores/chatStore'
+import { useProjectStore } from '@renderer/stores/projectStore'
 import { useChat } from '@renderer/hooks/useChat'
 import MessageBubble from './MessageBubble'
 import InputBar from './InputBar'
@@ -38,6 +39,7 @@ export default function ChatPanel(): React.JSX.Element {
   const consolidationPhase = useChatStore((s) => s.consolidationPhase)
   const rateLimitPhase = useChatStore((s) => s.rateLimitPhase)
   const error = useChatStore((s) => s.error)
+  const activeProject = useProjectStore((s) => s.activeProject)
   const { sendMessage, abortGeneration } = useChat()
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
@@ -187,8 +189,15 @@ export default function ChatPanel(): React.JSX.Element {
         </div>
       )}
 
-      {/* Input — disabled during loading, cut pipeline, or recall (NO-GO remediation) */}
-      <InputBar onSend={sendMessage} disabled={isLoading || !!cutPhase || !!recallPhase} />
+      {/* No-project hint (Phase 7 Hotfix J) */}
+      {!activeProject && (
+        <div style={{ padding: '4px 12px', fontSize: '11px', color: '#f59e0b', textAlign: 'center' }}>
+          Abre o crea un proyecto para empezar a chatear.
+        </div>
+      )}
+
+      {/* Input — disabled during loading, cut pipeline, recall, or no active project */}
+      <InputBar onSend={sendMessage} disabled={isLoading || !!cutPhase || !!recallPhase || !activeProject} />
     </div>
   )
 }

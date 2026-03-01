@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { getKairoApiOrThrow } from '@renderer/lib/kairoApi'
+import { hasKairoApi, getKairoApiOrThrow } from '@renderer/lib/kairoApi'
 import { IPC_CHANNELS } from '@shared/ipc-channels'
 import type {
   Account,
@@ -7,6 +7,8 @@ import type {
   ListAccountsResponse,
   CreateAccountResponse,
   SetActiveAccountResponse,
+  AccountGatewayStatus,
+  AccountPreflightEvent,
 } from '@shared/types'
 
 export default function AccountManager(): React.JSX.Element {
@@ -15,6 +17,7 @@ export default function AccountManager(): React.JSX.Element {
   const [label, setLabel] = useState('')
   const [apiKey, setApiKey] = useState('')
   const [error, setError] = useState<string | null>(null)
+  const [gatewayStatus, setGatewayStatus] = useState<AccountGatewayStatus | null>(null)
 
   const fetchAccounts = useCallback(async () => {
     const result = (await getKairoApiOrThrow().invoke(
@@ -28,6 +31,23 @@ export default function AccountManager(): React.JSX.Element {
   useEffect(() => {
     fetchAccounts().catch(console.error)
   }, [fetchAccounts])
+
+  // Listen for preflight status pushes from main process (Phase 7 Hotfix J)
+  useEffect(() => {
+    if (!hasKairoApi()) return
+
+    const api = getKairoApiOrThrow()
+    const unsubscribe = api.on(
+      IPC_CHANNELS.ACCOUNT_PREFLIGHT_STATUS,
+      (event: unknown) => {
+        const e = event as AccountPreflightEvent
+        if (!e || typeof e.status !== 'string') return
+        setGatewayStatus(e.status)
+      },
+    )
+
+    return unsubscribe
+  }, [])
 
   const handleCreate = useCallback(async () => {
     if (!label.trim() || !apiKey.trim()) return
@@ -143,7 +163,24 @@ export default function AccountManager(): React.JSX.Element {
           <div>
             <span style={{ fontSize: '12px', color: '#e5e5e5' }}>{account.label}</span>
             {account.isActive && (
-              <span style={{ fontSize: '10px', color: '#3b82f6', marginLeft: '6px' }}>active</span>
+              <>
+                <span style={{ fontSize: '10px', color: '#3b82f6', marginLeft: '6px' }}>active</span>
+                {gatewayStatus === 'validating' && (
+                  <span style={{ fontSize: '10px', color: '#a3a3a3', marginLeft: '4px' }}>...</span>
+                )}
+                {gatewayStatus === 'valid' && (
+                  <span style={{ fontSize: '10px', color: '#22c55e', marginLeft: '4px' }}>OK</span>
+                )}
+                {gatewayStatus === 'invalid' && (
+                  <span style={{ fontSize: '10px', color: '#ef4444', marginLeft: '4px' }}>invalid key</span>
+                )}
+                {gatewayStatus === 'quota' && (
+                  <span style={{ fontSize: '10px', color: '#f59e0b', marginLeft: '4px' }}>quota</span>
+                )}
+                {gatewayStatus === 'unknown' && (
+                  <span style={{ fontSize: '10px', color: '#737373', marginLeft: '4px' }}>?</span>
+                )}
+              </>
             )}
           </div>
           <div style={{ display: 'flex', gap: '4px' }}>

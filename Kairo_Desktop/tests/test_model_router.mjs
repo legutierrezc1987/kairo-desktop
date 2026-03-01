@@ -72,42 +72,42 @@ function test(label, fn) {
 console.log('\n=== Phase 7 Sprint A Delta — Model Router ===\n')
 
 // ─── Foreground routing ──────────────────────────────────────
-test('MR01: foreground no override → gemini-2.5-pro', () => {
-  assert.equal(routeModel('foreground'), 'gemini-2.5-pro')
+test('MR01: foreground no override → gemini-2.5-flash', () => {
+  assert.equal(routeModel('foreground'), 'gemini-2.5-flash')
 })
 
-test('MR02: foreground + Flash override → Flash', () => {
-  assert.equal(routeModel('foreground', 'gemini-2.0-flash'), 'gemini-2.0-flash')
+test('MR02: foreground + 3 Flash override → 3 Flash', () => {
+  assert.equal(routeModel('foreground', 'gemini-3-flash-preview'), 'gemini-3-flash-preview')
 })
 
-test('MR03: foreground + Lite override → Lite', () => {
-  assert.equal(routeModel('foreground', 'gemini-2.0-flash-lite'), 'gemini-2.0-flash-lite')
+test('MR03: foreground + 3.1 Pro (Low) override → Low', () => {
+  assert.equal(routeModel('foreground', 'gemini-3.1-pro-preview-customtools'), 'gemini-3.1-pro-preview-customtools')
 })
 
-test('MR07: foreground + undefined → Pro (falsy override ignored)', () => {
-  assert.equal(routeModel('foreground', undefined), 'gemini-2.5-pro')
+test('MR07: foreground + undefined → 2.5 Flash (falsy override ignored)', () => {
+  assert.equal(routeModel('foreground', undefined), 'gemini-2.5-flash')
 })
 
 // ─── Background routing ─────────────────────────────────────
-test('MR04: background no override → gemini-2.0-flash', () => {
-  assert.equal(routeModel('background'), 'gemini-2.0-flash')
+test('MR04: background no override → gemini-3-flash-preview', () => {
+  assert.equal(routeModel('background'), 'gemini-3-flash-preview')
 })
 
-test('MR05: background + Pro override → ignores override (Flash)', () => {
-  assert.equal(routeModel('background', 'gemini-2.5-pro'), 'gemini-2.0-flash')
+test('MR05: background + Pro override → ignores override (3 Flash)', () => {
+  assert.equal(routeModel('background', 'gemini-3.1-pro-preview'), 'gemini-3-flash-preview')
 })
 
-test('MR06: background + undefined → Flash', () => {
-  assert.equal(routeModel('background', undefined), 'gemini-2.0-flash')
+test('MR06: background + undefined → 3 Flash', () => {
+  assert.equal(routeModel('background', undefined), 'gemini-3-flash-preview')
 })
 
 // ─── Constants parity ────────────────────────────────────────
-test('MR08: MODEL_ROUTING.foreground = gemini-2.5-pro', () => {
-  assert.equal(constants.MODEL_ROUTING.foreground, 'gemini-2.5-pro')
+test('MR08: MODEL_ROUTING.foreground = gemini-2.5-flash', () => {
+  assert.equal(constants.MODEL_ROUTING.foreground, 'gemini-2.5-flash')
 })
 
-test('MR09: MODEL_ROUTING.background = gemini-2.0-flash', () => {
-  assert.equal(constants.MODEL_ROUTING.background, 'gemini-2.0-flash')
+test('MR09: MODEL_ROUTING.background = gemini-3-flash-preview', () => {
+  assert.equal(constants.MODEL_ROUTING.background, 'gemini-3-flash-preview')
 })
 
 // ─── Summary ──────────────────────────────────────────────────

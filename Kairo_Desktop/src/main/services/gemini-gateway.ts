@@ -1,5 +1,6 @@
 import { GoogleGenerativeAI, type GenerativeModel, type Content } from '@google/generative-ai'
 import type { ModelId } from '../../shared/types'
+import { is401, is429 } from './rate-limit.service'
 
 // ─── Types ──────────────────────────────────────────────────
 
@@ -30,7 +31,12 @@ let activeAbortController: AbortController | null = null
 
 export function initGeminiGateway(apiKey: string): void {
   sdk = new GoogleGenerativeAI(apiKey)
-  const modelIds: ModelId[] = ['gemini-2.5-pro', 'gemini-2.0-flash', 'gemini-2.0-flash-lite']
+  const modelIds: ModelId[] = [
+    'gemini-2.5-flash',
+    'gemini-3-flash-preview',
+    'gemini-3.1-pro-preview',
+    'gemini-3.1-pro-preview-customtools',
+  ]
   for (const modelId of modelIds) {
     models.set(modelId, sdk.getGenerativeModel({ model: modelId }))
   }
@@ -77,6 +83,30 @@ export async function countTokens(content: string, modelId: ModelId): Promise<nu
   const model = getModel(modelId)
   const result = await model.countTokens(content)
   return result.totalTokens
+}
+
+// ─── Gateway Validation (Phase 7 Hotfix J) ──────────────────
+
+export type GatewayValidationResult = 'valid' | 'invalid' | 'quota' | 'unknown'
+
+/**
+ * Lightweight gateway validation via countTokens('test').
+ * Consumes negligible quota (zero generation tokens).
+ * Returns 'valid' on success, 'invalid' for auth errors, 'quota' for rate-limit, 'unknown' for other failures.
+ */
+export async function validateGateway(): Promise<GatewayValidationResult> {
+  if (!sdk) return 'unknown'
+  const model = models.get('gemini-2.5-flash')
+  if (!model) return 'unknown'
+
+  try {
+    await model.countTokens('test')
+    return 'valid'
+  } catch (error: unknown) {
+    if (is401(error)) return 'invalid'
+    if (is429(error)) return 'quota'
+    return 'unknown'
+  }
 }
 
 // ─── Streaming (Phase 4 Sprint C) ──────────────────────────

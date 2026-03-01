@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS projects (
   folder_path          TEXT NOT NULL UNIQUE,
   notebook_id          TEXT,
   notebook_url         TEXT,
-  model                TEXT NOT NULL DEFAULT 'gemini-2.0-flash',
+  model                TEXT NOT NULL DEFAULT 'gemini-2.5-flash',
   token_threshold_soft INTEGER NOT NULL DEFAULT 150000,
   token_threshold_hard INTEGER NOT NULL DEFAULT 200000,
   turn_limit           INTEGER NOT NULL DEFAULT 40,
@@ -99,3 +99,4 @@ CREATE INDEX IF NOT EXISTS idx_command_log_session_id ON command_log(session_id)
 CREATE INDEX IF NOT EXISTS idx_upload_queue_session_id ON upload_queue(session_id);
 CREATE INDEX IF NOT EXISTS idx_upload_queue_status     ON upload_queue(status);
 CREATE INDEX IF NOT EXISTS idx_accounts_is_active      ON accounts(is_active);
+

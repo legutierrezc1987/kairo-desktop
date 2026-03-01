@@ -9,11 +9,11 @@ import { writeFile, mkdir } from 'node:fs/promises'
 import { join } from 'node:path'
 import type { Content } from '@google/generative-ai'
 import { generateContent, isInitialized } from './gemini-gateway'
-import { SNAPSHOT_GENERATION_TIMEOUT_MS } from '../../shared/constants'
+import { SNAPSHOT_GENERATION_TIMEOUT_MS, MODEL_ROUTING } from '../../shared/constants'
 import type { ModelId } from '../../shared/types'
 
 /** DEC-019: background model for snapshot generation */
-const SNAPSHOT_MODEL: ModelId = 'gemini-2.0-flash'
+const SNAPSHOT_MODEL: ModelId = MODEL_ROUTING.background
 
 const SUMMARY_PROMPT = `You are a session summariser for the Kairo AI assistant.
 Given the following conversation transcript, produce a structured summary with these sections:

@@ -48,6 +48,34 @@ export function is429(error: unknown): boolean {
   return false
 }
 
+// ─── 401/403 Authentication Detection (Phase 7 Hotfix J) ────
+
+/**
+ * Multi-signal detection for authentication/authorization errors.
+ * Returns true for invalid API key, revoked key, or permission denied errors.
+ */
+export function is401(error: unknown): boolean {
+  if (error == null) return false
+
+  const asRecord = error as Record<string, unknown>
+
+  // Signal 1: explicit HTTP status code (Google SDK error objects)
+  const status = asRecord.status ?? asRecord.httpStatusCode ?? asRecord.code
+  if (status === 401 || status === 403) return true
+
+  // Signal 2: error message patterns
+  const message = typeof asRecord.message === 'string' ? asRecord.message : String(error)
+  const lower = message.toLowerCase()
+  if (lower.includes('401')) return true
+  if (lower.includes('403')) return true
+  if (lower.includes('unauthenticated')) return true
+  if (lower.includes('invalid api key')) return true
+  if (lower.includes('api key not valid')) return true
+  if (lower.includes('permission_denied')) return true
+
+  return false
+}
+
 // ─── Backoff Calculation ───────────────────────────────────
 
 /**

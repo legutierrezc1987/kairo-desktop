@@ -237,40 +237,40 @@ test('TB20: all 6 TokenChannel keys present in CHANNEL_ALLOCATIONS', () => {
 // ═══════════════════════════════════════════════════════════════
 console.log('\n--- T2: Model Router ---')
 
-test('MR01: foreground no override → gemini-2.5-pro', () => {
-  assert.equal(routeModel('foreground'), 'gemini-2.5-pro')
+test('MR01: foreground no override → gemini-2.5-flash', () => {
+  assert.equal(routeModel('foreground'), 'gemini-2.5-flash')
 })
 
 test('MR02: foreground + Flash override → Flash', () => {
-  assert.equal(routeModel('foreground', 'gemini-2.0-flash'), 'gemini-2.0-flash')
+  assert.equal(routeModel('foreground', 'gemini-3-flash-preview'), 'gemini-3-flash-preview')
 })
 
 test('MR03: foreground + Lite override → Lite', () => {
-  assert.equal(routeModel('foreground', 'gemini-2.0-flash-lite'), 'gemini-2.0-flash-lite')
+  assert.equal(routeModel('foreground', 'gemini-3.1-pro-preview-customtools'), 'gemini-3.1-pro-preview-customtools')
 })
 
-test('MR04: background no override → gemini-2.0-flash', () => {
-  assert.equal(routeModel('background'), 'gemini-2.0-flash')
+test('MR04: background no override → gemini-3-flash-preview', () => {
+  assert.equal(routeModel('background'), 'gemini-3-flash-preview')
 })
 
 test('MR05: background + Pro override → ignores override (Flash)', () => {
-  assert.equal(routeModel('background', 'gemini-2.5-pro'), 'gemini-2.0-flash')
+  assert.equal(routeModel('background', 'gemini-3.1-pro-preview'), 'gemini-3-flash-preview')
 })
 
 test('MR06: background + undefined → Flash', () => {
-  assert.equal(routeModel('background', undefined), 'gemini-2.0-flash')
+  assert.equal(routeModel('background', undefined), 'gemini-3-flash-preview')
 })
 
-test('MR07: foreground + undefined → Pro', () => {
-  assert.equal(routeModel('foreground', undefined), 'gemini-2.5-pro')
+test('MR07: foreground + undefined → 2.5 Flash', () => {
+  assert.equal(routeModel('foreground', undefined), 'gemini-2.5-flash')
 })
 
-test('MR08: MODEL_ROUTING.foreground = gemini-2.5-pro', () => {
-  assert.equal(constants.MODEL_ROUTING.foreground, 'gemini-2.5-pro')
+test('MR08: MODEL_ROUTING.foreground = gemini-2.5-flash', () => {
+  assert.equal(constants.MODEL_ROUTING.foreground, 'gemini-2.5-flash')
 })
 
-test('MR09: MODEL_ROUTING.background = gemini-2.0-flash', () => {
-  assert.equal(constants.MODEL_ROUTING.background, 'gemini-2.0-flash')
+test('MR09: MODEL_ROUTING.background = gemini-3-flash-preview', () => {
+  assert.equal(constants.MODEL_ROUTING.background, 'gemini-3-flash-preview')
 })
 
 // ═══════════════════════════════════════════════════════════════
@@ -494,9 +494,14 @@ console.log('\n--- T4: JSON Contract Shapes ---')
     }
   })
 
-  // ModelId (3 values)
-  test('JC26: ModelId has all 3 values', () => {
-    const vals = ['gemini-2.5-pro', 'gemini-2.0-flash', 'gemini-2.0-flash-lite']
+  // ModelId (4 values)
+  test('JC26: ModelId has all 4 values', () => {
+    const vals = [
+      'gemini-2.5-flash',
+      'gemini-3-flash-preview',
+      'gemini-3.1-pro-preview',
+      'gemini-3.1-pro-preview-customtools',
+    ]
     for (const v of vals) {
       assert(types.includes(`'${v}'`), `ModelId missing '${v}'`)
     }
@@ -601,12 +606,12 @@ test('CI08: MODEL_ROUTING has background key', () => {
   assert('background' in constants.MODEL_ROUTING)
 })
 
-test('CI09: MODEL_ROUTING.foreground = gemini-2.5-pro', () => {
-  assert.equal(constants.MODEL_ROUTING.foreground, 'gemini-2.5-pro')
+test('CI09: MODEL_ROUTING.foreground = gemini-2.5-flash', () => {
+  assert.equal(constants.MODEL_ROUTING.foreground, 'gemini-2.5-flash')
 })
 
-test('CI10: MODEL_ROUTING.background = gemini-2.0-flash', () => {
-  assert.equal(constants.MODEL_ROUTING.background, 'gemini-2.0-flash')
+test('CI10: MODEL_ROUTING.background = gemini-3-flash-preview', () => {
+  assert.equal(constants.MODEL_ROUTING.background, 'gemini-3-flash-preview')
 })
 
 test('CI11: BUDGET_PRESETS.conservative > CUSTOM_BUDGET_MIN', () => {
@@ -649,13 +654,13 @@ test('CI20: RATE_LIMIT_JITTER_FACTOR between 0 and 1', () => {
   assert(constants.RATE_LIMIT_JITTER_FACTOR > 0 && constants.RATE_LIMIT_JITTER_FACTOR < 1)
 })
 
-test('CI21: IPC channels = 47', () => {
+test('CI21: IPC channels = 48', () => {
   const ipcSrc = readSrc('shared/ipc-channels.ts')
   const channelPattern = /:\s*'([a-z][-a-z]*:[a-z][-a-z]*)'/g
   const channels = []
   let m
   while ((m = channelPattern.exec(ipcSrc)) !== null) channels.push(m[1])
-  assert.equal(channels.length, 47, `Expected 47 channels, got ${channels.length}`)
+  assert.equal(channels.length, 48, `Expected 48 channels, got ${channels.length}`)
 })
 
 test('CI22: MAX_TURNS_PER_SESSION = 40', () => {
@@ -688,3 +693,4 @@ if (failed > 0) {
   console.log('\nPASSED — All safety net Sprint A tests pass.\n')
   process.exit(0)
 }
+

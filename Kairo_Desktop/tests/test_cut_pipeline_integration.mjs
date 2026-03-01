@@ -113,7 +113,7 @@ export function buildSystemPrompt(projectName: string, recallContext: string, br
 
 // Model router shim
 writeFileSync(join(shimDir, 'model-router.ts'), `
-export function routeModel(context: string, userOverride?: string): string { return userOverride || 'gemini-2.0-flash' }
+export function routeModel(context: string, userOverride?: string): string { return userOverride || 'gemini-2.5-flash' }
 `)
 
 // ── Step 2: Source-patch orchestrator + rate-limit ────────────
@@ -927,3 +927,4 @@ if (failed > 0) {
   console.log('\nPASSED — All cut pipeline integration tests pass.\n')
   process.exit(0)
 }
+

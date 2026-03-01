@@ -163,7 +163,7 @@ export function abortActiveStream(): boolean { return false }
 
 // Model router shim at shim-services/model-router.ts
 writeFileSync(join(shimServicesDir, 'model-router.ts'), `
-export function routeModel(context: string, userOverride?: string): string { return userOverride || 'gemini-2.0-flash' }
+export function routeModel(context: string, userOverride?: string): string { return userOverride || 'gemini-2.5-flash' }
 `)
 
 // System prompt shim at shim-services/system-prompt.ts (Sprint D)
@@ -367,7 +367,7 @@ console.log('\n--- T04: setActiveProject archives previous session when switchin
 
   // Set project 1 and create a session via shimmed handleChatMessage
   orch.setActiveProject(projectId1)
-  const chatResult = await orch.handleChatMessage({ content: 'hello', model: 'gemini-2.0-flash' })
+  const chatResult = await orch.handleChatMessage({ content: 'hello', model: 'gemini-2.5-flash' })
   assertEqual(chatResult.success, true, 'T04a: shimmed chat succeeds')
 
   // Verify createSession was called
@@ -400,7 +400,7 @@ console.log('\n--- T05: requestArchive forces session close ---')
   orch.setActiveProject(projectId)
 
   // Create a session via chat
-  await orch.handleChatMessage({ content: 'test', model: 'gemini-2.0-flash' })
+  await orch.handleChatMessage({ content: 'test', model: 'gemini-2.5-flash' })
   const createCalls = log.filter(l => l.method === 'createSession')
   assert(createCalls.length >= 1, 'T05a: session created')
 
@@ -429,8 +429,8 @@ console.log('\n--- T06: Token persistence via handleChatMessage ---')
   orch.setActiveProject(projectId)
 
   // Two chat turns
-  await orch.handleChatMessage({ content: 'msg1', model: 'gemini-2.0-flash' })
-  await orch.handleChatMessage({ content: 'msg2', model: 'gemini-2.0-flash' })
+  await orch.handleChatMessage({ content: 'msg1', model: 'gemini-2.5-flash' })
+  await orch.handleChatMessage({ content: 'msg2', model: 'gemini-2.5-flash' })
 
   const addTokenCalls = log.filter(l => l.method === 'addTokens')
   assert(addTokenCalls.length >= 2, 'T06a: addTokens called for each chat turn')
@@ -455,11 +455,11 @@ console.log('\n--- T07: After archive, next chat creates new session ---')
   const orch = new Orchestrator({ sessionPersistence: port })
   orch.setActiveProject(projectId)
 
-  await orch.handleChatMessage({ content: 'first', model: 'gemini-2.0-flash' })
+  await orch.handleChatMessage({ content: 'first', model: 'gemini-2.5-flash' })
   await orch.requestArchive('manual')
 
   // Next chat should create new session
-  await orch.handleChatMessage({ content: 'second', model: 'gemini-2.0-flash' })
+  await orch.handleChatMessage({ content: 'second', model: 'gemini-2.5-flash' })
 
   const createCalls = log.filter(l => l.method === 'createSession')
   assert(createCalls.length >= 2, 'T07a: two sessions created (before and after archive)')
@@ -736,3 +736,4 @@ if (failed > 0) {
   console.log('\nPASSED — All integration layer tests pass.\n')
   process.exit(0)
 }
+

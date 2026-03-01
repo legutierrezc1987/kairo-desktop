@@ -201,8 +201,13 @@ test('JC25: RateLimitPhase has all 4 values', () => {
   }
 })
 
-test('JC26: ModelId has all 3 values', () => {
-  const vals = ['gemini-2.5-pro', 'gemini-2.0-flash', 'gemini-2.0-flash-lite']
+test('JC26: ModelId has all 4 values', () => {
+  const vals = [
+    'gemini-2.5-flash',
+    'gemini-3-flash-preview',
+    'gemini-3.1-pro-preview',
+    'gemini-3.1-pro-preview-customtools',
+  ]
   for (const v of vals) {
     assert(types.includes(`'${v}'`), `ModelId missing '${v}'`)
   }

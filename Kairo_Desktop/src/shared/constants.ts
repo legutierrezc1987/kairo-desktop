@@ -28,18 +28,20 @@ export const CHANNEL_ALLOCATIONS: Record<TokenChannel, number> = {
 
 // ─── Model Configuration (DEC-002, DEC-019) ─────────────────
 
-export const DEFAULT_MODEL: ModelId = 'gemini-2.0-flash'
+/** Pragmatic default for broad key compatibility and lower quota friction. */
+export const DEFAULT_MODEL: ModelId = 'gemini-2.5-flash'
 
 export const MODEL_DISPLAY_NAMES: Record<ModelId, string> = {
-  'gemini-2.5-pro': 'Gemini 2.5 Pro',
-  'gemini-2.0-flash': 'Gemini 2.0 Flash',
-  'gemini-2.0-flash-lite': 'Gemini 2.0 Flash Lite',
+  'gemini-2.5-flash': 'Gemini 2.5 Flash',
+  'gemini-3-flash-preview': 'Gemini 3 Flash',
+  'gemini-3.1-pro-preview': 'Gemini 3.1 Pro (High)',
+  'gemini-3.1-pro-preview-customtools': 'Gemini 3.1 Pro (Low)',
 }
 
-/** DEC-019: Pro for foreground, Flash for background */
+/** Foreground defaults to 2.5 Flash; background fallback uses 3 Flash preview. */
 export const MODEL_ROUTING: Record<string, ModelId> = {
-  foreground: 'gemini-2.5-pro',
-  background: 'gemini-2.0-flash',
+  foreground: 'gemini-2.5-flash',
+  background: 'gemini-3-flash-preview',
 }
 
 export const MAX_TURNS_PER_SESSION = 40
