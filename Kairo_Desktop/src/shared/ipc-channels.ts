@@ -80,6 +80,8 @@ export const IPC_CHANNELS = {
   // File operations domain (Phase 6 Sprint A, PRD §6.1)
   FS_READ_FILE: 'fs:read-file',
   FS_WRITE_FILE: 'fs:write-file',
+  // File explorer domain (Phase 6 Sprint B, PRD §6.2)
+  FS_LIST_DIR: 'fs:list-dir',
 
   // App domain
   APP_GET_CWD: 'app:get-cwd',

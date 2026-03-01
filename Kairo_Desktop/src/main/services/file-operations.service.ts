@@ -13,10 +13,10 @@
  *   - No mkdir on write (parent must exist)
  */
 
-import { resolve, normalize, relative, parse, sep, isAbsolute, extname } from 'node:path'
-import { stat, readFile, writeFile } from 'node:fs/promises'
-import type { IpcResult, FsReadFileResponse, FsWriteFileResponse } from '../../shared/types'
-import { FS_READ_FILE_MAX_BYTES, FS_BINARY_DETECTION_BYTES } from '../../shared/constants'
+import { resolve, normalize, relative, parse, sep, isAbsolute, extname, join } from 'node:path'
+import { stat, readFile, writeFile, readdir } from 'node:fs/promises'
+import type { IpcResult, FsReadFileResponse, FsWriteFileResponse, FsListDirResponse, FsDirEntry } from '../../shared/types'
+import { FS_READ_FILE_MAX_BYTES, FS_BINARY_DETECTION_BYTES, FS_LIST_DIR_MAX_DEPTH, FS_LIST_DIR_MAX_ENTRIES, FS_LIST_DIR_EXCLUDED } from '../../shared/constants'
 
 export class FileOperationsService {
   private workspacePath: string | null = null
@@ -118,6 +118,116 @@ export class FileOperationsService {
       const message = err instanceof Error ? err.message : 'Write failed'
       if (message.includes('ENOENT')) {
         return { success: false, error: 'Parent directory does not exist.' }
+      }
+      if (message.includes('EACCES')) {
+        return { success: false, error: 'Permission denied.' }
+      }
+      return { success: false, error: message }
+    }
+  }
+
+  // ── List Directory (Phase 6 Sprint B, PRD §6.2) ──────────
+
+  async listDir(dirPath: string, depth: number = 1): Promise<IpcResult<FsListDirResponse>> {
+    const validation = this.validatePath(dirPath)
+    if (!validation.valid) {
+      return { success: false, error: validation.error }
+    }
+
+    const clampedDepth = Math.max(1, Math.min(depth, FS_LIST_DIR_MAX_DEPTH))
+    const resolvedDir = resolve(dirPath)
+
+    try {
+      const dirStat = await stat(resolvedDir)
+      if (!dirStat.isDirectory()) {
+        return { success: false, error: 'Path is not a directory.' }
+      }
+
+      let entryCount = 0
+      let truncated = false
+
+      const walk = async (currentPath: string, currentDepth: number): Promise<FsDirEntry[]> => {
+        if (truncated) return []
+
+        let dirents
+        try {
+          dirents = await readdir(currentPath, { withFileTypes: true })
+        } catch {
+          return []
+        }
+
+        // Sort: directories first, then alphabetical (case-insensitive)
+        dirents.sort((a, b) => {
+          const aDir = a.isDirectory() ? 0 : 1
+          const bDir = b.isDirectory() ? 0 : 1
+          if (aDir !== bDir) return aDir - bDir
+          return a.name.toLowerCase().localeCompare(b.name.toLowerCase())
+        })
+
+        const entries: FsDirEntry[] = []
+
+        for (const dirent of dirents) {
+          if (truncated) break
+
+          // Skip excluded directories
+          if (dirent.isDirectory() && FS_LIST_DIR_EXCLUDED.includes(dirent.name)) {
+            continue
+          }
+
+          // Skip hidden files/dirs (starting with .) except exclusion already handled above
+          if (dirent.name.startsWith('.') && dirent.isDirectory()) {
+            continue
+          }
+
+          entryCount++
+          if (entryCount > FS_LIST_DIR_MAX_ENTRIES) {
+            truncated = true
+            break
+          }
+
+          const entryPath = join(currentPath, dirent.name)
+          const isDir = dirent.isDirectory()
+
+          const entry: FsDirEntry = {
+            name: dirent.name,
+            path: entryPath,
+            isDirectory: isDir,
+          }
+
+          if (!isDir) {
+            try {
+              const fileStat = await stat(entryPath)
+              entry.sizeBytes = fileStat.size
+            } catch {
+              // Permission error or race condition — omit size
+            }
+          }
+
+          // Recurse into subdirectories if depth allows
+          if (isDir && currentDepth < clampedDepth) {
+            entry.children = await walk(entryPath, currentDepth + 1)
+          }
+
+          entries.push(entry)
+        }
+
+        return entries
+      }
+
+      const entries = await walk(resolvedDir, 1)
+
+      return {
+        success: true,
+        data: {
+          entries,
+          dirPath: resolvedDir,
+          truncated,
+        },
+      }
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'List directory failed'
+      if (message.includes('ENOENT')) {
+        return { success: false, error: 'Directory not found.' }
       }
       if (message.includes('EACCES')) {
         return { success: false, error: 'Permission denied.' }

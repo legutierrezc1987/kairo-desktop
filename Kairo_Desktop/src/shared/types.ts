@@ -470,6 +470,27 @@ export interface FsWriteFileResponse {
   bytesWritten: number
 }
 
+// ─── File Explorer Domain (Phase 6 Sprint B, PRD §6.2) ──
+
+export interface FsListDirRequest {
+  dirPath: string
+  depth?: number
+}
+
+export interface FsDirEntry {
+  name: string
+  path: string
+  isDirectory: boolean
+  sizeBytes?: number
+  children?: FsDirEntry[]
+}
+
+export interface FsListDirResponse {
+  entries: FsDirEntry[]
+  dirPath: string
+  truncated: boolean
+}
+
 // ─── App Domain ────────────────────────────────────────────
 
 export interface SelectFolderResponse {

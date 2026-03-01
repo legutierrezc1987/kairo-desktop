@@ -221,13 +221,14 @@ console.log('\n--- T14: IPC channels ---')
   assert(src.includes("RATE_LIMIT_STATUS: 'rate-limit:status'"), 'T14e: RATE_LIMIT_STATUS channel exists')
   assert(src.includes("FS_READ_FILE: 'fs:read-file'"), 'T14f: FS_READ_FILE channel exists')
   assert(src.includes("FS_WRITE_FILE: 'fs:write-file'"), 'T14g: FS_WRITE_FILE channel exists')
+  assert(src.includes("FS_LIST_DIR: 'fs:list-dir'"), 'T14h: FS_LIST_DIR channel exists')
 
   // Count channels
   const channelPattern = /:\s*'([a-z][-a-z]*:[a-z][-a-z]*)'/g
   const channels = []
   let m
   while ((m = channelPattern.exec(src)) !== null) channels.push(m[1])
-  assert(channels.length === 44, `T14c: 44 channels total (got ${channels.length})`)
+  assert(channels.length === 45, `T14c: 45 channels total (got ${channels.length})`)
 }
 
 // ─── T15: types.ts updated ──────────────────────────────────

@@ -151,3 +151,24 @@ export const FS_READ_FILE_MAX_BYTES = 5_242_880
 
 /** Number of initial bytes to scan for binary (null byte) detection */
 export const FS_BINARY_DETECTION_BYTES = 8_192
+
+// ─── File Explorer Configuration (Phase 6 Sprint B, PRD §6.2) ──
+
+/** Maximum directory traversal depth for listDir (default 1 for lazy-load) */
+export const FS_LIST_DIR_MAX_DEPTH = 5
+
+/** Maximum total entries returned by a single listDir call */
+export const FS_LIST_DIR_MAX_ENTRIES = 5_000
+
+/** Directory names excluded from listing by default */
+export const FS_LIST_DIR_EXCLUDED: readonly string[] = Object.freeze([
+  '.git',
+  'node_modules',
+  '__pycache__',
+  '.kairo',
+  '.venv',
+  'venv',
+  '.next',
+  'dist',
+  '.cache',
+])
