@@ -1,6 +1,6 @@
 # PROJECT MEMORY (Single Living Context)
 
-Version: 3.49
+Version: 3.50
 Last Updated: 2026-03-01
 Status: ACTIVE
 
@@ -23,7 +23,7 @@ Do not duplicate full DEC or long rationale content.
 
 ## Current Snapshot
 
-- Active phase: Phase 7 (Testing + Hardening) — Hotfix J + Patch K SEALED.
+- Active phase: Phase 7 (Testing + Hardening) — Hotfix J + Patch K SEALED. Working tree CLEAN.
 - Sealed commits: `326071a` (Sprint A hardening), `3c5799c` (Sprint B + stabilization), `756ad33` (Sprint C streaming e2e), `07831d4` (Sprint D cut-pipeline e2e), `64c3813` (Phase 5 Sprint A recall), `a0b30d8` (Phase 5 Sprint B consolidation), `da6c092` (Phase 5 Sprint C rate-limit, GO), `5df7b7a` (Phase 6 Sprint A Monaco editor read/write, GO), `9fc53df` (Phase 6 Sprint B File Explorer lazy tree, GO), `5e3a168` (Phase 6 Sprint C Settings completeness, GO), `88489d1` (Phase 6 Sprint D Impact Analyzer + UndoManager, GO), `9e3e7c5` (Phase 7 Sprint A Safety Net), `856824c` (Phase 7 Sprint A Delta — extracted suites), `9295c31` (cleanup scratch + .gitignore), `ddf6952` (Phase 7 Sprint B Integration Tests), `90c8dc2` (Phase 7 Sprint C E2E Tests), `37c8cbc` (Phase 7 Sprint D electron-builder Windows installer), `e44c117` (Phase 7 Sprint E Docs + Onboarding), `e6df7ba` (Phase 7 Sprint F Beta Ops), `798c5ff` (Phase 7 Sprint G Beta Distribution + Intake), `7ca4b9b` (Phase 7 Sprint H Beta Ops Automation).
 - Current objective: D5 checkpoint executed. 4/10 exit criteria met (identical to Wave 1). Zero external testers. Zero bugs. Decision: CONTINUE BETA (no hotfix, no Phase 8). Blocker is human operational: recruit and distribute.
 - Model catalog refresh completed (runtime + UI): deprecated `gemini-2.0-*` and `gemini-2.5-pro` removed from app paths. Active catalog now uses `gemini-2.5-flash`, `gemini-3-flash-preview`, `gemini-3.1-pro-preview`, `gemini-3.1-pro-preview-customtools`.
@@ -53,6 +53,10 @@ Do not duplicate full DEC or long rationale content.
   - No physical DB migration needed — runtime normalization covers all paths; gateway `getModel()` is ultimate backstop.
   - 7 production files modified, 8 test files updated + 1 new.
   - New test: `test_patch_k.mjs` — 34 assertions.
+- **Hygiene Closure** (`7cc0ddd`, `1d1537f`):
+  - Fixed missed channel count in `test_rate_limit.mjs` (48→49).
+  - Aligned API smoke scripts (`test_0.18.js`, `test_0.19.js`) from `gemini-2.0-flash` to `gemini-2.5-flash`.
+  - Working tree confirmed CLEAN (zero unstaged/untracked files).
 
 ## Validation Ledger (Latest)
 
