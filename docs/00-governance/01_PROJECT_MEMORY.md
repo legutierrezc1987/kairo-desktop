@@ -1,7 +1,7 @@
 # PROJECT MEMORY (Single Living Context)
 
-Version: 3.26
-Last Updated: 2026-02-28
+Version: 3.27
+Last Updated: 2026-03-01
 Status: ACTIVE
 
 ## Editing Rule (MANDATORY)
@@ -23,9 +23,9 @@ Do not duplicate full DEC or long rationale content.
 
 ## Current Snapshot
 
-- Active phase: Phase 5 (Recall + Consolidation + Rate-Limit) — Sprint C SEALED (`da6c092`), pending Gemini audit.
-- Sealed commits: `326071a` (Sprint A hardening), `3c5799c` (Sprint B + stabilization), `756ad33` (Sprint C streaming e2e), `07831d4` (Sprint D cut-pipeline e2e), `64c3813` (Phase 5 Sprint A recall), `a0b30d8` (Phase 5 Sprint B consolidation), `da6c092` (Phase 5 Sprint C rate-limit).
-- Current objective: Gemini audit of Sprint C rate-limit for GO/NO-GO.
+- Active phase: Phase 5 COMPLETE — Sprint C SEALED + AUDITED GO (`da6c092`). Transitioning to Phase 6.
+- Sealed commits: `326071a` (Sprint A hardening), `3c5799c` (Sprint B + stabilization), `756ad33` (Sprint C streaming e2e), `07831d4` (Sprint D cut-pipeline e2e), `64c3813` (Phase 5 Sprint A recall), `a0b30d8` (Phase 5 Sprint B consolidation), `da6c092` (Phase 5 Sprint C rate-limit, GO).
+- Current objective: Scope audit of Phase 6 Sprint A (Monaco editor integration 6.1).
 - Active debates: none.
 - Open RFCs: none.
 - IPC channels: 42 (`RATE_LIMIT_STATUS` added in Phase 5 Sprint C).
@@ -72,7 +72,7 @@ PTY-dependent test (`test_terminal_blocked_execution.mjs`): blocked by `node-pty
 
 ## Pending (Priority Ordered)
 
-1. Gemini audit of Sprint C rate-limit handler for GO/NO-GO.
+1. Scope audit of Phase 6 Sprint A (Monaco editor: open/edit/save).
 2. Resolve handling policy for `test_audit_memory_hacks.mjs` (fix, quarantine, or remove from canonical ledgers).
 3. Resolve Gemini API quota for real streaming smoke test (billing/project action).
 4. MCP provider package resolution checkpoint (fallback still active).
@@ -105,10 +105,10 @@ PTY-dependent test (`test_terminal_blocked_execution.mjs`): blocked by `node-pty
 
 ## Next Step (Exact)
 
-Gemini audits Sprint C rate-limit handler for GO/NO-GO.
+Gemini audita scope de Fase 6 Sprint A (Monaco: abrir/editar/guardar) para GO/NO-GO pre-implementación.
 
 ## Next Owner
 
-- Gemini (auditor): audit Sprint C rate-limit handler.
-- Codex (orchestrator): route next phase/sprint on GO.
-- Claude (implementer): awaits next scope packet.
+- Gemini (auditor): scope audit Phase 6 Sprint A.
+- Codex (orchestrator): route Phase 6 Sprint A packet on GO.
+- Claude (implementer): awaits Phase 6 scope packet.
