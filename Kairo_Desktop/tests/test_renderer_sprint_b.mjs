@@ -228,7 +228,7 @@ console.log('\n--- T14: IPC channels ---')
   const channels = []
   let m
   while ((m = channelPattern.exec(src)) !== null) channels.push(m[1])
-  assert(channels.length === 45, `T14c: 45 channels total (got ${channels.length})`)
+  assert(channels.length === 47, `T14c: 47 channels total (got ${channels.length})`)
 }
 
 // ─── T15: types.ts updated ──────────────────────────────────

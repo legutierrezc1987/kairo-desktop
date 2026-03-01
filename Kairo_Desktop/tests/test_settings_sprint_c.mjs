@@ -144,13 +144,13 @@ assert(typeof DEFAULT_MODEL === 'string' && DEFAULT_MODEL.includes('gemini'),
 console.log('\n── T3: IPC Channels ──')
 
 const channels = Object.values(IPC_CHANNELS)
-assert(channels.length === 45, `T3a: 45 channels total (got ${channels.length})`)
+assert(channels.length === 47, `T3a: 47 channels total (got ${channels.length})`)
 
 assert(channels.includes('settings:get'), 'T3b: SETTINGS_GET channel exists')
 assert(channels.includes('settings:set'), 'T3c: SETTINGS_SET channel exists')
 
-assert(IPC_CHANNEL_ALLOWLIST.length === 45,
-  `T3d: allowlist has 45 entries (got ${IPC_CHANNEL_ALLOWLIST.length})`)
+assert(IPC_CHANNEL_ALLOWLIST.length === 47,
+  `T3d: allowlist has 47 entries (got ${IPC_CHANNEL_ALLOWLIST.length})`)
 
 // ════════════════════════════════════════════════════════════════
 // T4: settingsStore — shape and actions

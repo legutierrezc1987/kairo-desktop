@@ -494,6 +494,37 @@ export interface FsListDirResponse {
   truncated: boolean
 }
 
+// ─── Undo Domain (Phase 6 Sprint D, DEC-017) ──────────────
+
+export interface UndoEntry {
+  id: string
+  filePath: string
+  oldContent: string
+  newContent: string
+  timestamp: number
+  /** mtime (ms since epoch) of the file AFTER the write that created this entry */
+  expectedMtimeMs: number
+  sizeBytes: number
+}
+
+export interface UndoPreviewRequest {
+  filePath: string
+}
+
+export interface UndoPreviewResponse {
+  entry: UndoEntry
+  currentContent: string
+}
+
+export interface UndoApplyRequest {
+  entryId: string
+}
+
+export interface UndoApplyResponse {
+  filePath: string
+  restoredBytes: number
+}
+
 // ─── App Domain ────────────────────────────────────────────
 
 export interface SelectFolderResponse {

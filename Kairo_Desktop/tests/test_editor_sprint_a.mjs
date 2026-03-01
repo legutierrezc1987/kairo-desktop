@@ -95,7 +95,7 @@ console.log('\n── Section 2: IPC Channel Parity ──')
 
 assert(IPC_CHANNELS.FS_READ_FILE === 'fs:read-file', 'IPC01: FS_READ_FILE channel exists')
 assert(IPC_CHANNELS.FS_WRITE_FILE === 'fs:write-file', 'IPC02: FS_WRITE_FILE channel exists')
-assert(IPC_CHANNEL_ALLOWLIST.length === 45, `IPC03: 45 channels total (got ${IPC_CHANNEL_ALLOWLIST.length})`)
+assert(IPC_CHANNEL_ALLOWLIST.length === 47, `IPC03: 47 channels total (got ${IPC_CHANNEL_ALLOWLIST.length})`)
 assert(IPC_CHANNEL_ALLOWLIST.includes('fs:read-file'), 'IPC04: allowlist includes fs:read-file')
 assert(IPC_CHANNEL_ALLOWLIST.includes('fs:write-file'), 'IPC05: allowlist includes fs:write-file')
 
@@ -291,7 +291,7 @@ console.log('\n── Section 7: index.ts Wiring ──')
   assert(src.includes("import { registerEditorHandlers }"), 'IX02: imports registerEditorHandlers')
   assert(src.includes('new FileOperationsService()'), 'IX03: instantiates FileOperationsService')
   assert(src.includes('fileOps.setWorkspacePath(folderPath)'), 'IX04: binds workspace on project load')
-  assert(src.includes('registerEditorHandlers(fileOps)'), 'IX05: registers editor handlers')
+  assert(src.includes('registerEditorHandlers(fileOps, undoManager)'), 'IX05: registers editor handlers with undoManager')
 }
 
 // ═══════════════════════════════════════════════════════════════

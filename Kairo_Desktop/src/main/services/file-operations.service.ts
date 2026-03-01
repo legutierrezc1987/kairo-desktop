@@ -17,9 +17,16 @@ import { resolve, normalize, relative, parse, sep, isAbsolute, extname, join } f
 import { stat, readFile, writeFile, readdir } from 'node:fs/promises'
 import type { IpcResult, FsReadFileResponse, FsWriteFileResponse, FsListDirResponse, FsDirEntry } from '../../shared/types'
 import { FS_READ_FILE_MAX_BYTES, FS_BINARY_DETECTION_BYTES, FS_LIST_DIR_MAX_DEPTH, FS_LIST_DIR_MAX_ENTRIES, FS_LIST_DIR_EXCLUDED } from '../../shared/constants'
+import type { UndoManagerService } from './undo-manager.service'
 
 export class FileOperationsService {
   private workspacePath: string | null = null
+  private undoManager: UndoManagerService | null = null
+
+  /** Inject UndoManager to enable pre-write snapshots (Phase 6 Sprint D) */
+  setUndoManager(undoManager: UndoManagerService): void {
+    this.undoManager = undoManager
+  }
 
   /** Called on project load to bind file operations to the active workspace. */
   setWorkspacePath(path: string): void {
@@ -102,10 +109,29 @@ export class FileOperationsService {
 
     const resolvedPath = resolve(filePath)
 
+    // Phase 6 Sprint D: capture pre-write snapshot for undo
+    let undoEntryId: string | null = null
+    if (this.undoManager) {
+      try {
+        undoEntryId = await this.undoManager.captureSnapshot(resolvedPath, content)
+      } catch {
+        // Snapshot failure is non-fatal — proceed with write
+      }
+    }
+
     try {
       // No mkdir — parent must already exist (security: prevent directory traversal + creation)
       await writeFile(resolvedPath, content, 'utf-8')
       const bytesWritten = Buffer.byteLength(content, 'utf-8')
+
+      // Phase 6 Sprint D: finalize undo entry with post-write mtime
+      if (this.undoManager && undoEntryId) {
+        try {
+          await this.undoManager.finalizeEntry(undoEntryId, resolvedPath)
+        } catch {
+          // Finalize failure is non-fatal
+        }
+      }
 
       return {
         success: true,

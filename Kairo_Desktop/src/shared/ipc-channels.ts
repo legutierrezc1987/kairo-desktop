@@ -82,6 +82,9 @@ export const IPC_CHANNELS = {
   FS_WRITE_FILE: 'fs:write-file',
   // File explorer domain (Phase 6 Sprint B, PRD §6.2)
   FS_LIST_DIR: 'fs:list-dir',
+  // Undo domain (Phase 6 Sprint D, DEC-017)
+  FS_UNDO_PREVIEW: 'fs:undo-preview',
+  FS_UNDO_APPLY: 'fs:undo-apply',
 
   // App domain
   APP_GET_CWD: 'app:get-cwd',

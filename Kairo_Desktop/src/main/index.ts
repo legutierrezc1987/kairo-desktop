@@ -17,6 +17,7 @@ import { TerminalService } from './services/terminal.service'
 import { MemoryService } from './memory/memory.service'
 import { registerMemoryHandlers } from './ipc/memory.handlers'
 import { FileOperationsService } from './services/file-operations.service'
+import { UndoManagerService } from './services/undo-manager.service'
 import { registerEditorHandlers } from './ipc/editor.handlers'
 import { UploadQueueService } from './services/upload-queue.service'
 import { SyncWorker } from './workers/sync-worker'
@@ -159,6 +160,10 @@ app.whenReady().then(async () => {
   // ── Initialize FileOperationsService (Phase 6 Sprint A, PRD §6.1) ──
   const fileOps = new FileOperationsService()
 
+  // ── Initialize UndoManager (Phase 6 Sprint D, DEC-017) ──
+  const undoManager = new UndoManagerService()
+  fileOps.setUndoManager(undoManager)
+
   // ── Wire orchestrator ports (Sprint D) ────────────────────
   orchestrator.setMemoryPort(memoryService)
   orchestrator.setUploadQueuePort(uploadQueue)
@@ -225,6 +230,8 @@ app.whenReady().then(async () => {
     })
     // Phase 6 Sprint A: Bind file operations workspace
     fileOps.setWorkspacePath(folderPath)
+    // Phase 6 Sprint D: Clear undo stack on project switch (ephemeral per-project)
+    undoManager.clear()
     // Phase 5 Sprint B: update SyncWorker project context for consolidation
     syncWorker.setProjectContext(folderPath, projectId)
   })
@@ -245,7 +252,7 @@ app.whenReady().then(async () => {
     }
   })
   registerMemoryHandlers(memoryService, () => mainWindow)
-  registerEditorHandlers(fileOps)
+  registerEditorHandlers(fileOps, undoManager)
 
   // ── Register cut pipeline state push (Sprint D) ───────────
   orchestrator.setCutStateSender((event: CutPipelineEvent) => {

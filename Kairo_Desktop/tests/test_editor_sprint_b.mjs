@@ -107,7 +107,7 @@ console.log('\n── Section 2: IPC Channel Parity ──')
 
 assert(IPC_CHANNELS.FS_LIST_DIR === 'fs:list-dir', 'IPC01: FS_LIST_DIR channel exists')
 assert(IPC_CHANNEL_ALLOWLIST.includes('fs:list-dir'), 'IPC02: allowlist includes fs:list-dir')
-assert(IPC_CHANNEL_ALLOWLIST.length === 45, `IPC03: 45 channels total (got ${IPC_CHANNEL_ALLOWLIST.length})`)
+assert(IPC_CHANNEL_ALLOWLIST.length === 47, `IPC03: 47 channels total (got ${IPC_CHANNEL_ALLOWLIST.length})`)
 
 // ═══════════════════════════════════════════════════════════════
 // Section 3: listDir — Sandbox Validation
@@ -310,7 +310,7 @@ console.log('\n── Section 12: index.ts Wiring ──')
   assert(src.includes('FileOperationsService'), 'IX01: imports FileOperationsService')
   assert(src.includes('registerEditorHandlers'), 'IX02: imports registerEditorHandlers')
   assert(src.includes('fileOps.setWorkspacePath'), 'IX03: binds workspace on project load')
-  assert(src.includes('registerEditorHandlers(fileOps)'), 'IX04: registers editor handlers with fileOps')
+  assert(src.includes('registerEditorHandlers(fileOps, undoManager)'), 'IX04: registers editor handlers with fileOps + undoManager')
 }
 
 // ═══════════════════════════════════════════════════════════════

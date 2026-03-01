@@ -158,6 +158,14 @@ export const FS_READ_FILE_MAX_BYTES = 5_242_880
 /** Number of initial bytes to scan for binary (null byte) detection */
 export const FS_BINARY_DETECTION_BYTES = 8_192
 
+// ─── Undo Manager Configuration (Phase 6 Sprint D, DEC-017) ──
+
+/** Maximum entries in the ephemeral LIFO undo stack (per-session, not persisted) */
+export const UNDO_STACK_MAX_ENTRIES = 15
+
+/** Maximum file size (bytes) for which a pre-write snapshot is captured */
+export const UNDO_MAX_FILE_BYTES = 2_097_152 // 2 MB
+
 // ─── File Explorer Configuration (Phase 6 Sprint B, PRD §6.2) ──
 
 /** Maximum directory traversal depth for listDir (default 1 for lazy-load) */
