@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Kairo Desktop Documentation
+    url: https://github.com/ORION-OCG/kairo-memoria-infinita/tree/master/docs
+    about: Read the project documentation before filing an issue.
+  - name: Beta Onboarding Guide
+    url: https://github.com/ORION-OCG/kairo-memoria-infinita/blob/master/docs/09_KAIRO_ONBOARDING_BETA.md
+    about: Start here if you are a new beta tester.

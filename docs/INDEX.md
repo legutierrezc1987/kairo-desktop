@@ -43,6 +43,14 @@ Fecha: 2026-03-01
   11_KAIRO_BETA_EXECUTION_PLAN.md
   12_KAIRO_BETA_BUG_INTAKE_TEMPLATE.md
   13_KAIRO_BETA_DAILY_TRIAGE.md
+  /docs
+    /beta
+      BETA_DASHBOARD.md
+  /.github
+    /ISSUE_TEMPLATE
+      beta_bug_report.md
+      beta_feedback.md
+      config.yml
   /skills
     /universal-architecture-tribunal
       SKILL.md
@@ -74,6 +82,10 @@ Treat canonical governance files as source of truth and track migration deltas i
 - `docs/11_KAIRO_BETA_EXECUTION_PLAN.md` -> v1.0 (closed beta ops plan)
 - `docs/12_KAIRO_BETA_BUG_INTAKE_TEMPLATE.md` -> v1.0 (bug report template)
 - `docs/13_KAIRO_BETA_DAILY_TRIAGE.md` -> v1.0 (daily triage process)
+- `docs/beta/BETA_DASHBOARD.md` -> v1.0 (auto-generated beta dashboard template)
+- `.github/ISSUE_TEMPLATE/beta_bug_report.md` -> v1.0 (GitHub issue template for bugs)
+- `.github/ISSUE_TEMPLATE/beta_feedback.md` -> v1.0 (GitHub issue template for feedback)
+- `.github/ISSUE_TEMPLATE/config.yml` -> v1.0 (issue template config)
 
 ## Startup Minimal
 

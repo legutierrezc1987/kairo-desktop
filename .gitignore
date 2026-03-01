@@ -41,3 +41,8 @@ diff*.txt
 *.bundle
 sprint*.txt
 
+# Beta QA temp artifacts
+beta-evidence-*.txt
+kairo-beta-*.zip
+beta-staging/
+
