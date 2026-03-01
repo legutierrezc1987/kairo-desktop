@@ -1,6 +1,6 @@
 # PROJECT MEMORY (Single Living Context)
 
-Version: 3.40
+Version: 3.41
 Last Updated: 2026-03-01
 Status: ACTIVE
 
@@ -23,22 +23,20 @@ Do not duplicate full DEC or long rationale content.
 
 ## Current Snapshot
 
-- Active phase: Phase 7 (Testing + Hardening) — Sprint D SEALED.
-- Sealed commits: `326071a` (Sprint A hardening), `3c5799c` (Sprint B + stabilization), `756ad33` (Sprint C streaming e2e), `07831d4` (Sprint D cut-pipeline e2e), `64c3813` (Phase 5 Sprint A recall), `a0b30d8` (Phase 5 Sprint B consolidation), `da6c092` (Phase 5 Sprint C rate-limit, GO), `5df7b7a` (Phase 6 Sprint A Monaco editor read/write, GO), `9fc53df` (Phase 6 Sprint B File Explorer lazy tree, GO), `5e3a168` (Phase 6 Sprint C Settings completeness, GO), `88489d1` (Phase 6 Sprint D Impact Analyzer + UndoManager, GO), `9e3e7c5` (Phase 7 Sprint A Safety Net), `856824c` (Phase 7 Sprint A Delta — extracted suites), `9295c31` (cleanup scratch + .gitignore), `ddf6952` (Phase 7 Sprint B Integration Tests), `90c8dc2` (Phase 7 Sprint C E2E Tests), `37c8cbc` (Phase 7 Sprint D electron-builder Windows installer).
-- Current objective: Verify installer runs on fresh Windows. Then route next phase.
+- Active phase: Phase 7 (Testing + Hardening) — Sprint E SEALED.
+- Sealed commits: `326071a` (Sprint A hardening), `3c5799c` (Sprint B + stabilization), `756ad33` (Sprint C streaming e2e), `07831d4` (Sprint D cut-pipeline e2e), `64c3813` (Phase 5 Sprint A recall), `a0b30d8` (Phase 5 Sprint B consolidation), `da6c092` (Phase 5 Sprint C rate-limit, GO), `5df7b7a` (Phase 6 Sprint A Monaco editor read/write, GO), `9fc53df` (Phase 6 Sprint B File Explorer lazy tree, GO), `5e3a168` (Phase 6 Sprint C Settings completeness, GO), `88489d1` (Phase 6 Sprint D Impact Analyzer + UndoManager, GO), `9e3e7c5` (Phase 7 Sprint A Safety Net), `856824c` (Phase 7 Sprint A Delta — extracted suites), `9295c31` (cleanup scratch + .gitignore), `ddf6952` (Phase 7 Sprint B Integration Tests), `90c8dc2` (Phase 7 Sprint C E2E Tests), `37c8cbc` (Phase 7 Sprint D electron-builder Windows installer), `TBD` (Phase 7 Sprint E Docs + Onboarding).
+- Current objective: Smoke-test installer on fresh Windows. Then route next phase.
 - Active debates: none.
 - Open RFCs: none.
-- IPC channels: 47 (unchanged — packaging-only sprint).
+- IPC channels: 47 (unchanged — docs-only sprint).
 
 ## Completed This Session
 
-- **Phase 7 Sprint D — electron-builder .exe installer**:
-  - `electron-builder.yml`: added `asarUnpack` for better-sqlite3 + node-pty, explicit win x64 target.
-  - `scripts/rebuild-native.js`: automation script for native module rebuild (patches winpty.gyp, generates GenVersion.h, uses SUBST drive for spaceless path, rebuilds node-pty + better-sqlite3 against Electron ABI).
-  - Installer: `kairo-desktop-0.1.0-setup.exe` (105.71 MB, SHA256: F584B8DA...).
-  - Unpacked: `dist/win-unpacked/kairo-desktop.exe` (191.91 MB).
-  - Native modules verified in `app.asar.unpacked`: `better_sqlite3.node`, `pty.node`, `conpty.node`, `conpty_console_list.node`.
-  - Gates: G1 (tsc exit 0), G2 (electron-vite build PASS), G3 (build:unpack PASS), G4 (build:win PASS), G5-G6 (artifacts + SHA256 verified), G7 (only electron-builder.yml + scripts/rebuild-native.js + docs).
+- **Phase 7 Sprint E — Docs + Onboarding**:
+  - `docs/08_KAIRO_SETUP_GUIDE.md` v2.0: added installer section (SmartScreen bypass, post-install verification, uninstall), troubleshooting section (native module rebuild, ABI dual-workflow, path-with-spaces root cause).
+  - `docs/09_KAIRO_ONBOARDING_BETA.md` v1.0: 15-minute quickstart, first project workflow, comprehensive smoke test checklist (27 items across install/launch/settings/project/chat/editor/terminal/memory/kill-switch/uninstall), known beta limitations.
+  - `docs/10_KAIRO_RELEASE_CHECKLIST.md` v1.0: GO/NO-GO matrix (5 gates: code quality, packaging, functional, documentation, security), artifact verification commands, SHA256 hash recording, rollback procedure (end-user + developer), version history table.
+  - `docs/INDEX.md`: updated canonical tree and status with 3 new docs.
   - Zero production files modified.
 
 ## Validation Ledger (Latest)

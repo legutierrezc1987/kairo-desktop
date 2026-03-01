@@ -1,7 +1,7 @@
 # KAIRO Docs Index
 
 Estado: operativo (metodologia colaborativa activa)
-Fecha: 2026-02-24
+Fecha: 2026-03-01
 
 ## Canonical Tree
 
@@ -37,6 +37,9 @@ Fecha: 2026-02-24
       DEB-008_PLANNING_HARDENING_AND_READINESS.md
     /06-rfcs
       RFC-TEMPLATE.md
+  08_KAIRO_SETUP_GUIDE.md
+  09_KAIRO_ONBOARDING_BETA.md
+  10_KAIRO_RELEASE_CHECKLIST.md
   /skills
     /universal-architecture-tribunal
       SKILL.md
@@ -62,6 +65,9 @@ Treat canonical governance files as source of truth and track migration deltas i
 - `skills/tribunal-collaboration/SKILL.md` -> LEGACY
 - `docs/00-governance/01_PROJECT_MEMORY.md` -> ACTIVO (Option B live snapshot)
 - `CQL` -> INTEGRADO COMO GUARDRAIL V1.2 CANDIDATE (DEB-006)
+- `docs/08_KAIRO_SETUP_GUIDE.md` -> v2.0 (dev setup + installer + troubleshooting)
+- `docs/09_KAIRO_ONBOARDING_BETA.md` -> v1.0 (quickstart + smoke checklist)
+- `docs/10_KAIRO_RELEASE_CHECKLIST.md` -> v1.0 (GO/NO-GO matrix + rollback)
 
 ## Startup Minimal
 

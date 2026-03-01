@@ -1,8 +1,8 @@
-# KAIRO_DESKTOP — Setup Guide (Fase 0)
+# KAIRO_DESKTOP — Setup Guide
 
-Version: 1.4
-Status: VERIFIED — All items 0.0-0.25 PASS (0.18 CONDITIONAL, 0.22 DEFERRED)
-Date: 2026-02-24
+Version: 2.0
+Status: VERIFIED
+Date: 2026-03-01
 Author: [Proposed: Claude] [Audited: Gemini] [Synthesized: Codex]
 
 ## Prerequisites (verified on target machine)
@@ -277,3 +277,107 @@ npx electron-vite build # Exit code: 0, 3 targets built (main, preload, renderer
 | 0.23 | Folder structure | mkdir -p | 0 | PASS |
 | 0.24 | Placeholder files | write 71 files | 0 | PASS |
 | 0.25 | Compile check | tsc + electron-vite build | 0 | PASS |
+
+---
+
+## Installation from Installer (End-User / Beta Tester)
+
+This section covers installing Kairo Desktop from the pre-built `.exe` installer. No development tools required.
+
+### System Requirements
+
+| Requirement | Minimum |
+|-------------|---------|
+| OS | Windows 10 (64-bit) or Windows 11 |
+| RAM | 4 GB (8 GB recommended) |
+| Disk | 300 MB free space |
+| Gemini API Key | Required for chat (obtain from [Google AI Studio](https://aistudio.google.com/apikey)) |
+
+### Install Steps
+
+1. Obtain `kairo-desktop-0.1.0-setup.exe` (105.71 MB).
+2. Double-click the installer.
+3. **Windows SmartScreen warning**: The installer is unsigned (no code-signing certificate). You will see "Windows protected your PC" / "publisher unknown".
+   - Click **"More info"**.
+   - Click **"Run anyway"**.
+   - This is expected for beta builds without a code-signing certificate.
+4. Follow the NSIS installer prompts (default: per-user install, desktop shortcut).
+5. Launch "Kairo Desktop" from the desktop shortcut or Start Menu.
+
+### Post-Install Verification
+
+1. Launch Kairo Desktop.
+2. Verify the terminal panel opens (bottom area).
+3. Open Settings (gear icon) and enter your Gemini API key.
+4. Create a new project (select any folder).
+5. Send a test message in the chat panel.
+6. Open a file in the editor panel.
+
+### Uninstall
+
+Use Windows Settings > Apps > "Kairo Desktop" > Uninstall, or run the uninstaller from the Start Menu entry.
+
+---
+
+## Troubleshooting — Native Modules (Developer)
+
+### Problem: `better-sqlite3` or `node-pty` fails to load
+
+**Symptom**: `ERR_DLOPEN_FAILED` or `NODE_MODULE_VERSION` mismatch at runtime.
+
+**Cause**: Native `.node` binaries are compiled against a specific ABI. Node.js and Electron use different ABIs. If modules are compiled for Node.js, they won't load in Electron (and vice versa).
+
+**Solution — Automated rebuild script**:
+
+```powershell
+# From Kairo_Desktop/ directory (use PowerShell, NOT Git Bash):
+node scripts/rebuild-native.js
+```
+
+This script handles:
+1. Patching `winpty.gyp` to remove `cmd /c` calls that fail in paths with spaces.
+2. Generating `GenVersion.h` for winpty vendored build.
+3. Creating a SUBST drive (`K:`) for a spaceless compilation path.
+4. Rebuilding `node-pty` via `node-gyp` against the Electron ABI.
+5. Rebuilding `better-sqlite3` via `@electron/rebuild` against the Electron ABI.
+6. Cleaning up the SUBST drive.
+
+### Problem: `GetCommitHash.bat` not found during node-pty rebuild
+
+**Symptom**: `'GetCommitHash.bat' is not recognized as an internal or external command` during `electron-builder install-app-deps` or `npm install`.
+
+**Cause**: The project path contains spaces (e.g., `ORION OCG`). The vendored `winpty.gyp` file calls `cmd /c "cd shared && GetCommitHash.bat"`, which fails because `cmd.exe` cannot resolve relative paths correctly when the working directory path has spaces.
+
+**Solution**: Use `scripts/rebuild-native.js` which automatically patches the gyp file and uses a SUBST drive. Alternatively, clone the project to a path without spaces.
+
+### Problem: node-pty rebuild produces no `.node` files
+
+**Symptom**: `@electron/rebuild --only node-pty --force` says "Rebuild Complete" but `build/Release/` is empty.
+
+**Cause**: `@electron/rebuild` may skip actual compilation if it detects prebuilds or considers the module already built.
+
+**Solution**: Use the `scripts/rebuild-native.js` script, which calls `node-gyp rebuild` directly from the SUBST drive, bypassing `@electron/rebuild`'s skip logic.
+
+### Problem: Tests fail with `ERR_DLOPEN_FAILED` for better-sqlite3
+
+**Symptom**: Test files that import `better-sqlite3` fail because the module is compiled for Electron ABI, not Node.js ABI.
+
+**Solution**: Rebuild for Node.js ABI before running tests:
+
+```bash
+npm rebuild better-sqlite3
+```
+
+After testing, restore Electron ABI for app runtime:
+
+```powershell
+node scripts/rebuild-native.js
+```
+
+### Summary: ABI Dual-Rebuild Workflow
+
+| Context | better-sqlite3 | node-pty |
+|---------|---------------|----------|
+| Node.js tests | `npm rebuild better-sqlite3` | N/A (mocked in tests) |
+| Electron runtime | `node scripts/rebuild-native.js` | `node scripts/rebuild-native.js` |
+| Packaging (electron-builder) | Pre-rebuilt, `npmRebuild: false` | Pre-rebuilt, `npmRebuild: false` |
