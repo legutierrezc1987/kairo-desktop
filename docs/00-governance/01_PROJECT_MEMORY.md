@@ -1,6 +1,6 @@
 # PROJECT MEMORY (Single Living Context)
 
-Version: 3.36
+Version: 3.37
 Last Updated: 2026-03-01
 Status: ACTIVE
 
@@ -23,25 +23,25 @@ Do not duplicate full DEC or long rationale content.
 
 ## Current Snapshot
 
-- Active phase: Phase 7 (Testing + Hardening) — Sprint A SEALED (`9e3e7c5`), pending Gemini post-implementation audit.
-- Sealed commits: `326071a` (Sprint A hardening), `3c5799c` (Sprint B + stabilization), `756ad33` (Sprint C streaming e2e), `07831d4` (Sprint D cut-pipeline e2e), `64c3813` (Phase 5 Sprint A recall), `a0b30d8` (Phase 5 Sprint B consolidation), `da6c092` (Phase 5 Sprint C rate-limit, GO), `5df7b7a` (Phase 6 Sprint A Monaco editor read/write, GO), `9fc53df` (Phase 6 Sprint B File Explorer lazy tree, GO), `5e3a168` (Phase 6 Sprint C Settings completeness, GO), `88489d1` (Phase 6 Sprint D Impact Analyzer + UndoManager, GO), `9e3e7c5` (Phase 7 Sprint A Safety Net).
-- Current objective: Gemini post-implementation audit of Phase 7 Sprint A. Then route next sprint.
+- Active phase: Phase 7 (Testing + Hardening) — Sprint A SEALED + DELTA CLOSURE (`856824c`, `9295c31`).
+- Sealed commits: `326071a` (Sprint A hardening), `3c5799c` (Sprint B + stabilization), `756ad33` (Sprint C streaming e2e), `07831d4` (Sprint D cut-pipeline e2e), `64c3813` (Phase 5 Sprint A recall), `a0b30d8` (Phase 5 Sprint B consolidation), `da6c092` (Phase 5 Sprint C rate-limit, GO), `5df7b7a` (Phase 6 Sprint A Monaco editor read/write, GO), `9fc53df` (Phase 6 Sprint B File Explorer lazy tree, GO), `5e3a168` (Phase 6 Sprint C Settings completeness, GO), `88489d1` (Phase 6 Sprint D Impact Analyzer + UndoManager, GO), `9e3e7c5` (Phase 7 Sprint A Safety Net), `856824c` (Phase 7 Sprint A Delta — extracted suites), `9295c31` (cleanup scratch + .gitignore).
+- Current objective: Gemini post-implementation audit of Phase 7 Sprint A (full closure). Then route next sprint.
 - Active debates: none.
 - Open RFCs: none.
 - IPC channels: 47 (unchanged — test-only sprint).
 
 ## Completed This Session
 
-- **Phase 7 Sprint A seal** — commit `9e3e7c5`:
-  - Safety net: contract validation + prompt construction + budget/router coverage.
-  - TokenBudgeter: 20 functional assertions (budget math, overflow, reset, allocations).
-  - Model Router: 9 functional assertions (foreground override, background ignores override).
-  - System Prompt Builder: 18 functional assertions (section ordering, visibility, omission).
-  - JSON Contract Shapes: 35 source-level assertions (StreamChunk, IpcResult, ChatMessage, union types).
-  - Constants Integrity: 25 assertions (allocations sum, budget presets, rate-limit invariants).
-  - Zero sealed production files modified — test-only sprint.
-  - Gates: `test_safety_net_sprint_a` 107/107, `tsc` exit 0, `electron-vite build` PASS.
-  - 1 file committed (test_safety_net_sprint_a.mjs).
+- **Phase 7 Sprint A delta closure** — commits `856824c` + `9295c31`:
+  - Extracted standalone test suites from safety_net omnibus:
+    - `test_tool_schema.mjs`: 35 JSON contract shape assertions (standalone, source-level types.ts verification).
+    - `test_system_prompt.mjs`: 18 system prompt builder assertions (esbuild + functional).
+    - `test_model_router.mjs`: 9 model router assertions (esbuild + functional, constants parity).
+  - Deleted `test_audit_memory_hacks.mjs` (raw .ts imports, no node:assert assertions, exploratory scratch — all intended coverage already in test_memory_hardening.mjs + test_mcp_lifecycle.mjs).
+  - Deleted 13 scratch artifacts (diff*.txt, *_diff.txt, *.bundle, sprint*.txt).
+  - Updated `.gitignore` with rules to prevent reintroduction of scratch artifacts.
+  - Gates: all 4 test suites PASS (35+18+9+107), tsc exit 0, electron-vite build PASS.
+  - Zero production files modified.
 
 ## Validation Ledger (Latest)
 
@@ -69,21 +69,23 @@ Do not duplicate full DEC or long rationale content.
 | Snapshot service test | `node tests/test_snapshot_service.mjs` | 18/18 PASS |
 | Streaming gateway test | `node tests/test_streaming_gateway.mjs` | 40/40 PASS |
 | Safety Net Sprint A test | `node tests/test_safety_net_sprint_a.mjs` | 107/107 PASS |
+| Tool Schema test | `node tests/test_tool_schema.mjs` | 35/35 PASS |
+| System Prompt test | `node tests/test_system_prompt.mjs` | 18/18 PASS |
+| Model Router test | `node tests/test_model_router.mjs` | 9/9 PASS |
 | TypeScript strict | `npx tsc --noEmit` | exit 0 |
 | Electron-vite build | `npx electron-vite build` | PASS (main 208KB, preload 4KB, renderer 8332KB) |
 
-Non-sqlite runnable total: 1632 assertions / 0 failures (24 test files).
+Non-sqlite runnable total: 1632 assertions / 0 failures (24 test files + 3 extracted standalone suites sharing assertions with omnibus).
+Note: The 3 extracted suites (test_tool_schema, test_system_prompt, test_model_router) verify the same contracts as T2/T3/T4 in test_safety_net_sprint_a — they do not add new unique assertions but provide standalone runnable coverage.
 SQLite-dependent tests (8 files): blocked by `ERR_DLOPEN_FAILED` (pre-existing `better-sqlite3` ABI mismatch in headless Node — requires `npm rebuild better-sqlite3`).
 PTY-dependent test (`test_terminal_blocked_execution.mjs`): blocked by `node-pty` ABI mismatch.
 
 ## Pending (Priority Ordered)
 
-1. Gemini post-implementation audit of Phase 7 Sprint A (`9e3e7c5`).
+1. Gemini post-implementation audit of Phase 7 Sprint A full closure (`9e3e7c5` + `856824c` + `9295c31`).
 2. Route next sprint (Phase 7 Sprint B or beyond).
-3. Resolve handling policy for `test_audit_memory_hacks.mjs` (fix, quarantine, or remove from canonical ledgers).
-4. Resolve Gemini API quota for real streaming smoke test (billing/project action).
-5. MCP provider package resolution checkpoint (fallback still active).
-6. Clean scratch untracked artifacts from working tree (`diff*.txt`, `*_diff.txt`, bundle, audit scratch test).
+3. Resolve Gemini API quota for real streaming smoke test (billing/project action).
+4. MCP provider package resolution checkpoint (fallback still active).
 
 ## Known Risks
 
@@ -94,7 +96,6 @@ PTY-dependent test (`test_terminal_blocked_execution.mjs`): blocked by `node-pty
 - ConPTY "AttachConsole failed" noise persists in tests; non-blocking.
 - `better-sqlite3`/`node-pty` ABI dual-rebuild workflow remains required between Node tests and Electron runtime.
 - `safeStorage` unavailable in headless test environments (`PLAINTEXT:` fallback path).
-- `test_audit_memory_hacks.mjs` fails due to ESM `.ts` import resolution and remains untracked scratch.
 - Monaco worker bundle size is high (`ts.worker`/language chunks), with potential renderer memory overhead on low-end devices.
 - Large directory payloads can still stress renderer if users expand very large trees repeatedly (mitigated by exclusions + caps + truncation).
 - Lowering custom budget aggressively during active usage can trigger immediate session cut behavior; safe but potentially abrupt UX.
@@ -108,7 +109,6 @@ PTY-dependent test (`test_terminal_blocked_execution.mjs`): blocked by `node-pty
 - Maintain documented dual-rebuild runbook for Node/Electron contexts.
 - Preserve bridge-guard pattern (`hasKairoApi`/`getKairoApiOrThrow`) for renderer IPC safety.
 - Keep `_isCutting` + idempotent cut lock + worker timeout as invariant in future refactors.
-- Exclude scratch tests/artifacts from release ledgers unless promoted to canonical suite.
 - Consolidation race CLOSED: `_isConsolidating` lock + SYNCED-only DB queries + atomic `markConsolidated()` + input cap.
 - Recall race CLOSED: `_isRecalling` guard + UI input disable + `handleStreamingChat` rejection.
 - Rate-limit race CLOSED: `retryWithBackoff` is purely sequential per call, no shared mutable state. Non-429 errors propagate immediately.
@@ -119,10 +119,10 @@ PTY-dependent test (`test_terminal_blocked_execution.mjs`): blocked by `node-pty
 
 ## Next Step (Exact)
 
-Gemini ejecuta auditoría post-implementación GO/NO-GO de Phase 7 Sprint A (`9e3e7c5`). Codex sintetiza veredicto y enruta siguiente sprint.
+Gemini ejecuta auditoría post-implementación GO/NO-GO de Phase 7 Sprint A closure completa (`9e3e7c5` + `856824c` + `9295c31`). Codex sintetiza veredicto y enruta siguiente sprint.
 
 ## Next Owner
 
-- Gemini (auditor): post-implementation audit Phase 7 Sprint A.
+- Gemini (auditor): post-implementation audit Phase 7 Sprint A (full closure).
 - Codex (orchestrator): synthesize verdict and route next sprint.
 - Claude (implementer): standby until next sprint routed.
