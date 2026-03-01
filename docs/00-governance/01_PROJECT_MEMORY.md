@@ -1,6 +1,6 @@
 # PROJECT MEMORY (Single Living Context)
 
-Version: 3.45
+Version: 3.46
 Last Updated: 2026-03-01
 Status: ACTIVE
 
@@ -25,20 +25,18 @@ Do not duplicate full DEC or long rationale content.
 
 - Active phase: Phase 7 (Testing + Hardening) — Sprint H SEALED.
 - Sealed commits: `326071a` (Sprint A hardening), `3c5799c` (Sprint B + stabilization), `756ad33` (Sprint C streaming e2e), `07831d4` (Sprint D cut-pipeline e2e), `64c3813` (Phase 5 Sprint A recall), `a0b30d8` (Phase 5 Sprint B consolidation), `da6c092` (Phase 5 Sprint C rate-limit, GO), `5df7b7a` (Phase 6 Sprint A Monaco editor read/write, GO), `9fc53df` (Phase 6 Sprint B File Explorer lazy tree, GO), `5e3a168` (Phase 6 Sprint C Settings completeness, GO), `88489d1` (Phase 6 Sprint D Impact Analyzer + UndoManager, GO), `9e3e7c5` (Phase 7 Sprint A Safety Net), `856824c` (Phase 7 Sprint A Delta — extracted suites), `9295c31` (cleanup scratch + .gitignore), `ddf6952` (Phase 7 Sprint B Integration Tests), `90c8dc2` (Phase 7 Sprint C E2E Tests), `37c8cbc` (Phase 7 Sprint D electron-builder Windows installer), `e44c117` (Phase 7 Sprint E Docs + Onboarding), `e6df7ba` (Phase 7 Sprint F Beta Ops), `798c5ff` (Phase 7 Sprint G Beta Distribution + Intake), `7ca4b9b` (Phase 7 Sprint H Beta Ops Automation).
-- Current objective: Wave 2 beta preparation complete. T6.05 fragility fixed, aggregate parser hardened, Wave 2 plan + tester packet + validation script created. Awaiting external tester recruitment (D3-D5).
+- Current objective: D5 checkpoint executed. 4/10 exit criteria met (identical to Wave 1). Zero external testers. Zero bugs. Decision: CONTINUE BETA (no hotfix, no Phase 8). Blocker is human operational: recruit and distribute.
 - Active debates: none.
 - Open RFCs: none.
 - IPC channels: 47 (unchanged — docs/scripts/tests-only sprint).
 
 ## Completed This Session
 
-- **Wave 2 Preparation — Debt Fix + Automation**:
-  - Fixed T6.05 test fragility: `aggregate-beta-evidence.ps1` now always emits `collect-beta-evidence` in footer (both template and real-data modes). Test assertion updated with descriptive message.
-  - Hardened aggregate parser: empty fields default to `(unknown)`/`(not detected)`/`(not found)` instead of blank. Explicit `electronVal` variable for table rendering. New "Data Quality Warnings" section in dashboard output (missing hash, missing Electron, no native modules).
-  - Created `docs/beta/WAVE2_EXECUTION_PLAN.md`: D3-D5 timeline, prerequisites, tester workflow, D5 decision matrix, risk mitigation.
-  - Created `docs/beta/EXTERNAL_TESTER_PACKET.md`: step-by-step install/configure/test/evidence/bug-report guide for non-technical external testers. Includes smoke checklist, FAQ, known limitations.
-  - Created `scripts/qa/validate-wave-inputs.ps1`: 5-check validation (evidence count >= 3, unique machines >= 2, installer hashes >= 2, evidence freshness < 5 days, evidence completeness 4 required sections). GO/CONDITIONAL/NOT READY assessment.
-  - Dashboard regenerated with hardened parser + footer.
+- **D5 Checkpoint — Wave 2 Execution Report + Decision**:
+  - Executed full pipeline: `run-beta-day.ps1` 7/7 PASS, `validate-wave-inputs.ps1` 9/10 (1 expected FAIL: 1 unique machine), `aggregate-beta-evidence.ps1` 3/3, `classify-beta-issues.ps1` 3/3.
+  - Created `docs/beta/WAVE2_EXECUTION_REPORT.md`: 4 evidence reports, 1 unique machine, 0 external testers, 0 bugs, 4/10 exit criteria met. Net progress on tester adoption: ZERO.
+  - Created `docs/beta/D5_DECISION.md`: CONTINUE BETA (no 7.7 hotfix, no Phase 8). Blocker is human operational. Escalation path documented.
+  - Dashboard regenerated with 4 evidence reports + data quality warnings.
   - Zero production files modified.
 
 ## Validation Ledger (Latest)
@@ -97,13 +95,14 @@ PTY-dependent test (`test_terminal_blocked_execution.mjs`): blocked by `node-pty
 
 ## Pending (Priority Ordered)
 
-1. **IMMEDIATE**: Distribute beta ZIP + `EXTERNAL_TESTER_PACKET.md` to >= 3 external testers with paid Gemini API keys.
+1. **BLOCKING**: User recruits >= 3 external testers and distributes installer + `EXTERNAL_TESTER_PACKET.md`.
 2. Testers run smoke checklist (docs/09) + collect evidence via `collect-beta-evidence.ps1`.
-3. Run `scripts/qa/run-beta-day.ps1` daily during beta (D3-D5).
-4. At D5: run `scripts/qa/validate-wave-inputs.ps1` — must show GO before evaluating exit criteria.
-5. Re-evaluate all 10 exit criteria at D5 per `docs/14_KAIRO_BETA_EXIT_CRITERIA.md`.
+3. Run `scripts/qa/run-beta-day.ps1` + `validate-wave-inputs.ps1` daily after distribution.
+4. When `validate-wave-inputs.ps1` shows GO: re-evaluate all 10 exit criteria.
+5. Decision at new D5 (post-distribution): GO Phase 8 / CONDITIONAL GO / NO-GO.
 6. Resolve Gemini API quota for real streaming smoke test (billing/project action).
 7. MCP provider package resolution checkpoint (fallback still active).
+8. If User decides external beta is not feasible: CONDITIONAL GO path available (documented in `D5_DECISION.md`).
 
 ## Known Risks
 
@@ -140,10 +139,10 @@ PTY-dependent test (`test_terminal_blocked_execution.mjs`): blocked by `node-pty
 
 ## Next Step (Exact)
 
-Distribute beta ZIP + `EXTERNAL_TESTER_PACKET.md` to >= 3 external testers. Wave 2 plan: `docs/beta/WAVE2_EXECUTION_PLAN.md`. Run `validate-wave-inputs.ps1` at D5 before exit criteria evaluation.
+User decides: (A) recruit testers and distribute, or (B) accept CONDITIONAL GO to Phase 8. D5 decision: `docs/beta/D5_DECISION.md`. Wave 2 report: `docs/beta/WAVE2_EXECUTION_REPORT.md`.
 
 ## Next Owner
 
-- User: recruit testers, distribute beta ZIP + EXTERNAL_TESTER_PACKET.md, ensure paid Gemini API keys.
-- Codex (orchestrator): evaluate D5 checkpoint, route Phase 8 or 7.7 based on tester data.
-- Claude (implementer): standby. If P0 filed, implement hotfix. T6.05 fragility RESOLVED.
+- User (Director): decide path (A) recruit testers or (B) CONDITIONAL GO. Both documented in `D5_DECISION.md`.
+- Codex (orchestrator): route next phase based on User decision.
+- Claude (implementer): standby. All engineering deliverables complete. If P0 filed, implement hotfix.
