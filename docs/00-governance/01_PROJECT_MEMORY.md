@@ -1,6 +1,6 @@
 # PROJECT MEMORY (Single Living Context)
 
-Version: 3.35
+Version: 3.36
 Last Updated: 2026-03-01
 Status: ACTIVE
 
@@ -23,25 +23,25 @@ Do not duplicate full DEC or long rationale content.
 
 ## Current Snapshot
 
-- Active phase: Phase 6 (Editor + Polish) — COMPLETE (Sprints A-D SEALED + AUDITED GO).
-- Sealed commits: `326071a` (Sprint A hardening), `3c5799c` (Sprint B + stabilization), `756ad33` (Sprint C streaming e2e), `07831d4` (Sprint D cut-pipeline e2e), `64c3813` (Phase 5 Sprint A recall), `a0b30d8` (Phase 5 Sprint B consolidation), `da6c092` (Phase 5 Sprint C rate-limit, GO), `5df7b7a` (Phase 6 Sprint A Monaco editor read/write, GO), `9fc53df` (Phase 6 Sprint B File Explorer lazy tree, GO), `5e3a168` (Phase 6 Sprint C Settings completeness, GO), `88489d1` (Phase 6 Sprint D Impact Analyzer + UndoManager).
-- Current objective: Scope audit of Phase 7 Sprint A (testing integral) for GO/NO-GO pre-implementation.
+- Active phase: Phase 7 (Testing + Hardening) — Sprint A SEALED (`9e3e7c5`), pending Gemini post-implementation audit.
+- Sealed commits: `326071a` (Sprint A hardening), `3c5799c` (Sprint B + stabilization), `756ad33` (Sprint C streaming e2e), `07831d4` (Sprint D cut-pipeline e2e), `64c3813` (Phase 5 Sprint A recall), `a0b30d8` (Phase 5 Sprint B consolidation), `da6c092` (Phase 5 Sprint C rate-limit, GO), `5df7b7a` (Phase 6 Sprint A Monaco editor read/write, GO), `9fc53df` (Phase 6 Sprint B File Explorer lazy tree, GO), `5e3a168` (Phase 6 Sprint C Settings completeness, GO), `88489d1` (Phase 6 Sprint D Impact Analyzer + UndoManager, GO), `9e3e7c5` (Phase 7 Sprint A Safety Net).
+- Current objective: Gemini post-implementation audit of Phase 7 Sprint A. Then route next sprint.
 - Active debates: none.
 - Open RFCs: none.
-- IPC channels: 47 (`FS_UNDO_PREVIEW` + `FS_UNDO_APPLY` added in Phase 6 Sprint D).
+- IPC channels: 47 (unchanged — test-only sprint).
 
 ## Completed This Session
 
-- **Phase 6 Sprint D seal** — commit `88489d1`:
-  - UndoManagerService: ephemeral LIFO stack (15 entries max, 2MB file cap), content-based collision guard.
-  - Snapshot capture wired into FileOperationsService.writeFile() (non-fatal try/catch).
-  - IPC: FS_UNDO_PREVIEW + FS_UNDO_APPLY (45→47 channels).
-  - Monaco DiffEditor panel in CodeEditor for side-by-side impact preview.
-  - editorStore + useEditor extended with undo state and actions.
-  - 118 new assertions (test_impact_analyzer_sprint_d.mjs).
-  - Gates: `test_impact_analyzer_sprint_d` 118/118, `test_settings_sprint_c` 94/94, `test_editor_sprint_b` 111/111, `test_editor_sprint_a` 130/130, `test_renderer_sprint_b` 119/119, `test_renderer_streaming` 54/54, `test_rate_limit` 66/66, `tsc` exit 0, `electron-vite build` PASS.
-  - 16 files committed (10 modified + 2 created + 4 test updates).
-- **Phase 6 Sprint D post-audit** — Gemini verdict: GO TOTAL (phase 6 closure authorized).
+- **Phase 7 Sprint A seal** — commit `9e3e7c5`:
+  - Safety net: contract validation + prompt construction + budget/router coverage.
+  - TokenBudgeter: 20 functional assertions (budget math, overflow, reset, allocations).
+  - Model Router: 9 functional assertions (foreground override, background ignores override).
+  - System Prompt Builder: 18 functional assertions (section ordering, visibility, omission).
+  - JSON Contract Shapes: 35 source-level assertions (StreamChunk, IpcResult, ChatMessage, union types).
+  - Constants Integrity: 25 assertions (allocations sum, budget presets, rate-limit invariants).
+  - Zero sealed production files modified — test-only sprint.
+  - Gates: `test_safety_net_sprint_a` 107/107, `tsc` exit 0, `electron-vite build` PASS.
+  - 1 file committed (test_safety_net_sprint_a.mjs).
 
 ## Validation Ledger (Latest)
 
@@ -68,17 +68,18 @@ Do not duplicate full DEC or long rationale content.
 | Sandbox paths test | `node tests/test_sandbox_paths.mjs` | 106/106 PASS |
 | Snapshot service test | `node tests/test_snapshot_service.mjs` | 18/18 PASS |
 | Streaming gateway test | `node tests/test_streaming_gateway.mjs` | 40/40 PASS |
+| Safety Net Sprint A test | `node tests/test_safety_net_sprint_a.mjs` | 107/107 PASS |
 | TypeScript strict | `npx tsc --noEmit` | exit 0 |
 | Electron-vite build | `npx electron-vite build` | PASS (main 208KB, preload 4KB, renderer 8332KB) |
 
-Non-sqlite runnable total: 1525 assertions / 0 failures (23 test files).
+Non-sqlite runnable total: 1632 assertions / 0 failures (24 test files).
 SQLite-dependent tests (8 files): blocked by `ERR_DLOPEN_FAILED` (pre-existing `better-sqlite3` ABI mismatch in headless Node — requires `npm rebuild better-sqlite3`).
 PTY-dependent test (`test_terminal_blocked_execution.mjs`): blocked by `node-pty` ABI mismatch.
 
 ## Pending (Priority Ordered)
 
-1. Scope audit of Phase 7 Sprint A (testing integral) for GO/NO-GO pre-implementation.
-2. Route next sprint implementation packet on GO.
+1. Gemini post-implementation audit of Phase 7 Sprint A (`9e3e7c5`).
+2. Route next sprint (Phase 7 Sprint B or beyond).
 3. Resolve handling policy for `test_audit_memory_hacks.mjs` (fix, quarantine, or remove from canonical ledgers).
 4. Resolve Gemini API quota for real streaming smoke test (billing/project action).
 5. MCP provider package resolution checkpoint (fallback still active).
@@ -118,10 +119,10 @@ PTY-dependent test (`test_terminal_blocked_execution.mjs`): blocked by `node-pty
 
 ## Next Step (Exact)
 
-Gemini audita scope de Phase 7 Sprint A (testing integral) para GO/NO-GO pre-implementación.
+Gemini ejecuta auditoría post-implementación GO/NO-GO de Phase 7 Sprint A (`9e3e7c5`). Codex sintetiza veredicto y enruta siguiente sprint.
 
 ## Next Owner
 
-- Gemini (auditor): scope audit Phase 7 Sprint A.
-- Codex (orchestrator): route Phase 7 Sprint A packet on GO.
-- Claude (implementer): awaits Phase 7 scope packet.
+- Gemini (auditor): post-implementation audit Phase 7 Sprint A.
+- Codex (orchestrator): synthesize verdict and route next sprint.
+- Claude (implementer): standby until next sprint routed.
