@@ -1,6 +1,6 @@
 # PROJECT MEMORY (Single Living Context)
 
-Version: 3.28
+Version: 3.29
 Last Updated: 2026-03-01
 Status: ACTIVE
 
@@ -25,7 +25,7 @@ Do not duplicate full DEC or long rationale content.
 
 - Active phase: Phase 6 (Editor + Polish) — Sprint A SEALED + AUDITED GO (`5df7b7a`).
 - Sealed commits: `326071a` (Sprint A hardening), `3c5799c` (Sprint B + stabilization), `756ad33` (Sprint C streaming e2e), `07831d4` (Sprint D cut-pipeline e2e), `64c3813` (Phase 5 Sprint A recall), `a0b30d8` (Phase 5 Sprint B consolidation), `da6c092` (Phase 5 Sprint C rate-limit, GO), `5df7b7a` (Phase 6 Sprint A Monaco editor read/write, GO).
-- Current objective: Scope audit of Phase 6 Sprint B (File Explorer tree) for GO/NO-GO pre-implementation.
+- Current objective: Implement Phase 6 Sprint B (File Explorer tree) under Gemini GO pre-implementation verdict.
 - Active debates: none.
 - Open RFCs: none.
 - IPC channels: 44 (`FS_READ_FILE`, `FS_WRITE_FILE` added in Phase 6 Sprint A).
@@ -42,6 +42,7 @@ Do not duplicate full DEC or long rationale content.
   - Gemini post-implementation audit verdict: GO TOTAL.
   - Gates: `test_editor_sprint_a` 130/130, `test_renderer_sprint_b` 118/118, `test_rate_limit` 66/66, `test_renderer_streaming` 54/54, `tsc` exit 0, `electron-vite build` PASS.
   - 14 files committed (11 production + 3 tests). Scratch artifacts excluded.
+- **Phase 6 Sprint B scope audit** — Gemini verdict: GO (planning audit complete; implementation authorized with lazy-load + DEC-025 sandbox + no scope creep).
 
 ## Validation Ledger (Latest)
 
@@ -74,7 +75,7 @@ PTY-dependent test (`test_terminal_blocked_execution.mjs`): blocked by `node-pty
 
 ## Pending (Priority Ordered)
 
-1. Scope audit of Phase 6 Sprint B (File Explorer tree) for GO/NO-GO pre-implementation.
+1. Implement Phase 6 Sprint B (File Explorer tree) per audited scope (FS_LIST_DIR + lazy tree + click-to-open).
 2. Resolve handling policy for `test_audit_memory_hacks.mjs` (fix, quarantine, or remove from canonical ledgers).
 3. Resolve Gemini API quota for real streaming smoke test (billing/project action).
 4. MCP provider package resolution checkpoint (fallback still active).
@@ -109,10 +110,10 @@ PTY-dependent test (`test_terminal_blocked_execution.mjs`): blocked by `node-pty
 
 ## Next Step (Exact)
 
-Gemini audita scope de Fase 6 Sprint B (File Explorer tree) para GO/NO-GO pre-implementación.
+Claude implementa Fase 6 Sprint B (File Explorer tree) con scope auditado. Al sellar, Gemini ejecuta auditoría post-implementación GO/NO-GO.
 
 ## Next Owner
 
-- Gemini (auditor): scope audit Phase 6 Sprint B.
-- Codex (orchestrator): route Phase 6 Sprint B packet on GO.
-- Claude (implementer): awaits Phase 6 Sprint B scope packet.
+- Claude (implementer): implement Phase 6 Sprint B.
+- Gemini (auditor): post-implementation audit Phase 6 Sprint B.
+- Codex (orchestrator): synthesize verdict and route next sprint.
