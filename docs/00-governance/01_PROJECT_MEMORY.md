@@ -1,6 +1,6 @@
 # PROJECT MEMORY (Single Living Context)
 
-Version: 3.24
+Version: 3.26
 Last Updated: 2026-02-28
 Status: ACTIVE
 
@@ -23,31 +23,24 @@ Do not duplicate full DEC or long rationale content.
 
 ## Current Snapshot
 
-- Active phase: Phase 5 (Recall + Consolidation + Rate-Limit) — Sprint B COMPLETE (pending audit).
-- Sealed commits: `326071a` (Sprint A hardening), `3c5799c` (Sprint B + stabilization), `756ad33` (Sprint C streaming e2e), `07831d4` (Sprint D cut-pipeline e2e), pending (Phase 5 Sprint A recall), pending (Phase 5 Sprint B consolidation).
-- Current objective: Gemini audit of Sprint B consolidation engine for GO/NO-GO.
+- Active phase: Phase 5 (Recall + Consolidation + Rate-Limit) — Sprint C SEALED (`da6c092`), pending Gemini audit.
+- Sealed commits: `326071a` (Sprint A hardening), `3c5799c` (Sprint B + stabilization), `756ad33` (Sprint C streaming e2e), `07831d4` (Sprint D cut-pipeline e2e), `64c3813` (Phase 5 Sprint A recall), `a0b30d8` (Phase 5 Sprint B consolidation), `da6c092` (Phase 5 Sprint C rate-limit).
+- Current objective: Gemini audit of Sprint C rate-limit for GO/NO-GO.
 - Active debates: none.
 - Open RFCs: none.
-- IPC channels: 41 (`CONSOLIDATION_STATUS` added in Phase 5 Sprint B).
+- IPC channels: 42 (`RATE_LIMIT_STATUS` added in Phase 5 Sprint C).
 
 ## Completed This Session
 
-- **Phase 5 Sprint B** (Consolidation Engine, DEC-022) — COMPLETE:
-  - `consolidation-engine.ts`: Pure function module — `shouldConsolidate()`, `executeConsolidation()`, `truncateConsolidationInput()`, `mechanicalFallback()`, `MASTER_SUMMARY_PROMPT`. Port-based architecture for testability.
-  - Hard Guards enforced:
-    1. `_isConsolidating` lock in SyncWorker (try/finally)
-    2. Atomic source claiming — only SYNCED entries, transactional `markConsolidated()` in DB
-    3. Never delete non-SYNCED — DB query filters + runtime `status === 'synced'` validation
-    4. Input cap — `CONSOLIDATION_INPUT_CAP_CHARS = 80,000` chars (~20K tokens)
-    5. Local files preserved — never delete `.kairo/sessions/` files on disk
-  - DB schema migration v1→v2: table rebuild pattern for `upload_queue` (new `consolidated_into` column + `'consolidated'` status in CHECK constraint).
-  - MemoryProvider interface extended with optional `deleteSource()`. NotebookLM provider: MCP JSON-RPC `memory/delete`. Local-markdown: graceful no-op.
-  - UploadQueueService: `getSyncedSources()`, `countSynced()`, `markConsolidated()` — atomic transaction wrapping.
-  - SyncWorker: `maybeConsolidate()` fire-and-forget after `markSynced()`, `_isConsolidating` guard, `ConsolidationPort` + emitter + project context setters.
-  - index.ts: Built `ConsolidationPort` adapter, wired `CONSOLIDATION_STATUS` push channel, updated project handler with `syncWorker.setProjectContext()`.
-  - Renderer: `chatStore.consolidationPhase`, `useChat` CONSOLIDATION_STATUS listener, `ChatPanel` non-blocking green indicator with phase labels.
-  - Tests: 96 new assertions in `test_consolidation_engine.mjs` (threshold, truncation, happy path, edge cases, SyncWorker integration).
-  - Existing tests updated: `test_renderer_sprint_b.mjs` (channel count 40→41 + CONSOLIDATION_STATUS assertion), `test_renderer_streaming.mjs` (+10 consolidation store/hook/panel assertions).
+- **Phase 5 Sprint C seal** — commit `da6c092`:
+  - 429/503/RESOURCE_EXHAUSTED multi-signal detection (`is429()`).
+  - Exponential backoff with ±25% jitter (1s/2s/4s), max 60s cap.
+  - Primary model → 3 retries → fallback model (Pro→Flash) → 3 retries → "Cuota agotada".
+  - Non-429 errors propagate immediately (no retry).
+  - Orchestrator: `streamOnce` Promise wrapper + `retryWithBackoff` integration.
+  - RATE_LIMIT_STATUS IPC push channel (42nd). Amber non-blocking ChatPanel indicator.
+  - Gates: 66/66 rate-limit, 96/96 consolidation (regression), 116/116 renderer-b (regression), 54/54 renderer-streaming (regression + 10 new), tsc exit 0.
+  - 12 files committed (9 production + 3 tests). Scratch artifacts excluded.
 
 ## Validation Ledger (Latest)
 
@@ -64,26 +57,26 @@ Do not duplicate full DEC or long rationale content.
 | MCP process test | `node tests/test_mcp_process.mjs` | 41/41 PASS |
 | Memory provider test | `node tests/test_memory_provider.mjs` | 61/61 PASS |
 | Renderer bridge guard test | `node tests/test_renderer_bridge_guard.mjs` | 44/44 PASS |
-| Renderer Sprint B test | `node tests/test_renderer_sprint_b.mjs` | 115/115 PASS |
-| Renderer streaming test | `node tests/test_renderer_streaming.mjs` | 44/44 PASS |
+| Rate-limit handler test | `node tests/test_rate_limit.mjs` | 66/66 PASS |
+| Renderer Sprint B test | `node tests/test_renderer_sprint_b.mjs` | 116/116 PASS |
+| Renderer streaming test | `node tests/test_renderer_streaming.mjs` | 54/54 PASS |
 | Sandbox paths test | `node tests/test_sandbox_paths.mjs` | 106/106 PASS |
 | Snapshot service test | `node tests/test_snapshot_service.mjs` | 18/18 PASS |
 | Streaming gateway test | `node tests/test_streaming_gateway.mjs` | 40/40 PASS |
 | TypeScript strict | `npx tsc --noEmit` | exit 0 |
 | Electron-vite build | `npx electron-vite build` | PASS (main 189KB, preload 3KB, renderer 1079KB) |
 
-Non-sqlite runnable total: 953 assertions / 0 failures (18 test files).
+Non-sqlite runnable total: 1069 assertions / 0 failures (19 test files).
 SQLite-dependent tests (8 files): blocked by `ERR_DLOPEN_FAILED` (pre-existing `better-sqlite3` ABI mismatch in headless Node — requires `npm rebuild better-sqlite3`).
 PTY-dependent test (`test_terminal_blocked_execution.mjs`): blocked by `node-pty` ABI mismatch.
 
 ## Pending (Priority Ordered)
 
-1. Gemini audit of Sprint B consolidation for GO/NO-GO.
-2. Implement Phase 5 Sprint C (Rate-limit handler) with retry/backoff/fallback.
-3. Resolve handling policy for `test_audit_memory_hacks.mjs` (fix, quarantine, or remove from canonical ledgers).
-4. Resolve Gemini API quota for real streaming smoke test (billing/project action).
-5. MCP provider package resolution checkpoint (fallback still active).
-6. Clean scratch untracked artifacts from working tree (`diff*.txt`, `*_diff.txt`, bundle, audit scratch test).
+1. Gemini audit of Sprint C rate-limit handler for GO/NO-GO.
+2. Resolve handling policy for `test_audit_memory_hacks.mjs` (fix, quarantine, or remove from canonical ledgers).
+3. Resolve Gemini API quota for real streaming smoke test (billing/project action).
+4. MCP provider package resolution checkpoint (fallback still active).
+5. Clean scratch untracked artifacts from working tree (`diff*.txt`, `*_diff.txt`, bundle, audit scratch test).
 
 ## Known Risks
 
@@ -108,13 +101,14 @@ PTY-dependent test (`test_terminal_blocked_execution.mjs`): blocked by `node-pty
 - Exclude scratch tests/artifacts from release ledgers unless promoted to canonical suite.
 - Consolidation race CLOSED: `_isConsolidating` lock + SYNCED-only DB queries + atomic `markConsolidated()` + input cap.
 - Recall race CLOSED: `_isRecalling` guard + UI input disable + `handleStreamingChat` rejection.
+- Rate-limit race CLOSED: `retryWithBackoff` is purely sequential per call, no shared mutable state. Non-429 errors propagate immediately.
 
 ## Next Step (Exact)
 
-Gemini audits Sprint B consolidation implementation for GO/NO-GO. On GO, Codex issues Sprint C implementation packet.
+Gemini audits Sprint C rate-limit handler for GO/NO-GO.
 
 ## Next Owner
 
-- Gemini (auditor): audit Sprint B consolidation.
-- Codex (orchestrator): route Sprint C packet on GO.
-- Claude (implementer): awaits Sprint C packet.
+- Gemini (auditor): audit Sprint C rate-limit handler.
+- Codex (orchestrator): route next phase/sprint on GO.
+- Claude (implementer): awaits next scope packet.
