@@ -120,7 +120,7 @@ console.log('\n=== T2: IPC Channels ===')
 
 assert(IPC_CHANNELS.FS_UNDO_PREVIEW === 'fs:undo-preview', 'T2a: FS_UNDO_PREVIEW channel exists')
 assert(IPC_CHANNELS.FS_UNDO_APPLY === 'fs:undo-apply', 'T2b: FS_UNDO_APPLY channel exists')
-assert(IPC_CHANNEL_ALLOWLIST.length === 48, `T2c: 48 channels total (got ${IPC_CHANNEL_ALLOWLIST.length})`)
+assert(IPC_CHANNEL_ALLOWLIST.length === 49, `T2c: 49 channels total (got ${IPC_CHANNEL_ALLOWLIST.length})`)
 assert(IPC_CHANNEL_ALLOWLIST.includes('fs:undo-preview'), 'T2d: allowlist includes fs:undo-preview')
 assert(IPC_CHANNEL_ALLOWLIST.includes('fs:undo-apply'), 'T2e: allowlist includes fs:undo-apply')
 

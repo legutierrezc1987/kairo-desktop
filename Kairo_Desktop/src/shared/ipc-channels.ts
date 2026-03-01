@@ -54,6 +54,7 @@ export const IPC_CHANNELS = {
   ACCOUNT_SET_ACTIVE: 'account:set-active',
   ACCOUNT_DELETE: 'account:delete',
   ACCOUNT_PREFLIGHT_STATUS: 'account:preflight-status',
+  ACCOUNT_PREFLIGHT_GET: 'account:preflight-get',
 
   // Session persistence domain
   SESSION_CREATE: 'session:create',

@@ -144,13 +144,13 @@ assert(typeof DEFAULT_MODEL === 'string' && DEFAULT_MODEL.includes('gemini'),
 console.log('\n── T3: IPC Channels ──')
 
 const channels = Object.values(IPC_CHANNELS)
-assert(channels.length === 48, `T3a: 48 channels total (got ${channels.length})`)
+assert(channels.length === 49, `T3a: 49 channels total (got ${channels.length})`)
 
 assert(channels.includes('settings:get'), 'T3b: SETTINGS_GET channel exists')
 assert(channels.includes('settings:set'), 'T3c: SETTINGS_SET channel exists')
 
-assert(IPC_CHANNEL_ALLOWLIST.length === 48,
-  `T3d: allowlist has 48 entries (got ${IPC_CHANNEL_ALLOWLIST.length})`)
+assert(IPC_CHANNEL_ALLOWLIST.length === 49,
+  `T3d: allowlist has 49 entries (got ${IPC_CHANNEL_ALLOWLIST.length})`)
 
 // ════════════════════════════════════════════════════════════════
 // T4: settingsStore — shape and actions
@@ -228,8 +228,8 @@ assert(hookSource.includes('CUSTOM_BUDGET_MIN') && hookSource.includes('CUSTOM_B
 assert(hookSource.includes("'concise'") && hookSource.includes("'detailed'"),
   'T5k: hook validates visibility mode values')
 
-assert(/VALID_MODELS.*gemini/.test(hookSource),
-  'T5l: hook validates model IDs')
+assert(hookSource.includes('normalizeModelId'),
+  'T5l: hook uses normalizeModelId for model validation')
 
 // ════════════════════════════════════════════════════════════════
 // T6: BudgetPresetSelector component

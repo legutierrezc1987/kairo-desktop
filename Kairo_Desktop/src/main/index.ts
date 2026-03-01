@@ -23,7 +23,7 @@ import { UploadQueueService } from './services/upload-queue.service'
 import { SyncWorker } from './workers/sync-worker'
 import { IPC_CHANNELS } from '../shared/ipc-channels'
 import { KILL_SWITCH_ACCELERATOR, DEFAULT_BUDGET, BUDGET_PRESETS, MEMORY_SETTINGS_KEY_MCP_PATH, CUT_PIPELINE_TIMEOUT_MS, MODEL_ROUTING } from '../shared/constants'
-import type { BrokerMode, CutReason, CutPipelineEvent, RecallStatusEvent, ConsolidationStatusEvent, RateLimitStatus, AccountPreflightEvent } from '../shared/types'
+import type { BrokerMode, CutReason, CutPipelineEvent, RecallStatusEvent, ConsolidationStatusEvent, RateLimitStatus, AccountPreflightEvent, AccountGatewayStatus } from '../shared/types'
 import { readFile, writeFile, mkdir } from 'node:fs/promises'
 import { MASTER_SUMMARY_PROMPT, type ConsolidationPort } from './memory/consolidation-engine'
 
@@ -78,6 +78,9 @@ function createWindow(): BrowserWindow {
   return win
 }
 
+/** Last known preflight status — persisted for pull requests (Patch K). */
+let lastPreflightStatus: AccountGatewayStatus = 'unknown'
+
 /** Fire-and-forget gateway validation — pushes status to renderer via IPC push (Phase 7 Hotfix J). */
 function firePreflightCheck(win: BrowserWindow | null): void {
   const send = (event: AccountPreflightEvent): void => {
@@ -88,9 +91,11 @@ function firePreflightCheck(win: BrowserWindow | null): void {
     }
   }
 
+  lastPreflightStatus = 'validating'
   send({ status: 'validating' })
 
   validateGateway().then((result) => {
+    lastPreflightStatus = result
     send({ status: result })
     if (result === 'invalid') {
       console.warn('[KAIRO] API key preflight FAILED: key is invalid or revoked.')
@@ -100,6 +105,7 @@ function firePreflightCheck(win: BrowserWindow | null): void {
       console.log('[KAIRO] API key preflight: valid.')
     }
   }).catch(() => {
+    lastPreflightStatus = 'unknown'
     send({ status: 'unknown' })
   })
 }
@@ -279,6 +285,7 @@ app.whenReady().then(async () => {
       resetGeminiGateway()
       console.warn('[KAIRO] No API key available after account change. Gateway reset.')
       // No key → push unknown status (Phase 7 Hotfix J)
+      lastPreflightStatus = 'unknown'
       try {
         mainWindow?.webContents.send(IPC_CHANNELS.ACCOUNT_PREFLIGHT_STATUS, { status: 'unknown' } satisfies AccountPreflightEvent)
       } catch { /* window may be destroyed */ }
@@ -343,6 +350,17 @@ app.whenReady().then(async () => {
   if (!registered) {
     console.warn(`[KAIRO_KILLSWITCH] Failed to register ${KILL_SWITCH_ACCELERATOR} — shortcut may be in use.`)
   }
+
+  // Account preflight snapshot pull handler (Patch K — fixes mount race)
+  ipcMain.handle(IPC_CHANNELS.ACCOUNT_PREFLIGHT_GET, (event) => {
+    try {
+      validateSender(event)
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Sender validation failed'
+      return { success: false, error: msg }
+    }
+    return { success: true, data: { status: lastPreflightStatus } satisfies AccountPreflightEvent }
+  })
 
   // App CWD handler (renderer needs this for terminal spawn)
   ipcMain.handle(IPC_CHANNELS.APP_GET_CWD, (event) => {

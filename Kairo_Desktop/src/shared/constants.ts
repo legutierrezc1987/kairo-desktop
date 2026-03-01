@@ -44,6 +44,24 @@ export const MODEL_ROUTING: Record<string, ModelId> = {
   background: 'gemini-3-flash-preview',
 }
 
+// ─── Legacy Model Normalization (Patch K) ───────────────────
+
+const LEGACY_MODEL_MAP: Record<string, ModelId> = {
+  'gemini-2.0-flash': 'gemini-2.5-flash',
+  'gemini-2.0-flash-lite': 'gemini-2.5-flash',
+  'gemini-2.5-pro': 'gemini-3.1-pro-preview',
+}
+
+const VALID_MODEL_IDS: ReadonlySet<string> = new Set(
+  Object.keys(MODEL_DISPLAY_NAMES),
+)
+
+/** Normalize a model ID from DB/settings to a current valid ModelId. */
+export function normalizeModelId(raw: string): ModelId {
+  if (VALID_MODEL_IDS.has(raw)) return raw as ModelId
+  return LEGACY_MODEL_MAP[raw] ?? DEFAULT_MODEL
+}
+
 export const MAX_TURNS_PER_SESSION = 40
 export const SESSION_CUT_THRESHOLD_PERCENT = 0.80
 

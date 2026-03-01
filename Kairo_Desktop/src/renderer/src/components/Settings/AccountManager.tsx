@@ -32,11 +32,13 @@ export default function AccountManager(): React.JSX.Element {
     fetchAccounts().catch(console.error)
   }, [fetchAccounts])
 
-  // Listen for preflight status pushes from main process (Phase 7 Hotfix J)
+  // Preflight status: push listener + pull initial snapshot (Patch K — fixes mount race)
   useEffect(() => {
     if (!hasKairoApi()) return
 
     const api = getKairoApiOrThrow()
+
+    // 1. Register push listener first (no race gap)
     const unsubscribe = api.on(
       IPC_CHANNELS.ACCOUNT_PREFLIGHT_STATUS,
       (event: unknown) => {
@@ -45,6 +47,14 @@ export default function AccountManager(): React.JSX.Element {
         setGatewayStatus(e.status)
       },
     )
+
+    // 2. Pull initial snapshot (covers late-mount scenario)
+    api.invoke(IPC_CHANNELS.ACCOUNT_PREFLIGHT_GET).then((result: unknown) => {
+      const r = result as IpcResult<AccountPreflightEvent>
+      if (r.success && r.data && typeof r.data.status === 'string') {
+        setGatewayStatus(r.data.status)
+      }
+    }).catch(() => { /* best-effort */ })
 
     return unsubscribe
   }, [])

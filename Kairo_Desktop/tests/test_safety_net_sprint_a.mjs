@@ -660,7 +660,7 @@ test('CI21: IPC channels = 48', () => {
   const channels = []
   let m
   while ((m = channelPattern.exec(ipcSrc)) !== null) channels.push(m[1])
-  assert.equal(channels.length, 48, `Expected 48 channels, got ${channels.length}`)
+  assert.equal(channels.length, 49, `Expected 49 channels, got ${channels.length}`)
 })
 
 test('CI22: MAX_TURNS_PER_SESSION = 40', () => {

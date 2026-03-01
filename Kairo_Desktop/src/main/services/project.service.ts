@@ -2,6 +2,7 @@ import type Database from 'better-sqlite3'
 import { randomUUID } from 'node:crypto'
 import { accessSync, realpathSync, constants } from 'node:fs'
 import { resolve, parse } from 'node:path'
+import { normalizeModelId } from '../../shared/constants'
 import type {
   Project,
   IpcResult,
@@ -33,7 +34,7 @@ function rowToProject(row: ProjectRow): Project {
     folderPath: row.folder_path,
     notebookId: row.notebook_id,
     notebookUrl: row.notebook_url,
-    model: row.model,
+    model: normalizeModelId(row.model),
     tokenThresholdSoft: row.token_threshold_soft,
     tokenThresholdHard: row.token_threshold_hard,
     turnLimit: row.turn_limit,

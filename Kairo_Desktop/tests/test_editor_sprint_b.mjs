@@ -107,7 +107,7 @@ console.log('\n── Section 2: IPC Channel Parity ──')
 
 assert(IPC_CHANNELS.FS_LIST_DIR === 'fs:list-dir', 'IPC01: FS_LIST_DIR channel exists')
 assert(IPC_CHANNEL_ALLOWLIST.includes('fs:list-dir'), 'IPC02: allowlist includes fs:list-dir')
-assert(IPC_CHANNEL_ALLOWLIST.length === 48, `IPC03: 48 channels total (got ${IPC_CHANNEL_ALLOWLIST.length})`)
+assert(IPC_CHANNEL_ALLOWLIST.length === 49, `IPC03: 49 channels total (got ${IPC_CHANNEL_ALLOWLIST.length})`)
 
 // ═══════════════════════════════════════════════════════════════
 // Section 3: listDir — Sandbox Validation

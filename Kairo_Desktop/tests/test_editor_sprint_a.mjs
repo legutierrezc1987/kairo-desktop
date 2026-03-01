@@ -95,7 +95,7 @@ console.log('\n── Section 2: IPC Channel Parity ──')
 
 assert(IPC_CHANNELS.FS_READ_FILE === 'fs:read-file', 'IPC01: FS_READ_FILE channel exists')
 assert(IPC_CHANNELS.FS_WRITE_FILE === 'fs:write-file', 'IPC02: FS_WRITE_FILE channel exists')
-assert(IPC_CHANNEL_ALLOWLIST.length === 48, `IPC03: 48 channels total (got ${IPC_CHANNEL_ALLOWLIST.length})`)
+assert(IPC_CHANNEL_ALLOWLIST.length === 49, `IPC03: 49 channels total (got ${IPC_CHANNEL_ALLOWLIST.length})`)
 assert(IPC_CHANNEL_ALLOWLIST.includes('fs:read-file'), 'IPC04: allowlist includes fs:read-file')
 assert(IPC_CHANNEL_ALLOWLIST.includes('fs:write-file'), 'IPC05: allowlist includes fs:write-file')
 

@@ -269,8 +269,8 @@ test('HJ34: ChatPanel shows project hint text', () => {
 
 console.log('\n── T7: IPC channels ──')
 
-test('HJ35: IPC_CHANNEL_ALLOWLIST has 48 entries', () => {
-  assert.equal(ipcMod.IPC_CHANNEL_ALLOWLIST.length, 48)
+test('HJ35: IPC_CHANNEL_ALLOWLIST has 49 entries', () => {
+  assert.equal(ipcMod.IPC_CHANNEL_ALLOWLIST.length, 49)
 })
 
 test('HJ36: ACCOUNT_PREFLIGHT_STATUS channel exists', () => {

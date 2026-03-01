@@ -3,7 +3,7 @@ import { useSettingsStore } from '@renderer/stores/settingsStore'
 import { hasKairoApi, getKairoApiOrThrow } from '@renderer/lib/kairoApi'
 import { IPC_CHANNELS } from '@shared/ipc-channels'
 import type { IpcResult, GetSettingResponse, ModelId, VisibilityMode, SettingsState } from '@shared/types'
-import { DEFAULT_MODEL, CUSTOM_BUDGET_MIN, CUSTOM_BUDGET_MAX } from '@shared/constants'
+import { CUSTOM_BUDGET_MIN, CUSTOM_BUDGET_MAX, normalizeModelId } from '@shared/constants'
 
 /** Setting keys used for global persistence */
 const SETTINGS_KEYS = {
@@ -13,12 +13,6 @@ const SETTINGS_KEYS = {
   visibilityMode: 'visibility_mode',
 } as const
 
-const VALID_MODELS: readonly string[] = [
-  'gemini-2.5-flash',
-  'gemini-3-flash-preview',
-  'gemini-3.1-pro-preview',
-  'gemini-3.1-pro-preview-customtools',
-]
 const VALID_PRESETS: readonly string[] = ['conservative', 'balanced', 'extended', 'custom']
 const VALID_VISIBILITY: readonly string[] = ['concise', 'detailed']
 
@@ -47,8 +41,8 @@ export function useSettings(): void {
 
         const partial: Partial<SettingsState> = {}
 
-        if (modelRes.success && modelRes.data?.value && VALID_MODELS.includes(modelRes.data.value)) {
-          partial.selectedModel = modelRes.data.value as ModelId
+        if (modelRes.success && modelRes.data?.value) {
+          partial.selectedModel = normalizeModelId(modelRes.data.value)
         }
         if (presetRes.success && presetRes.data?.value && VALID_PRESETS.includes(presetRes.data.value)) {
           partial.budgetPreset = presetRes.data.value as SettingsState['budgetPreset']
