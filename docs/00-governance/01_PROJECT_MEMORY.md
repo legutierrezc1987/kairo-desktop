@@ -1,6 +1,6 @@
 # PROJECT MEMORY (Single Living Context)
 
-Version: 3.39
+Version: 3.40
 Last Updated: 2026-03-01
 Status: ACTIVE
 
@@ -23,20 +23,22 @@ Do not duplicate full DEC or long rationale content.
 
 ## Current Snapshot
 
-- Active phase: Phase 7 (Testing + Hardening) — Sprint C SEALED.
-- Sealed commits: `326071a` (Sprint A hardening), `3c5799c` (Sprint B + stabilization), `756ad33` (Sprint C streaming e2e), `07831d4` (Sprint D cut-pipeline e2e), `64c3813` (Phase 5 Sprint A recall), `a0b30d8` (Phase 5 Sprint B consolidation), `da6c092` (Phase 5 Sprint C rate-limit, GO), `5df7b7a` (Phase 6 Sprint A Monaco editor read/write, GO), `9fc53df` (Phase 6 Sprint B File Explorer lazy tree, GO), `5e3a168` (Phase 6 Sprint C Settings completeness, GO), `88489d1` (Phase 6 Sprint D Impact Analyzer + UndoManager, GO), `9e3e7c5` (Phase 7 Sprint A Safety Net), `856824c` (Phase 7 Sprint A Delta — extracted suites), `9295c31` (cleanup scratch + .gitignore), `ddf6952` (Phase 7 Sprint B Integration Tests), `90c8dc2` (Phase 7 Sprint C E2E Tests).
-- Current objective: Gemini post-implementation audit of Phase 7 Sprint C. Then route next phase.
+- Active phase: Phase 7 (Testing + Hardening) — Sprint D SEALED.
+- Sealed commits: `326071a` (Sprint A hardening), `3c5799c` (Sprint B + stabilization), `756ad33` (Sprint C streaming e2e), `07831d4` (Sprint D cut-pipeline e2e), `64c3813` (Phase 5 Sprint A recall), `a0b30d8` (Phase 5 Sprint B consolidation), `da6c092` (Phase 5 Sprint C rate-limit, GO), `5df7b7a` (Phase 6 Sprint A Monaco editor read/write, GO), `9fc53df` (Phase 6 Sprint B File Explorer lazy tree, GO), `5e3a168` (Phase 6 Sprint C Settings completeness, GO), `88489d1` (Phase 6 Sprint D Impact Analyzer + UndoManager, GO), `9e3e7c5` (Phase 7 Sprint A Safety Net), `856824c` (Phase 7 Sprint A Delta — extracted suites), `9295c31` (cleanup scratch + .gitignore), `ddf6952` (Phase 7 Sprint B Integration Tests), `90c8dc2` (Phase 7 Sprint C E2E Tests), Phase 7 Sprint D electron-builder (pending commit).
+- Current objective: Verify installer runs on fresh Windows. Then route next phase.
 - Active debates: none.
 - Open RFCs: none.
-- IPC channels: 47 (unchanged — test-only sprint).
+- IPC channels: 47 (unchanged — packaging-only sprint).
 
 ## Completed This Session
 
-- **Phase 7 Sprint C E2E tests**:
-  - `test_chat_e2e.mjs`: 40 assertions — full multi-turn conversation lifecycle (3 turns + accumulation, error recovery mid-conversation, abort+resume, auto-cut at 40 turns + new session, manual archive + recall, rate-limit retry + exhaustion).
-  - `test_terminal_e2e.mjs`: 35 assertions — real esbuild-bundled execution subsystem (multi-command eval GREEN/YELLOW/RED + chain injection + deny-by-default, approval flow + double-submit + reject, TTL expiry + lazy sweep, mode switch supervised↔auto, workspace sandbox DEC-025, emergency reset + recovery).
-  - `test_kill_switch_e2e.mjs`: 35 assertions — full kill handler sequence (terminal.killAll + broker.emergencyReset + requestArchive(emergency) + memory.shutdown, broker operational after kill, 3 rapid kills idempotent, kill during active cut, kill with no active state, kill during recall state, orchestrator abort on kill).
-  - Gates: G1-G3 (40+35+35=110 PASS), G4 (gateway 45/45), G5 (cut pipeline 40/40), G6 (renderer streaming 54/54), G7 (tsc exit 0), G8 (build PASS), G9 (3 test files only).
+- **Phase 7 Sprint D — electron-builder .exe installer**:
+  - `electron-builder.yml`: added `asarUnpack` for better-sqlite3 + node-pty, explicit win x64 target.
+  - `scripts/rebuild-native.js`: automation script for native module rebuild (patches winpty.gyp, generates GenVersion.h, uses SUBST drive for spaceless path, rebuilds node-pty + better-sqlite3 against Electron ABI).
+  - Installer: `kairo-desktop-0.1.0-setup.exe` (105.71 MB, SHA256: F584B8DA...).
+  - Unpacked: `dist/win-unpacked/kairo-desktop.exe` (191.91 MB).
+  - Native modules verified in `app.asar.unpacked`: `better_sqlite3.node`, `pty.node`, `conpty.node`, `conpty_console_list.node`.
+  - Gates: G1 (tsc exit 0), G2 (electron-vite build PASS), G3 (build:unpack PASS), G4 (build:win PASS), G5-G6 (artifacts + SHA256 verified), G7 (only electron-builder.yml + scripts/rebuild-native.js + docs).
   - Zero production files modified.
 
 ## Validation Ledger (Latest)
@@ -84,7 +86,7 @@ PTY-dependent test (`test_terminal_blocked_execution.mjs`): blocked by `node-pty
 
 ## Pending (Priority Ordered)
 
-1. Gemini post-implementation audit of Phase 7 Sprint C.
+1. Smoke-test installer on fresh Windows (install → launch → verify terminal/chat/settings).
 2. Route next phase (Phase 8 or beyond).
 3. Resolve Gemini API quota for real streaming smoke test (billing/project action).
 4. MCP provider package resolution checkpoint (fallback still active).
@@ -93,7 +95,7 @@ PTY-dependent test (`test_terminal_blocked_execution.mjs`): blocked by `node-pty
 
 - Gemini API abort is client-side; aborted requests may still consume provider-side tokens.
 - Gemini generateContent quota remains zero in current GCP project.
-- Path-with-spaces remains a portability risk for native rebuilds outside validated PowerShell flow.
+- Path-with-spaces requires `SUBST` drive + winpty.gyp patch for node-pty rebuild (`scripts/rebuild-native.js` automates this). `npm install` from a spaceless path avoids the issue entirely.
 - MCP provider package remains unresolved in npm registry.
 - ConPTY "AttachConsole failed" noise persists in tests; non-blocking.
 - `better-sqlite3`/`node-pty` ABI dual-rebuild workflow remains required between Node tests and Electron runtime.
@@ -105,7 +107,9 @@ PTY-dependent test (`test_terminal_blocked_execution.mjs`): blocked by `node-pty
 ## Mitigations
 
 - Keep live-provider tests conditional until quota/billing enabled.
-- Use PowerShell-native rebuild flow for Windows ABI swaps.
+- Use `node scripts/rebuild-native.js` for native module rebuilds (handles SUBST + winpty.gyp patch automatically).
+- `npmRebuild: false` in electron-builder.yml — native modules must be pre-rebuilt via `scripts/rebuild-native.js` before packaging.
+- Installer is unsigned (no code-signing cert) — Windows SmartScreen warning expected on first run.
 - Keep local memory fallback active until MCP package checkpoint resolves.
 - Treat ConPTY attach failures as non-blocking test noise (already tolerated in suite).
 - Maintain documented dual-rebuild runbook for Node/Electron contexts.
@@ -121,10 +125,10 @@ PTY-dependent test (`test_terminal_blocked_execution.mjs`): blocked by `node-pty
 
 ## Next Step (Exact)
 
-Gemini ejecuta auditoría post-implementación GO/NO-GO de Phase 7 Sprint B (`ddf6952`). Codex sintetiza veredicto y enruta siguiente sprint.
+Smoke-test installer on a clean Windows machine. Then route next phase.
 
 ## Next Owner
 
-- Gemini (auditor): post-implementation audit Phase 7 Sprint B.
-- Codex (orchestrator): synthesize verdict and route next sprint.
+- User: smoke-test `kairo-desktop-0.1.0-setup.exe` on clean Windows (install → launch → verify terminal + chat + settings).
+- Codex (orchestrator): synthesize Phase 7 closure and route Phase 8.
 - Claude (implementer): standby until next sprint routed.
