@@ -40,6 +40,9 @@ Fecha: 2026-03-01
   08_KAIRO_SETUP_GUIDE.md
   09_KAIRO_ONBOARDING_BETA.md
   10_KAIRO_RELEASE_CHECKLIST.md
+  11_KAIRO_BETA_EXECUTION_PLAN.md
+  12_KAIRO_BETA_BUG_INTAKE_TEMPLATE.md
+  13_KAIRO_BETA_DAILY_TRIAGE.md
   /skills
     /universal-architecture-tribunal
       SKILL.md
@@ -68,6 +71,9 @@ Treat canonical governance files as source of truth and track migration deltas i
 - `docs/08_KAIRO_SETUP_GUIDE.md` -> v2.0 (dev setup + installer + troubleshooting)
 - `docs/09_KAIRO_ONBOARDING_BETA.md` -> v1.0 (quickstart + smoke checklist)
 - `docs/10_KAIRO_RELEASE_CHECKLIST.md` -> v1.0 (GO/NO-GO matrix + rollback)
+- `docs/11_KAIRO_BETA_EXECUTION_PLAN.md` -> v1.0 (closed beta ops plan)
+- `docs/12_KAIRO_BETA_BUG_INTAKE_TEMPLATE.md` -> v1.0 (bug report template)
+- `docs/13_KAIRO_BETA_DAILY_TRIAGE.md` -> v1.0 (daily triage process)
 
 ## Startup Minimal
 
