@@ -1,8 +1,8 @@
 # PROJECT MEMORY (Single Living Context)
 
-Version: 3.57
+Version: 3.58
 Last Updated: 2026-03-01
-Status: GA RELEASED — MAINTENANCE MODE
+Status: GA RELEASED — MAINTENANCE MODE (Hotfix 0.1.1 applied)
 
 ## Editing Rule (MANDATORY)
 
@@ -25,7 +25,7 @@ Do not duplicate full DEC or long rationale content.
 
 - Active phase: **Post-GA Maintenance** — `v0.1.0` released. Phase 8 COMPLETE. All development phases (0-8) CLOSED.
 - GA tags: `v0.1.0` (GA), `v0.1.0-rc1` (RC). Installer SHA256: `F584B8DA00C98C6446594A13C03F42B3ED00C01A840F9B13005D78FD7EB28C93`.
-- Current objective: **Product released**. Maintenance/hotfix mode. No active sprints. Deferred backlog items (MCP provider, code-signing, second-machine test, Gemini billing) remain open for opportunistic resolution.
+- Current objective: **Product released + Hotfix 0.1.1 applied**. Terminal CWD now follows active project. Maintenance/hotfix mode continues. Deferred backlog items (MCP provider, code-signing, second-machine test, Gemini billing) remain open for opportunistic resolution.
 - D0 telemetry table upgraded for direct exit-criteria tracking: explicit columns for C3/C6/C7/C8 in `WAVE2_DISTRIBUTION_LOG.md`.
 - Model catalog refresh completed (runtime + UI): deprecated `gemini-2.0-*` and `gemini-2.5-pro` removed from app paths. Active catalog now uses `gemini-2.5-flash`, `gemini-3-flash-preview`, `gemini-3.1-pro-preview`, `gemini-3.1-pro-preview-customtools`.
 - Routing updated for practical quota behavior: foreground=`gemini-2.5-flash`, background/fallback=`gemini-3-flash-preview`.
@@ -105,6 +105,11 @@ Do not duplicate full DEC or long rationale content.
   - Updated `PROJECT_MEMORY`: v3.57, status GA RELEASED — MAINTENANCE MODE.
   - Tagged `v0.1.0` (annotated) GA tag.
   - Zero changes to `src/`.
+- **Hotfix 0.1.1 — Workspace/CWD Binding**:
+  - Bug: Terminal CWD stuck on `process.cwd()`, not following active project. `PROJECT_CREATE` did not fire `onProjectLoaded`. TerminalPanel was project-unaware.
+  - Fix: `terminal.service.ts` +`updateWorkspacePath()`/`getWorkspacePath()`. `index.ts` mutable `activeWorkspacePath`, updated on project load/create. `APP_GET_CWD` returns active workspace. `project.handlers.ts` fires `onProjectLoaded` on create. `TerminalPanel.tsx` subscribes to `projectStore`, shows "No project open" guard, respawns on switch via `key={activeProject.id}`.
+  - 4 production files modified, 1 new test file. IPC channels unchanged (49).
+  - Test: `test_hotfix_workspace_cwd.mjs` — 27/27 PASS. Regression: `test_terminal_e2e.mjs` 35/35, `test_sandbox_paths.mjs` 105/105. `npx tsc --noEmit` exit 0.
 
 ## Validation Ledger (Latest)
 
@@ -154,10 +159,11 @@ Do not duplicate full DEC or long rationale content.
 | QA aggregate-evidence | `powershell -File scripts/qa/aggregate-beta-evidence.ps1` | 3/3 PASS |
 | QA classify-beta-issues | `powershell -File scripts/qa/classify-beta-issues.ps1` | 3/3 PASS |
 | QA run-beta-day | `powershell -File scripts/qa/run-beta-day.ps1` | 7/7 PASS |
+| Hotfix workspace/CWD binding | `node tests/test_hotfix_workspace_cwd.mjs` | 27/27 PASS |
 | TypeScript strict | `npx tsc --noEmit` | exit 0 |
 | Electron-vite build | `npx electron-vite build` | PASS (main 216KB, preload 4KB, renderer 8340KB) |
 
-Non-sqlite runnable total: 2179 assertions / 0 failures (37 test files).
+Non-sqlite runnable total: 2206 assertions / 0 failures (38 test files).
 Note: The 3 extracted suites (test_tool_schema, test_system_prompt, test_model_router) verify the same contracts as T2/T3/T4 in test_safety_net_sprint_a — they do not add new unique assertions but provide standalone runnable coverage.
 SQLite-dependent tests (8 files): blocked by `ERR_DLOPEN_FAILED` (pre-existing `better-sqlite3` ABI mismatch in headless Node — requires `npm rebuild better-sqlite3`).
 PTY-dependent test (`test_terminal_blocked_execution.mjs`): blocked by `node-pty` ABI mismatch.
@@ -209,13 +215,14 @@ All development phases (0-8) COMPLETE. Remaining items are deferred/opportunisti
 
 ## Next Step (Exact)
 
-**v0.1.0 GA RELEASED**. All development phases (0-8) complete. Product is in maintenance/hotfix mode.
+**v0.1.0 GA RELEASED + Hotfix 0.1.1 applied** (workspace/CWD binding). All development phases (0-8) complete. Product is in maintenance/hotfix mode.
 
 No engineering action required unless:
 - User reports a bug (triggers hotfix sprint).
 - MCP provider package becomes available (triggers integration).
 - Code-signing certificate is obtained (triggers signed rebuild).
 - Gemini API billing/quota is resolved (enables full model range).
+- Installer rebuild needed to include hotfix 0.1.1 (requires `npm run build:win`).
 
 ## Next Owner
 

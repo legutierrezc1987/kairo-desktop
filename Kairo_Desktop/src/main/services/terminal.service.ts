@@ -40,6 +40,16 @@ export class TerminalService {
     })
   }
 
+  /** Update workspace path when active project changes (Hotfix 0.1.1). */
+  updateWorkspacePath(newPath: string): void {
+    this.workspacePath = newPath
+  }
+
+  /** Get current workspace path (used by APP_GET_CWD). */
+  getWorkspacePath(): string {
+    return this.workspacePath
+  }
+
   setOnData(callback: (terminalId: string, data: string) => void): void {
     this.onData = callback
   }

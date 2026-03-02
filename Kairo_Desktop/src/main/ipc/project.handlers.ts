@@ -35,7 +35,12 @@ export function registerProjectHandlers(
     if (!isValidCreateProjectRequest(data)) {
       return { success: false, error: 'Invalid create project request: name and folderPath required.' }
     }
-    return projectService.createProject(data.name, data.folderPath)
+    const result = projectService.createProject(data.name, data.folderPath)
+    // Hotfix 0.1.1: Fire onProjectLoaded on create (not just load)
+    if (result.success && result.data) {
+      onProjectLoaded?.(result.data.project.id, data.folderPath, data.name)
+    }
+    return result
   })
 
   ipcMain.handle(IPC_CHANNELS.PROJECT_LIST, (event) => {

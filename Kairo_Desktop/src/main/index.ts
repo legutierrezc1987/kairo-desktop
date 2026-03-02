@@ -161,9 +161,10 @@ app.whenReady().then(async () => {
 
   // ── Initialize execution broker + terminal service ──────────
   // SECURITY: workspacePath anchors sandbox validation for all terminal spawns (DEC-025)
-  const workspacePath = process.cwd()
+  // Hotfix 0.1.1: mutable — updated when active project changes
+  let activeWorkspacePath = process.cwd()
   const broker = new ExecutionBroker()
-  const terminalService = new TerminalService(broker, workspacePath)
+  const terminalService = new TerminalService(broker, activeWorkspacePath)
 
   // Apply persisted broker mode (safe defaults if missing)
   const brokerModeSetting = settingsService.getSetting('broker_mode')
@@ -182,7 +183,7 @@ app.whenReady().then(async () => {
 
   const memoryService = new MemoryService({
     mcpServerPath,
-    workspacePath,
+    workspacePath: activeWorkspacePath,
   })
 
   memoryService.initialize().catch((err) => {
@@ -262,6 +263,9 @@ app.whenReady().then(async () => {
   registerBrokerHandlers(broker, () => mainWindow, settingsService)
   registerProjectHandlers(projectService, (projectId, folderPath, projectName) => {
     orchestrator.setActiveProject(projectId, folderPath, projectName)
+    // Hotfix 0.1.1: Update workspace path for terminal + APP_GET_CWD
+    activeWorkspacePath = folderPath
+    terminalService.updateWorkspacePath(folderPath)
     // SECURITY: Bind memory workspace to active project (Phase 4 Hardening)
     memoryService.updateWorkspace(folderPath).catch((err) => {
       console.error(`[KAIRO] Memory workspace update failed: ${err instanceof Error ? err.message : String(err)}`)
@@ -370,7 +374,7 @@ app.whenReady().then(async () => {
       const msg = err instanceof Error ? err.message : 'Sender validation failed'
       return { success: false, error: msg }
     }
-    return { success: true, data: process.cwd() }
+    return { success: true, data: activeWorkspacePath }
   })
 
   // Execution classify handler (on-demand classification for UI)
