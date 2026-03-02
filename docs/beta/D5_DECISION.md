@@ -32,22 +32,17 @@ Per `docs/14_KAIRO_BETA_EXIT_CRITERIA.md`:
 
 ## Decision
 
-### **CONTINUE BETA — NO HOTFIX, NO PHASE 8**
+### Default by Criteria: **EXTEND BETA**
 
-Rationale:
-1. **7.7 Hotfix is NOT warranted**: Zero bugs discovered. P0 = 0, P1 = 0. There is nothing to fix.
-2. **Phase 8 is NOT warranted**: Only 4/10 exit criteria met (< 8 threshold). 5 criteria fail due to zero external testers.
-3. **The gap is purely operational**: The software artifact is production-ready from an engineering standpoint. The installer, test suite, packaging, ops pipeline, documentation, and tester tooling are all verified and operational.
-4. **The blocker is human action**: Recruiting and distributing to >= 3 external testers with paid Gemini API keys.
+Per `14_KAIRO_BETA_EXIT_CRITERIA.md`, < 8/10 criteria met triggers NO-GO. Since 0 P0 and 0 P1 exist, the NO-GO does not warrant a 7.7 Hotfix — it warrants continuing beta until criteria are met.
 
-### What Does NOT Need to Happen
+**Why this is the default:**
+1. Only 4/10 exit criteria met (< 8 threshold).
+2. 5 criteria fail due to zero external testers (C3, C5, C6, C7, C8).
+3. No engineering defect exists — the gap is purely operational.
+4. 7.7 Hotfix is NOT warranted: P0 = 0, P1 = 0. There is nothing to fix.
 
-- No 7.7 hotfix sprint (nothing to fix)
-- No additional engineering work on tooling (Wave 2 completed all preparation)
-- No code changes of any kind
-- No test suite modifications
-
-### What MUST Happen
+**What EXTEND BETA requires:**
 
 | Action | Owner | Deadline |
 |--------|-------|----------|
@@ -59,6 +54,25 @@ Rationale:
 | Run `run-beta-day.ps1` + `validate-wave-inputs.ps1` | **User/Claude** | Daily |
 | Re-evaluate at new D5 (5 days after distribution) | **Tribunal** | D5-post-distribution |
 
+### Exception: **CONDITIONAL GO to Phase 8**
+
+Available **only** with explicit Director (User) ratification text accepting the following risks:
+
+> "I accept that Kairo Desktop v0.1.0 was tested only on the development machine (LABORATORIO). No external testers validated install, chat, terminal, or editor flows. I authorize proceeding to Phase 8 with this documented gap."
+
+**Conditions for CONDITIONAL GO:**
+- User provides the ratification text above (or equivalent explicit acceptance).
+- Zero P0 open (non-negotiable).
+- Zero P1 open or all P1 mitigated (non-negotiable).
+- Documented gap list carried into Phase 8 backlog.
+- 2179/2179 automated assertions at 100% pass rate (verified D0-D5).
+
+**What CONDITIONAL GO does NOT need:**
+- No 7.7 hotfix sprint (nothing to fix).
+- No additional engineering work on tooling.
+- No code changes of any kind.
+- No test suite modifications.
+
 ## Escalation Path
 
 If by D10 (absolute, not relative):
@@ -69,7 +83,7 @@ If by D10 (absolute, not relative):
 | >= 2 testers active + 0 P0 + 8-9 criteria | **CONDITIONAL GO** (User accepts risk) |
 | P0 discovered | **PAUSE BETA, open 7.7 Hotfix** |
 | < 2 testers still active | **User decides**: CONDITIONAL GO or abort beta |
-| User decides beta is not feasible | **CONDITIONAL GO** with documented gap |
+| User decides beta is not feasible | **CONDITIONAL GO** with documented gap + explicit ratification |
 
 ## Claude's Assessment (Implementer)
 
@@ -77,7 +91,7 @@ All engineering deliverables are complete. The tooling is ready. The software is
 
 The only remaining action is a non-engineering task: **distribute the software to real humans and let them use it.**
 
-If the User determines that external beta testing is not feasible (no available testers, scheduling constraints, etc.), the appropriate path is a **CONDITIONAL GO** to Phase 8 with the explicit acceptance that the software was tested only on the development machine. This is a risk the User can accept — the automated test suite (2100 assertions) provides substantial coverage, and zero bugs have been discovered across all testing.
+If the User determines that external beta testing is not feasible (no available testers, scheduling constraints, etc.), the appropriate path is a **CONDITIONAL GO** to Phase 8 with the explicit acceptance that the software was tested only on the development machine. This is a risk the User can accept — the automated test suite (2179 assertions across 37 test files) provides substantial coverage, and zero bugs have been discovered across all testing (D0-D5, 6 pipeline runs, 42/42 steps PASS).
 
 ---
 

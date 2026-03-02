@@ -26,7 +26,7 @@ Status: READY FOR D5 DECISION
 | C1 | Open P0 bugs | = 0 | 0 | PASS |
 | C2 | Open P1 bugs | <= 2, mitigated | 0 | PASS |
 | C3 | Smoke pass rate | >= 80% per tester | N/A (0 external) | FAIL (no data) |
-| C4 | Install success rate | = 100% | 100% (dev only) | PASS (partial) |
+| C4 | Install success rate | = 100% | 100% (dev only) | INCONCLUSIVE (single machine) |
 | C5 | Distinct machines | >= 2 | 1 | FAIL |
 | C6 | Multi-turn chat | >= 3 testers | 0 external | FAIL |
 | C7 | Terminal execution | >= 2 testers | 0 external | FAIL |
@@ -34,7 +34,7 @@ Status: READY FOR D5 DECISION
 | C9 | Test suite regression | 0 failures | 0/2179 | PASS |
 | C10 | Release checklist | All gates | All automated pass | PASS |
 
-**Score: 4 PASS + 1 partial + 5 FAIL = NOT meeting 8/10 threshold.**
+**Score: 4 PASS + 1 INCONCLUSIVE + 5 FAIL = NOT meeting 8/10 threshold.**
 
 ### Bug Backlog
 

@@ -188,10 +188,10 @@ PTY-dependent test (`test_terminal_blocked_execution.mjs`): blocked by `node-pty
 
 ## Next Step (Exact)
 
-Wave 2 D5 checkpoint complete. 4/10 exit criteria met (all failures are operational, not engineering). User must decide:
-- **Option A (CONDITIONAL GO)**: Accept dev-machine-only testing, proceed to Phase 8 with documented gap.
-- **Option B (EXTEND BETA)**: Recruit 3+ external testers, run Wave 3 (same tooling, same pipeline).
-See `docs/beta/WAVE2_D5_DECISION_INPUT.md` for full analysis.
+Wave 2 D5 checkpoint complete. 4/10 exit criteria met (all failures are operational, not engineering). Two paths:
+- **Default (EXTEND BETA)**: Recruit 3+ external testers, run Wave 3 (same tooling, same pipeline). This is the criteria-mandated path (< 8/10 met).
+- **Exception (CONDITIONAL GO)**: Proceed to Phase 8 only with explicit Director ratification accepting dev-machine-only testing. Requires zero P0, zero P1, and written risk acceptance.
+See `docs/beta/D5_DECISION.md` and `docs/beta/WAVE2_D5_DECISION_INPUT.md` for full analysis.
 
 ## Next Owner
 
