@@ -1,7 +1,7 @@
 # Wave 2 Distribution Log
 
 Created: 2026-03-01 (D0)
-Status: READY TO DISTRIBUTE
+Status: D5 CHECKPOINT COMPLETE — PENDING USER DECISION
 
 ## Artifact Hashes
 
@@ -67,3 +67,8 @@ Status: READY TO DISTRIBUTE
 | Date | Action | Details |
 |------|--------|---------|
 | 2026-03-01 | D0 Readiness | Artifacts built, verified, zipped. 5 tester slots created. |
+| 2026-03-01 | D1 Pipeline | run-beta-day 7/7 PASS. validate-wave-inputs 9/10 (1 FAIL: 1 unique machine). 0 testers enrolled. 6 evidence files (all LABORATORIO). |
+| 2026-03-01 | D2 Pipeline | run-beta-day 7/7 PASS. validate-wave-inputs 9/10 (1 FAIL: 1 unique machine). 0 testers enrolled. 7 evidence files (all LABORATORIO). No delta vs D1. |
+| 2026-03-01 | D3 Midpoint | run-beta-day 7/7 PASS. validate-wave-inputs 9/10. 8 evidence files. 4/10 criteria. Midpoint doc created. |
+| 2026-03-01 | D4 Pre-D5 | run-beta-day 7/7 PASS. validate-wave-inputs 9/10. 9 evidence files. D5 Decision Input created. |
+| 2026-03-01 | D5 Checkpoint | run-beta-day 7/7 PASS. validate-wave-inputs 9/10. 10 evidence files. D5_DECISION.md updated. Veredicto: PENDING USER — CONDITIONAL GO or EXTEND. |

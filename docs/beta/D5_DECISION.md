@@ -2,20 +2,22 @@
 
 Date: 2026-03-01
 Decision Authority: Tribunal (User=Director, Codex=Orchestrator, Claude=Implementer, Gemini=Auditor)
-Status: **PENDING USER RATIFICATION**
+Status: **PENDING USER RATIFICATION** (Updated D5 with Wave2 D1-D5 pipeline evidence)
 
-## Decision Input
+## Decision Input (Updated D5)
 
 | Source | Result |
 |--------|--------|
-| `validate-wave-inputs.ps1` | NOT READY (1/2 unique machines) |
+| `validate-wave-inputs.ps1` | NOT READY (1/2 unique machines) — consistent across 6 runs |
 | `classify-beta-issues.ps1` | GREEN (0 P0, 0 P1) |
-| `aggregate-beta-evidence.ps1` | 4 reports, 1 machine |
-| Exit criteria (14_KAIRO_BETA_EXIT_CRITERIA.md) | 4/10 PASS |
-| Wave 2 report | NO-GO Phase 8 (operational gap) |
-| Automated test suite | 2100/2100 PASS |
+| `aggregate-beta-evidence.ps1` | 10 reports, 1 machine |
+| Exit criteria (14_KAIRO_BETA_EXIT_CRITERIA.md) | 4/10 PASS (unchanged D0-D5) |
+| Wave 2 D1-D5 pipeline | 35/35 steps PASS, 0 regression |
+| Automated test suite | 2179/2179 PASS |
 | TypeScript strict | exit 0 |
 | electron-vite build | PASS |
+| D3 Midpoint | 4/10 criteria, all FAILs are operational |
+| D5 Decision Input | See `WAVE2_D5_DECISION_INPUT.md` |
 
 ## Decision Rules Applied
 

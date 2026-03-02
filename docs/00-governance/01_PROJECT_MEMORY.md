@@ -1,6 +1,6 @@
 # PROJECT MEMORY (Single Living Context)
 
-Version: 3.52
+Version: 3.53
 Last Updated: 2026-03-01
 Status: ACTIVE
 
@@ -25,7 +25,7 @@ Do not duplicate full DEC or long rationale content.
 
 - Active phase: Phase 7 (Testing + Hardening) — Hotfix J + Patch K SEALED. Working tree CLEAN.
 - Sealed commits: `326071a` (Sprint A hardening), `3c5799c` (Sprint B + stabilization), `756ad33` (Sprint C streaming e2e), `07831d4` (Sprint D cut-pipeline e2e), `64c3813` (Phase 5 Sprint A recall), `a0b30d8` (Phase 5 Sprint B consolidation), `da6c092` (Phase 5 Sprint C rate-limit, GO), `5df7b7a` (Phase 6 Sprint A Monaco editor read/write, GO), `9fc53df` (Phase 6 Sprint B File Explorer lazy tree, GO), `5e3a168` (Phase 6 Sprint C Settings completeness, GO), `88489d1` (Phase 6 Sprint D Impact Analyzer + UndoManager, GO), `9e3e7c5` (Phase 7 Sprint A Safety Net), `856824c` (Phase 7 Sprint A Delta — extracted suites), `9295c31` (cleanup scratch + .gitignore), `ddf6952` (Phase 7 Sprint B Integration Tests), `90c8dc2` (Phase 7 Sprint C E2E Tests), `37c8cbc` (Phase 7 Sprint D electron-builder Windows installer), `e44c117` (Phase 7 Sprint E Docs + Onboarding), `e6df7ba` (Phase 7 Sprint F Beta Ops), `798c5ff` (Phase 7 Sprint G Beta Distribution + Intake), `7ca4b9b` (Phase 7 Sprint H Beta Ops Automation).
-- Current objective: **Wave 2 D0 executed**. Engineering readiness confirmed. Beta ZIP staged (`kairo-beta-v0.1.0-2026-03-01_17-52-06.zip`). 5 tester slots created. Pipeline baseline: `run-beta-day` 7/7, `validate-wave-inputs` 9/10 (FAIL: 1 unique machine). Blocker remains operational: User must recruit testers and distribute ZIP.
+- Current objective: **Wave 2 D5 checkpoint complete**. D1-D5 pipeline executed (6 total runs including D0). All runs: `run-beta-day` 7/7 PASS, `validate-wave-inputs` 9/10 (persistent FAIL: 1 unique machine). Exit criteria: 4/10 PASS. Zero bugs. Zero external testers enrolled. D5 decision: **PENDING USER — CONDITIONAL GO or EXTEND BETA**. See `docs/beta/D5_DECISION.md` + `WAVE2_D5_DECISION_INPUT.md`.
 - D0 telemetry table upgraded for direct exit-criteria tracking: explicit columns for C3/C6/C7/C8 in `WAVE2_DISTRIBUTION_LOG.md`.
 - Model catalog refresh completed (runtime + UI): deprecated `gemini-2.0-*` and `gemini-2.5-pro` removed from app paths. Active catalog now uses `gemini-2.5-flash`, `gemini-3-flash-preview`, `gemini-3.1-pro-preview`, `gemini-3.1-pro-preview-customtools`.
 - Routing updated for practical quota behavior: foreground=`gemini-2.5-flash`, background/fallback=`gemini-3-flash-preview`.
@@ -74,6 +74,15 @@ Do not duplicate full DEC or long rationale content.
     - `Chat OK (C6)`
     - `Term OK (C7)`
     - `Edit OK (C8)`
+- **Wave 2 D1-D5 Execution**:
+  - 5 daily pipeline cycles (D1-D5) executed. All: `run-beta-day` 7/7, `validate-wave-inputs` 9/10.
+  - Evidence files grew 5→10 (all LABORATORIO machine). Unique machines: 1/2 required.
+  - Created `docs/beta/WAVE2_D3_MIDPOINT.md` with criteria gap analysis.
+  - Created `docs/beta/WAVE2_D5_DECISION_INPUT.md` with consolidated evidence + A/B proposal.
+  - Updated `docs/beta/D5_DECISION.md` with D1-D5 evidence (10 reports, 2179/2179 PASS).
+  - Updated `docs/beta/WAVE2_DISTRIBUTION_LOG.md` with D1-D5 history entries.
+  - Updated `docs/beta/BETA_DASHBOARD.md` (P0=0, P1=0, AMBER status).
+  - Zero changes to `src/`.
 
 ## Validation Ledger (Latest)
 
@@ -179,10 +188,13 @@ PTY-dependent test (`test_terminal_blocked_execution.mjs`): blocked by `node-pty
 
 ## Next Step (Exact)
 
-Wave 2 D0 complete. Beta ZIP staged. User must recruit 3-5 external testers (Windows + paid Gemini API) and distribute `kairo-beta-v0.1.0-2026-03-01_17-52-06.zip` + `EXTERNAL_TESTER_PACKET.md`. Fill tester slots in `docs/beta/WAVE2_DISTRIBUTION_LOG.md`. After testers return evidence, run `run-beta-day.ps1` daily until `validate-wave-inputs.ps1` shows GO.
+Wave 2 D5 checkpoint complete. 4/10 exit criteria met (all failures are operational, not engineering). User must decide:
+- **Option A (CONDITIONAL GO)**: Accept dev-machine-only testing, proceed to Phase 8 with documented gap.
+- **Option B (EXTEND BETA)**: Recruit 3+ external testers, run Wave 3 (same tooling, same pipeline).
+See `docs/beta/WAVE2_D5_DECISION_INPUT.md` for full analysis.
 
 ## Next Owner
 
-- User (Director): recruit testers, distribute ZIP, collect evidence files into `Kairo_Desktop/`.
-- Codex (orchestrator): route daily pipeline and D5 re-evaluation when evidence arrives.
-- Claude (implementer): D0 complete. Standby for triage, hotfixes, or Phase 8.
+- User (Director): ratify D5 decision (CONDITIONAL GO or EXTEND).
+- Codex (orchestrator): route Phase 8 kickoff or Wave 3 setup based on User decision.
+- Claude (implementer): D5 complete. Standby for Phase 8 or hotfix if testers find bugs.
