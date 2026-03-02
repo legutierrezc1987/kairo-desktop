@@ -2,7 +2,7 @@
 
 Date: 2026-03-01
 Author: [Proposed: Claude]
-Status: SPRINT A COMPLETE
+Status: PHASE 8 COMPLETE — GA `v0.1.0` released
 Decision Basis: D5_DECISION.md — CONDITIONAL GO ratified by Director
 
 ## Entry Conditions (Verified)
@@ -45,7 +45,7 @@ These criteria were NOT met at beta close. Director explicitly accepted these ri
 
 ## Phase 8 Scope
 
-Phase 8 is **Release Candidate Preparation**. The goal is to produce a tagged `v0.1.0-rc1` release.
+Phase 8 is **Release Candidate Preparation → GA Release**. The goal was to produce a tagged `v0.1.0-rc1` release and promote it to `v0.1.0` GA.
 
 ### What Phase 8 IS
 
@@ -77,6 +77,9 @@ Phase 8 is **Release Candidate Preparation**. The goal is to produce a tagged `v
 | 7 | Test installer on second machine (GAP-02/03) | Low | User | Opportunistic |
 | 8 | Code-signing certificate for installer | Low | User | Deferred |
 | 9 | Validate Gemini 3.1 Pro naming against official API | Low | Claude | Deferred |
+| 10 | Create GA release notes (`docs/RELEASE_NOTES_v0.1.0.md`) | High | Claude | **DONE** |
+| 11 | Tag `v0.1.0` GA | High | Claude | **DONE** |
+| 12 | Update PROJECT_MEMORY to post-GA (maintenance mode) | High | Claude | **DONE** |
 
 ## Quality Baseline (Inherited)
 
@@ -105,6 +108,18 @@ Phase 8 is **Release Candidate Preparation**. The goal is to produce a tagged `v
 | Engineering blockers | 0 |
 | Code changes required | 0 |
 
+## Phase 8 Closure Record
+
+| Field | Value |
+|-------|-------|
+| Phase status | **COMPLETE** |
+| RC tag | `v0.1.0-rc1` |
+| GA tag | `v0.1.0` |
+| Code changes RC→GA | 0 (docs only) |
+| GA release notes | `docs/RELEASE_NOTES_v0.1.0.md` |
+| Post-GA mode | Maintenance / Hotfix |
+| Gaps carried to maintenance | 5-9 (deferred backlog items) |
+
 ---
 
-_[Proposed: Claude] -- Phase 8 Kickoff Document_
+_[Proposed: Claude] -- Phase 8 Kickoff + Closure Document_

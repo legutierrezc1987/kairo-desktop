@@ -1,8 +1,8 @@
 # PROJECT MEMORY (Single Living Context)
 
-Version: 3.56
+Version: 3.57
 Last Updated: 2026-03-01
-Status: ACTIVE
+Status: GA RELEASED — MAINTENANCE MODE
 
 ## Editing Rule (MANDATORY)
 
@@ -23,9 +23,9 @@ Do not duplicate full DEC or long rationale content.
 
 ## Current Snapshot
 
-- Active phase: **Phase 8 (Release Candidate Preparation)** — CONDITIONAL GO ratified. Phase 7 CLOSED.
-- Sealed commits: `326071a` (Sprint A hardening), `3c5799c` (Sprint B + stabilization), `756ad33` (Sprint C streaming e2e), `07831d4` (Sprint D cut-pipeline e2e), `64c3813` (Phase 5 Sprint A recall), `a0b30d8` (Phase 5 Sprint B consolidation), `da6c092` (Phase 5 Sprint C rate-limit, GO), `5df7b7a` (Phase 6 Sprint A Monaco editor read/write, GO), `9fc53df` (Phase 6 Sprint B File Explorer lazy tree, GO), `5e3a168` (Phase 6 Sprint C Settings completeness, GO), `88489d1` (Phase 6 Sprint D Impact Analyzer + UndoManager, GO), `9e3e7c5` (Phase 7 Sprint A Safety Net), `856824c` (Phase 7 Sprint A Delta — extracted suites), `9295c31` (cleanup scratch + .gitignore), `ddf6952` (Phase 7 Sprint B Integration Tests), `90c8dc2` (Phase 7 Sprint C E2E Tests), `37c8cbc` (Phase 7 Sprint D electron-builder Windows installer), `e44c117` (Phase 7 Sprint E Docs + Onboarding), `e6df7ba` (Phase 7 Sprint F Beta Ops), `798c5ff` (Phase 7 Sprint G Beta Distribution + Intake), `7ca4b9b` (Phase 7 Sprint H Beta Ops Automation).
-- Current objective: **Phase 8 Sprint A COMPLETE**. Tagged `v0.1.0-rc1`. Release notes created (`docs/RELEASE_NOTES_v0.1.0-rc1.md`). Beta cycle archived (12 docs in `docs/beta/` marked [ARCHIVED]). `PHASE8_KICKOFF.md` items 1-4 DONE. 6 accepted gaps (GAP-01..06) tracked. Remaining backlog items 5-9 are deferred/opportunistic.
+- Active phase: **Post-GA Maintenance** — `v0.1.0` released. Phase 8 COMPLETE. All development phases (0-8) CLOSED.
+- GA tags: `v0.1.0` (GA), `v0.1.0-rc1` (RC). Installer SHA256: `F584B8DA00C98C6446594A13C03F42B3ED00C01A840F9B13005D78FD7EB28C93`.
+- Current objective: **Product released**. Maintenance/hotfix mode. No active sprints. Deferred backlog items (MCP provider, code-signing, second-machine test, Gemini billing) remain open for opportunistic resolution.
 - D0 telemetry table upgraded for direct exit-criteria tracking: explicit columns for C3/C6/C7/C8 in `WAVE2_DISTRIBUTION_LOG.md`.
 - Model catalog refresh completed (runtime + UI): deprecated `gemini-2.0-*` and `gemini-2.5-pro` removed from app paths. Active catalog now uses `gemini-2.5-flash`, `gemini-3-flash-preview`, `gemini-3.1-pro-preview`, `gemini-3.1-pro-preview-customtools`.
 - Routing updated for practical quota behavior: foreground=`gemini-2.5-flash`, background/fallback=`gemini-3-flash-preview`.
@@ -99,6 +99,12 @@ Do not duplicate full DEC or long rationale content.
   - Updated `PHASE8_KICKOFF.md`: items 1-4 marked DONE, status SPRINT A COMPLETE.
   - Tagged `v0.1.0-rc1` (annotated) on commit with all Sprint A changes.
   - Zero changes to `src/`.
+- **Phase 8 GA Cut — v0.1.0 Release**:
+  - Created `docs/RELEASE_NOTES_v0.1.0.md` (GA, derived from RC1, zero code changes noted).
+  - Updated `PHASE8_KICKOFF.md`: status PHASE 8 COMPLETE, closure record added, GA backlog items 10-12 DONE.
+  - Updated `PROJECT_MEMORY`: v3.57, status GA RELEASED — MAINTENANCE MODE.
+  - Tagged `v0.1.0` (annotated) GA tag.
+  - Zero changes to `src/`.
 
 ## Validation Ledger (Latest)
 
@@ -156,17 +162,15 @@ Note: The 3 extracted suites (test_tool_schema, test_system_prompt, test_model_r
 SQLite-dependent tests (8 files): blocked by `ERR_DLOPEN_FAILED` (pre-existing `better-sqlite3` ABI mismatch in headless Node — requires `npm rebuild better-sqlite3`).
 PTY-dependent test (`test_terminal_blocked_execution.mjs`): blocked by `node-pty` ABI mismatch.
 
-## Pending (Priority Ordered)
+## Pending (Maintenance Backlog)
 
-1. ~~Tag `v0.1.0-rc1`~~ — **DONE**.
-2. ~~Create RC release notes~~ — **DONE**.
-3. ~~Archive beta cycle~~ — **DONE**.
-4. ~~Update PROJECT_MEMORY to Phase 8 final state~~ — **DONE**.
-5. Resolve MCP provider package (fallback still active) — deferred.
-6. Resolve Gemini API billing/quota for production keys — deferred.
-7. Test installer on second machine (GAP-02/03) — opportunistic.
-8. Code-signing certificate for installer — deferred.
-9. Validate Antigravity naming semantics for "3.1 Pro (High/Low)" against official API IDs — deferred.
+All development phases (0-8) COMPLETE. Remaining items are deferred/opportunistic:
+
+1. Resolve MCP provider package (fallback still active).
+2. Resolve Gemini API billing/quota for production keys.
+3. Test installer on second machine (GAP-02/03).
+4. Code-signing certificate for installer.
+5. Validate Gemini 3.1 Pro naming against official API IDs.
 
 ## Known Risks
 
@@ -205,15 +209,16 @@ PTY-dependent test (`test_terminal_blocked_execution.mjs`): blocked by `node-pty
 
 ## Next Step (Exact)
 
-**Phase 8 Sprint A COMPLETE**. `v0.1.0-rc1` tagged. All Sprint A deliverables done.
+**v0.1.0 GA RELEASED**. All development phases (0-8) complete. Product is in maintenance/hotfix mode.
 
-Remaining Phase 8 items (5-9 in PHASE8_KICKOFF.md) are deferred/opportunistic. No engineering action required unless:
-- User finds a bug on a second machine (triggers hotfix).
+No engineering action required unless:
+- User reports a bug (triggers hotfix sprint).
 - MCP provider package becomes available (triggers integration).
-- Code-signing certificate is obtained (triggers rebuild).
+- Code-signing certificate is obtained (triggers signed rebuild).
+- Gemini API billing/quota is resolved (enables full model range).
 
 ## Next Owner
 
-- **User (Director)**: Sign-off on RC. Review `docs/RELEASE_NOTES_v0.1.0-rc1.md`. Optionally test on second machine.
-- **Codex (orchestrator)**: Route GA preparation if User signs off, or hotfix if bug found.
-- **Claude (implementer)**: Sprint A complete. Standby for hotfix or GA preparation.
+- **User (Director)**: Distribute GA installer. Optionally test on second machine. Resolve billing/signing when ready.
+- **Codex (orchestrator)**: Route hotfix if bug found, or v0.2.0 planning if new features requested.
+- **Claude (implementer)**: GA complete. Standby for hotfix or next version planning.
