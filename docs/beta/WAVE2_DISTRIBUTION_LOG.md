@@ -1,7 +1,7 @@
 # Wave 2 Distribution Log
 
 Created: 2026-03-01 (D0)
-Status: D5 CHECKPOINT COMPLETE — PENDING USER DECISION
+Status: CLOSED — EXTEND BETA ratified. Succeeded by Wave 3 (`WAVE3_EXECUTION_PLAN.md`).
 
 ## Artifact Hashes
 
@@ -72,3 +72,4 @@ Status: D5 CHECKPOINT COMPLETE — PENDING USER DECISION
 | 2026-03-01 | D3 Midpoint | run-beta-day 7/7 PASS. validate-wave-inputs 9/10. 8 evidence files. 4/10 criteria. Midpoint doc created. |
 | 2026-03-01 | D4 Pre-D5 | run-beta-day 7/7 PASS. validate-wave-inputs 9/10. 9 evidence files. D5 Decision Input created. |
 | 2026-03-01 | D5 Checkpoint | run-beta-day 7/7 PASS. validate-wave-inputs 9/10. 10 evidence files. D5_DECISION.md updated. Veredicto: PENDING USER — CONDITIONAL GO or EXTEND. |
+| 2026-03-01 | Wave 2 Closed | Director ratified EXTEND BETA. Wave 3 execution plan created. Artifacts carry forward (same SHA256). |

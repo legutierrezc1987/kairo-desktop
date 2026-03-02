@@ -1,6 +1,6 @@
 # PROJECT MEMORY (Single Living Context)
 
-Version: 3.53
+Version: 3.54
 Last Updated: 2026-03-01
 Status: ACTIVE
 
@@ -25,7 +25,7 @@ Do not duplicate full DEC or long rationale content.
 
 - Active phase: Phase 7 (Testing + Hardening) — Hotfix J + Patch K SEALED. Working tree CLEAN.
 - Sealed commits: `326071a` (Sprint A hardening), `3c5799c` (Sprint B + stabilization), `756ad33` (Sprint C streaming e2e), `07831d4` (Sprint D cut-pipeline e2e), `64c3813` (Phase 5 Sprint A recall), `a0b30d8` (Phase 5 Sprint B consolidation), `da6c092` (Phase 5 Sprint C rate-limit, GO), `5df7b7a` (Phase 6 Sprint A Monaco editor read/write, GO), `9fc53df` (Phase 6 Sprint B File Explorer lazy tree, GO), `5e3a168` (Phase 6 Sprint C Settings completeness, GO), `88489d1` (Phase 6 Sprint D Impact Analyzer + UndoManager, GO), `9e3e7c5` (Phase 7 Sprint A Safety Net), `856824c` (Phase 7 Sprint A Delta — extracted suites), `9295c31` (cleanup scratch + .gitignore), `ddf6952` (Phase 7 Sprint B Integration Tests), `90c8dc2` (Phase 7 Sprint C E2E Tests), `37c8cbc` (Phase 7 Sprint D electron-builder Windows installer), `e44c117` (Phase 7 Sprint E Docs + Onboarding), `e6df7ba` (Phase 7 Sprint F Beta Ops), `798c5ff` (Phase 7 Sprint G Beta Distribution + Intake), `7ca4b9b` (Phase 7 Sprint H Beta Ops Automation).
-- Current objective: **Wave 2 D5 checkpoint complete**. D1-D5 pipeline executed (6 total runs including D0). All runs: `run-beta-day` 7/7 PASS, `validate-wave-inputs` 9/10 (persistent FAIL: 1 unique machine). Exit criteria: 4/10 PASS. Zero bugs. Zero external testers enrolled. D5 decision: **PENDING USER — CONDITIONAL GO or EXTEND BETA**. See `docs/beta/D5_DECISION.md` + `WAVE2_D5_DECISION_INPUT.md`.
+- Current objective: **Wave 3 preparation**. D5 decision ratified: **EXTEND BETA**. Wave 2 closed (4/10 criteria, 0 bugs, 0 external testers). Wave 3 execution plan created (`docs/beta/WAVE3_EXECUTION_PLAN.md`). Same artifacts, same tooling, same criteria. Anti-echo rule: no pipeline runs without new external evidence. BLOCKING: User must recruit >= 3 external testers and distribute beta ZIP before Wave 3 D0.
 - D0 telemetry table upgraded for direct exit-criteria tracking: explicit columns for C3/C6/C7/C8 in `WAVE2_DISTRIBUTION_LOG.md`.
 - Model catalog refresh completed (runtime + UI): deprecated `gemini-2.0-*` and `gemini-2.5-pro` removed from app paths. Active catalog now uses `gemini-2.5-flash`, `gemini-3-flash-preview`, `gemini-3.1-pro-preview`, `gemini-3.1-pro-preview-customtools`.
 - Routing updated for practical quota behavior: foreground=`gemini-2.5-flash`, background/fallback=`gemini-3-flash-preview`.
@@ -82,6 +82,14 @@ Do not duplicate full DEC or long rationale content.
   - Updated `docs/beta/D5_DECISION.md` with D1-D5 evidence (10 reports, 2179/2179 PASS).
   - Updated `docs/beta/WAVE2_DISTRIBUTION_LOG.md` with D1-D5 history entries.
   - Updated `docs/beta/BETA_DASHBOARD.md` (P0=0, P1=0, AMBER status).
+  - Zero changes to `src/`.
+- **Wave 3 Setup (EXTEND BETA ratified)**:
+  - Director ratified EXTEND BETA (default path per `14_KAIRO_BETA_EXIT_CRITERIA.md`).
+  - Created `docs/beta/WAVE3_EXECUTION_PLAN.md` with D0-D5 post-distribution timeline.
+  - Updated `D5_DECISION.md`: status RATIFIED, added ratification record table.
+  - Updated `WAVE2_DISTRIBUTION_LOG.md`: status CLOSED, added closure history entry.
+  - Updated `WAVE2_D5_DECISION_INPUT.md`: status DECISION TAKEN.
+  - Anti-echo rule: no pipeline without new external evidence.
   - Zero changes to `src/`.
 
 ## Validation Ledger (Latest)
@@ -188,13 +196,16 @@ PTY-dependent test (`test_terminal_blocked_execution.mjs`): blocked by `node-pty
 
 ## Next Step (Exact)
 
-Wave 2 D5 checkpoint complete. 4/10 exit criteria met (all failures are operational, not engineering). Two paths:
-- **Default (EXTEND BETA)**: Recruit 3+ external testers, run Wave 3 (same tooling, same pipeline). This is the criteria-mandated path (< 8/10 met).
-- **Exception (CONDITIONAL GO)**: Proceed to Phase 8 only with explicit Director ratification accepting dev-machine-only testing. Requires zero P0, zero P1, and written risk acceptance.
-See `docs/beta/D5_DECISION.md` and `docs/beta/WAVE2_D5_DECISION_INPUT.md` for full analysis.
+**Wave 3 — EXTEND BETA** ratified by Director. Execute `docs/beta/WAVE3_EXECUTION_PLAN.md`:
+
+1. **BLOCKING**: User recruits >= 3 external testers (Windows 10/11, paid Gemini API key).
+2. **D0**: User distributes beta ZIP + `EXTERNAL_TESTER_PACKET.md` to testers.
+3. **D1-D5**: Post-distribution pipeline (only run with new external evidence — anti-echo rule).
+4. **D5**: Tribunal evaluates all 10 exit criteria. GO / CONDITIONAL GO / NO-GO.
+5. **Fallback**: If tester recruitment fails, CONDITIONAL GO path remains available (see `D5_DECISION.md` ratification record).
 
 ## Next Owner
 
-- User (Director): ratify D5 decision (CONDITIONAL GO or EXTEND).
-- Codex (orchestrator): route Phase 8 kickoff or Wave 3 setup based on User decision.
-- Claude (implementer): D5 complete. Standby for Phase 8 or hotfix if testers find bugs.
+- **User (Director)**: Recruit >= 3 testers and distribute beta ZIP. This is the sole blocking action.
+- **Codex (orchestrator)**: Route D1-D5 packets once User confirms distribution complete.
+- **Claude (implementer)**: Standby. No engineering work unless P0 discovered by testers.

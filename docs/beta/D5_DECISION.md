@@ -2,7 +2,7 @@
 
 Date: 2026-03-01
 Decision Authority: Tribunal (User=Director, Codex=Orchestrator, Claude=Implementer, Gemini=Auditor)
-Status: **PENDING USER RATIFICATION** (Updated D5 with Wave2 D1-D5 pipeline evidence)
+Status: **RATIFIED — EXTEND BETA (Wave 3)** (Director chose default path per criteria)
 
 ## Decision Input (Updated D5)
 
@@ -93,6 +93,17 @@ The only remaining action is a non-engineering task: **distribute the software t
 
 If the User determines that external beta testing is not feasible (no available testers, scheduling constraints, etc.), the appropriate path is a **CONDITIONAL GO** to Phase 8 with the explicit acceptance that the software was tested only on the development machine. This is a risk the User can accept — the automated test suite (2179 assertions across 37 test files) provides substantial coverage, and zero bugs have been discovered across all testing (D0-D5, 6 pipeline runs, 42/42 steps PASS).
 
+## Ratification Record
+
+| Field | Value |
+|-------|-------|
+| Decision | **EXTEND BETA (Wave 3)** |
+| Ratified by | Director (User) via Codex route instruction |
+| Date | 2026-03-01 |
+| Basis | Default path per `14_KAIRO_BETA_EXIT_CRITERIA.md` (< 8/10 criteria met, 0 P0, 0 P1) |
+| Next action | Execute `WAVE3_EXECUTION_PLAN.md` |
+| CONDITIONAL GO | Remains available as fallback if Wave 3 fails to recruit testers |
+
 ---
 
-_[Proposed: Claude] — D5 Checkpoint Decision Document_
+_[Proposed: Claude] — D5 Checkpoint Decision Document (Ratified)_

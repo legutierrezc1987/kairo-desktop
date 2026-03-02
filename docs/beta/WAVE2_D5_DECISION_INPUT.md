@@ -2,7 +2,7 @@
 
 Date: 2026-03-01
 Author: [Proposed: Claude]
-Status: READY FOR D5 DECISION
+Status: DECISION TAKEN — EXTEND BETA (Wave 3). See `D5_DECISION.md` ratification record.
 
 ## Consolidated Evidence (D0-D4)
 
