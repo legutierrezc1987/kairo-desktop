@@ -2,7 +2,7 @@
 
 Date: 2026-03-01
 Decision Authority: Tribunal (User=Director, Codex=Orchestrator, Claude=Implementer, Gemini=Auditor)
-Status: **RATIFIED — EXTEND BETA (Wave 3)** (Director chose default path per criteria)
+Status: **RATIFIED — CONDITIONAL GO to Phase 8** (Director accepted mono-environment risk)
 
 ## Decision Input (Updated D5)
 
@@ -95,15 +95,28 @@ If the User determines that external beta testing is not feasible (no available 
 
 ## Ratification Record
 
+### Superseded: EXTEND BETA (Wave 3)
+
 | Field | Value |
 |-------|-------|
-| Decision | **EXTEND BETA (Wave 3)** |
+| Decision | ~~EXTEND BETA (Wave 3)~~ — **SUPERSEDED** |
 | Ratified by | Director (User) via Codex route instruction |
 | Date | 2026-03-01 |
-| Basis | Default path per `14_KAIRO_BETA_EXIT_CRITERIA.md` (< 8/10 criteria met, 0 P0, 0 P1) |
-| Next action | Execute `WAVE3_EXECUTION_PLAN.md` |
-| CONDITIONAL GO | Remains available as fallback if Wave 3 fails to recruit testers |
+| Superseded by | CONDITIONAL GO ratification below |
+
+### Active: CONDITIONAL GO to Phase 8
+
+| Field | Value |
+|-------|-------|
+| Decision | **CONDITIONAL GO to Phase 8** |
+| Ratified by | Director (User) via Codex route instruction |
+| Date | 2026-03-01 |
+| Basis | Exception path per `14_KAIRO_BETA_EXIT_CRITERIA.md` §CONDITIONAL GO |
+| Director Ratification | "I accept that Kairo Desktop v0.1.0 was tested only on the development machine (LABORATORIO). No external testers validated install, chat, terminal, or editor flows. I authorize proceeding to Phase 8 with this documented gap." |
+| Pre-conditions verified | P0 = 0, P1 = 0, 2179/2179 assertions PASS, 6 pipeline runs 42/42 steps PASS |
+| Gaps carried to Phase 8 | C3 (smoke), C4 (install on foreign machine), C5 (distinct machines), C6 (multi-turn chat external), C7 (terminal external), C8 (editor external) |
+| Next action | Execute `PHASE8_KICKOFF.md` |
 
 ---
 
-_[Proposed: Claude] — D5 Checkpoint Decision Document (Ratified)_
+_[Proposed: Claude] — D5 Checkpoint Decision Document (CONDITIONAL GO Ratified)_

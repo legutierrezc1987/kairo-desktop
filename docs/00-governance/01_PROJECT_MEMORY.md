@@ -1,6 +1,6 @@
 # PROJECT MEMORY (Single Living Context)
 
-Version: 3.54
+Version: 3.55
 Last Updated: 2026-03-01
 Status: ACTIVE
 
@@ -23,9 +23,9 @@ Do not duplicate full DEC or long rationale content.
 
 ## Current Snapshot
 
-- Active phase: Phase 7 (Testing + Hardening) — Hotfix J + Patch K SEALED. Working tree CLEAN.
+- Active phase: **Phase 8 (Release Candidate Preparation)** — CONDITIONAL GO ratified. Phase 7 CLOSED.
 - Sealed commits: `326071a` (Sprint A hardening), `3c5799c` (Sprint B + stabilization), `756ad33` (Sprint C streaming e2e), `07831d4` (Sprint D cut-pipeline e2e), `64c3813` (Phase 5 Sprint A recall), `a0b30d8` (Phase 5 Sprint B consolidation), `da6c092` (Phase 5 Sprint C rate-limit, GO), `5df7b7a` (Phase 6 Sprint A Monaco editor read/write, GO), `9fc53df` (Phase 6 Sprint B File Explorer lazy tree, GO), `5e3a168` (Phase 6 Sprint C Settings completeness, GO), `88489d1` (Phase 6 Sprint D Impact Analyzer + UndoManager, GO), `9e3e7c5` (Phase 7 Sprint A Safety Net), `856824c` (Phase 7 Sprint A Delta — extracted suites), `9295c31` (cleanup scratch + .gitignore), `ddf6952` (Phase 7 Sprint B Integration Tests), `90c8dc2` (Phase 7 Sprint C E2E Tests), `37c8cbc` (Phase 7 Sprint D electron-builder Windows installer), `e44c117` (Phase 7 Sprint E Docs + Onboarding), `e6df7ba` (Phase 7 Sprint F Beta Ops), `798c5ff` (Phase 7 Sprint G Beta Distribution + Intake), `7ca4b9b` (Phase 7 Sprint H Beta Ops Automation).
-- Current objective: **Wave 3 preparation**. D5 decision ratified: **EXTEND BETA**. Wave 2 closed (4/10 criteria, 0 bugs, 0 external testers). Wave 3 execution plan created (`docs/beta/WAVE3_EXECUTION_PLAN.md`). Same artifacts, same tooling, same criteria. Anti-echo rule: no pipeline runs without new external evidence. BLOCKING: User must recruit >= 3 external testers and distribute beta ZIP before Wave 3 D0.
+- Current objective: **Phase 8 RC preparation**. CONDITIONAL GO ratified by Director (supersedes prior EXTEND BETA). Beta closed with 4/10 criteria met, 0 bugs, 0 external testers. 6 accepted gaps carried to Phase 8 backlog (see `docs/PHASE8_KICKOFF.md`). No code changes required. Next: tag `v0.1.0-rc1`, create release notes, archive beta.
 - D0 telemetry table upgraded for direct exit-criteria tracking: explicit columns for C3/C6/C7/C8 in `WAVE2_DISTRIBUTION_LOG.md`.
 - Model catalog refresh completed (runtime + UI): deprecated `gemini-2.0-*` and `gemini-2.5-pro` removed from app paths. Active catalog now uses `gemini-2.5-flash`, `gemini-3-flash-preview`, `gemini-3.1-pro-preview`, `gemini-3.1-pro-preview-customtools`.
 - Routing updated for practical quota behavior: foreground=`gemini-2.5-flash`, background/fallback=`gemini-3-flash-preview`.
@@ -83,13 +83,15 @@ Do not duplicate full DEC or long rationale content.
   - Updated `docs/beta/WAVE2_DISTRIBUTION_LOG.md` with D1-D5 history entries.
   - Updated `docs/beta/BETA_DASHBOARD.md` (P0=0, P1=0, AMBER status).
   - Zero changes to `src/`.
-- **Wave 3 Setup (EXTEND BETA ratified)**:
-  - Director ratified EXTEND BETA (default path per `14_KAIRO_BETA_EXIT_CRITERIA.md`).
-  - Created `docs/beta/WAVE3_EXECUTION_PLAN.md` with D0-D5 post-distribution timeline.
-  - Updated `D5_DECISION.md`: status RATIFIED, added ratification record table.
-  - Updated `WAVE2_DISTRIBUTION_LOG.md`: status CLOSED, added closure history entry.
-  - Updated `WAVE2_D5_DECISION_INPUT.md`: status DECISION TAKEN.
-  - Anti-echo rule: no pipeline without new external evidence.
+- **Wave 3 Setup (EXTEND BETA ratified — then SUPERSEDED)**:
+  - Director initially ratified EXTEND BETA. Created `WAVE3_EXECUTION_PLAN.md`.
+  - **SUPERSEDED** by CONDITIONAL GO decision in same session.
+- **Phase 7 → Phase 8 Transition (CONDITIONAL GO ratified)**:
+  - Director ratified CONDITIONAL GO to Phase 8, accepting mono-environment risk.
+  - Updated `D5_DECISION.md`: status CONDITIONAL GO, ratification record with Director acceptance text, superseded EXTEND BETA record.
+  - Updated `WAVE2_D5_DECISION_INPUT.md`: status CONDITIONAL GO (supersedes EXTEND BETA).
+  - Created `docs/PHASE8_KICKOFF.md` with 6 accepted gaps (GAP-01 through GAP-06), Phase 8 backlog, quality baseline, transition record.
+  - Phase 7 CLOSED. Phase 8 ACTIVE.
   - Zero changes to `src/`.
 
 ## Validation Ledger (Latest)
@@ -150,18 +152,19 @@ PTY-dependent test (`test_terminal_blocked_execution.mjs`): blocked by `node-pty
 
 ## Pending (Priority Ordered)
 
-1. **BLOCKING**: User recruits >= 3 external testers and distributes installer + `EXTERNAL_TESTER_PACKET.md`.
-2. Testers run smoke checklist (docs/09) + collect evidence via `collect-beta-evidence.ps1`.
-3. Run `scripts/qa/run-beta-day.ps1` + `validate-wave-inputs.ps1` daily after distribution.
-4. When `validate-wave-inputs.ps1` shows GO: re-evaluate all 10 exit criteria.
-5. Decision at new D5 (post-distribution): GO Phase 8 / CONDITIONAL GO / NO-GO.
-6. Resolve Gemini API quota for real streaming smoke test (billing/project action).
-7. MCP provider package resolution checkpoint (fallback still active).
-8. If User decides external beta is not feasible: CONDITIONAL GO path available (documented in `D5_DECISION.md`).
-9. Validate Antigravity naming semantics for "3.1 Pro (High/Low)" against official API IDs and keep mapping aligned (`3.1-pro-preview` / `3.1-pro-preview-customtools` currently used).
+1. Tag `v0.1.0-rc1` on current commit.
+2. Create RC release notes (`docs/RELEASE_NOTES_v0.1.0-rc1.md`).
+3. Archive beta cycle (`docs/beta/` artifacts → reference status).
+4. Update PROJECT_MEMORY to Phase 8 final state after RC tag.
+5. Resolve MCP provider package (fallback still active).
+6. Resolve Gemini API billing/quota for production keys.
+7. Test installer on second machine (GAP-02/03) — opportunistic.
+8. Code-signing certificate for installer — deferred.
+9. Validate Antigravity naming semantics for "3.1 Pro (High/Low)" against official API IDs.
 
 ## Known Risks
 
+- **ACCEPTED (CONDITIONAL GO)**: No external tester validation of install/chat/terminal/editor flows. 6 gaps carried to Phase 8 (see `PHASE8_KICKOFF.md`).
 - Gemini API abort is client-side; aborted requests may still consume provider-side tokens.
 - Gemini generateContent quota remains zero in current GCP project.
 - Gemini 3.1 Pro variants remain quota-sensitive in current project keys (429), while 2.5 Flash and 3 Flash are currently operational.
@@ -196,16 +199,15 @@ PTY-dependent test (`test_terminal_blocked_execution.mjs`): blocked by `node-pty
 
 ## Next Step (Exact)
 
-**Wave 3 — EXTEND BETA** ratified by Director. Execute `docs/beta/WAVE3_EXECUTION_PLAN.md`:
+**Phase 8 — Release Candidate Preparation**. CONDITIONAL GO ratified. Execute `docs/PHASE8_KICKOFF.md`:
 
-1. **BLOCKING**: User recruits >= 3 external testers (Windows 10/11, paid Gemini API key).
-2. **D0**: User distributes beta ZIP + `EXTERNAL_TESTER_PACKET.md` to testers.
-3. **D1-D5**: Post-distribution pipeline (only run with new external evidence — anti-echo rule).
-4. **D5**: Tribunal evaluates all 10 exit criteria. GO / CONDITIONAL GO / NO-GO.
-5. **Fallback**: If tester recruitment fails, CONDITIONAL GO path remains available (see `D5_DECISION.md` ratification record).
+1. Codex routes Phase 8 Sprint A packet (RC tag + release notes + beta archive).
+2. Claude executes: tag `v0.1.0-rc1`, create release notes, archive beta docs.
+3. No code changes unless a bug is discovered during RC validation.
+4. 6 accepted gaps tracked in `PHASE8_KICKOFF.md` — opportunistic resolution only.
 
 ## Next Owner
 
-- **User (Director)**: Recruit >= 3 testers and distribute beta ZIP. This is the sole blocking action.
-- **Codex (orchestrator)**: Route D1-D5 packets once User confirms distribution complete.
-- **Claude (implementer)**: Standby. No engineering work unless P0 discovered by testers.
+- **Codex (orchestrator)**: Route Phase 8 Sprint A packet (RC tag + release notes).
+- **Claude (implementer)**: Execute RC preparation per Codex packet.
+- **User (Director)**: Review RC release notes. Optionally test on second machine (GAP-02/03).
