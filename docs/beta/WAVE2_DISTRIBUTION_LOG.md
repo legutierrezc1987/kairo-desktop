@@ -31,13 +31,13 @@ Status: READY TO DISTRIBUTE
 
 ## Tester Control Table
 
-| Tester ID | Machine ID | OS | API Quota Status | Date Sent | Date Evidence Received | Smoke Checklist | Status |
-|-----------|------------|-----|-----------------|-----------|----------------------|-----------------|--------|
-| T-001 | *(pending)* | Windows 10/11 | *(pending)* | *(pending)* | *(pending)* | *(pending)* | SLOT OPEN |
-| T-002 | *(pending)* | Windows 10/11 | *(pending)* | *(pending)* | *(pending)* | *(pending)* | SLOT OPEN |
-| T-003 | *(pending)* | Windows 10/11 | *(pending)* | *(pending)* | *(pending)* | *(pending)* | SLOT OPEN |
-| T-004 | *(pending)* | Windows 10/11 | *(pending)* | *(pending)* | *(pending)* | *(pending)* | SLOT OPEN |
-| T-005 | *(pending)* | Windows 10/11 | *(pending)* | *(pending)* | *(pending)* | *(pending)* | SLOT OPEN |
+| Tester ID | Machine ID | OS | API Quota Status | Date Sent | Date Evidence Received | Smoke % (C3) | Chat OK (C6) | Term OK (C7) | Edit OK (C8) | Status |
+|-----------|------------|-----|-----------------|-----------|------------------------|--------------|--------------|--------------|--------------|--------|
+| T-001 | *(pending)* | Windows 10/11 | *(pending)* | *(pending)* | *(pending)* | *(pending)* | *(pending)* | *(pending)* | *(pending)* | SLOT OPEN |
+| T-002 | *(pending)* | Windows 10/11 | *(pending)* | *(pending)* | *(pending)* | *(pending)* | *(pending)* | *(pending)* | *(pending)* | SLOT OPEN |
+| T-003 | *(pending)* | Windows 10/11 | *(pending)* | *(pending)* | *(pending)* | *(pending)* | *(pending)* | *(pending)* | *(pending)* | SLOT OPEN |
+| T-004 | *(pending)* | Windows 10/11 | *(pending)* | *(pending)* | *(pending)* | *(pending)* | *(pending)* | *(pending)* | *(pending)* | SLOT OPEN |
+| T-005 | *(pending)* | Windows 10/11 | *(pending)* | *(pending)* | *(pending)* | *(pending)* | *(pending)* | *(pending)* | *(pending)* | SLOT OPEN |
 
 ### Tester Requirements
 
@@ -53,7 +53,14 @@ Status: READY TO DISTRIBUTE
 3. Tester installs, configures API key, runs smoke checklist
 4. Tester runs `collect-beta-evidence.ps1`, sends evidence file back
 5. User places evidence files in `Kairo_Desktop/`, runs `run-beta-day.ps1`
-6. Update Date Evidence Received + Smoke Checklist columns
+6. Update Date Evidence Received + C3/C6/C7/C8 columns
+
+### Column Rules (Exit Criteria Mapping)
+
+- `Smoke % (C3)`: porcentaje de checklist completado por tester.
+- `Chat OK (C6)`: `YES/NO` (multi-turn chat funcional).
+- `Term OK (C7)`: `YES/NO` (terminal execution funcional).
+- `Edit OK (C8)`: `YES/NO` (apertura/edición/guardado en editor).
 
 ## Distribution History
 

@@ -26,6 +26,7 @@ Fecha: 2026-03-01
     /00-governance
       00_TRIBUNAL_COLLAB_METHODOLOGY.md
       01_PROJECT_MEMORY.md
+      02_SESSION_REBOOT_PLAYBOOK.md
     /03-debates
       DEB-001_DOC_STRUCTURE_ALIGNMENT.md
       DEB-002_COLLAB_METHODOLOGY.md
@@ -79,6 +80,7 @@ Treat canonical governance files as source of truth and track migration deltas i
 - `skills/universal-architecture-tribunal/SKILL.md` -> ACTIVA (baseline aprobada)
 - `skills/tribunal-collaboration/SKILL.md` -> LEGACY
 - `docs/00-governance/01_PROJECT_MEMORY.md` -> ACTIVO (Option B live snapshot)
+- `docs/00-governance/02_SESSION_REBOOT_PLAYBOOK.md` -> ACTIVO (restart protocol Codex/Claude/Gemini)
 - `CQL` -> INTEGRADO COMO GUARDRAIL V1.2 CANDIDATE (DEB-006)
 - `docs/08_KAIRO_SETUP_GUIDE.md` -> v2.0 (dev setup + installer + troubleshooting)
 - `docs/09_KAIRO_ONBOARDING_BETA.md` -> v1.0 (quickstart + smoke checklist)
