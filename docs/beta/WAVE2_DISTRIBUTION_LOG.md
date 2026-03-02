@@ -1,7 +1,7 @@
 # Wave 2 Distribution Log
 
 Created: 2026-03-01 (D0)
-Status: CLOSED — EXTEND BETA ratified. Succeeded by Wave 3 (`WAVE3_EXECUTION_PLAN.md`).
+Status: ARCHIVED — Beta closed via CONDITIONAL GO to Phase 8. See `docs/PHASE8_KICKOFF.md`.
 
 ## Artifact Hashes
 

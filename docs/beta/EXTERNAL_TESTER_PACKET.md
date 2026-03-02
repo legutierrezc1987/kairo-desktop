@@ -1,4 +1,4 @@
-# KAIRO DESKTOP - External Tester Packet
+# KAIRO DESKTOP - External Tester Packet [ARCHIVED]
 
 Version: 1.0
 Date: 2026-03-01

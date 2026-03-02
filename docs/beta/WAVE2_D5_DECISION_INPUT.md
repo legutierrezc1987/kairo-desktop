@@ -1,4 +1,4 @@
-# Wave 2 — D5 Decision Input (Pre-Decision Package)
+# Wave 2 — D5 Decision Input (Pre-Decision Package) [ARCHIVED]
 
 Date: 2026-03-01
 Author: [Proposed: Claude]

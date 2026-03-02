@@ -1,4 +1,6 @@
-﻿# KAIRO DESKTOP - Beta Backlog
+﻿# KAIRO DESKTOP - Beta Backlog [ARCHIVED]
+
+> **ARCHIVED**: Beta cycle closed via CONDITIONAL GO to Phase 8 (2026-03-01). Zero issues across entire beta. See `docs/PHASE8_KICKOFF.md`.
 
 Last Updated: 2026-03-01 18:24:26
 Total Issues: 0

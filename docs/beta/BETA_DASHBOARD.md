@@ -1,4 +1,6 @@
-﻿# KAIRO DESKTOP - Beta Dashboard
+﻿# KAIRO DESKTOP - Beta Dashboard [ARCHIVED]
+
+> **ARCHIVED**: Beta cycle closed via CONDITIONAL GO to Phase 8 (2026-03-01). This file is retained as reference. See `docs/PHASE8_KICKOFF.md`.
 
 Last Updated: 2026-03-01 18:24:25
 Evidence Reports: 10

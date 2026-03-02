@@ -1,4 +1,4 @@
-# KAIRO DESKTOP - D5 Decision
+# KAIRO DESKTOP - D5 Decision [ARCHIVED]
 
 Date: 2026-03-01
 Decision Authority: Tribunal (User=Director, Codex=Orchestrator, Claude=Implementer, Gemini=Auditor)

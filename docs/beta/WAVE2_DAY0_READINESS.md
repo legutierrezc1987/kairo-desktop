@@ -1,4 +1,4 @@
-# Wave 2 — Day 0 Readiness Report
+# Wave 2 — Day 0 Readiness Report [ARCHIVED]
 
 Date: 2026-03-01
 Status: READY TO DISTRIBUTE

@@ -1,4 +1,4 @@
-# KAIRO DESKTOP - Wave 1 Beta Execution Report
+# KAIRO DESKTOP - Wave 1 Beta Execution Report [ARCHIVED]
 
 Version: 1.0
 Date: 2026-03-01 (D0-D2 Window)

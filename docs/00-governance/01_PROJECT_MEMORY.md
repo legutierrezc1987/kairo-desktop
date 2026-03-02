@@ -1,6 +1,6 @@
 # PROJECT MEMORY (Single Living Context)
 
-Version: 3.55
+Version: 3.56
 Last Updated: 2026-03-01
 Status: ACTIVE
 
@@ -25,7 +25,7 @@ Do not duplicate full DEC or long rationale content.
 
 - Active phase: **Phase 8 (Release Candidate Preparation)** — CONDITIONAL GO ratified. Phase 7 CLOSED.
 - Sealed commits: `326071a` (Sprint A hardening), `3c5799c` (Sprint B + stabilization), `756ad33` (Sprint C streaming e2e), `07831d4` (Sprint D cut-pipeline e2e), `64c3813` (Phase 5 Sprint A recall), `a0b30d8` (Phase 5 Sprint B consolidation), `da6c092` (Phase 5 Sprint C rate-limit, GO), `5df7b7a` (Phase 6 Sprint A Monaco editor read/write, GO), `9fc53df` (Phase 6 Sprint B File Explorer lazy tree, GO), `5e3a168` (Phase 6 Sprint C Settings completeness, GO), `88489d1` (Phase 6 Sprint D Impact Analyzer + UndoManager, GO), `9e3e7c5` (Phase 7 Sprint A Safety Net), `856824c` (Phase 7 Sprint A Delta — extracted suites), `9295c31` (cleanup scratch + .gitignore), `ddf6952` (Phase 7 Sprint B Integration Tests), `90c8dc2` (Phase 7 Sprint C E2E Tests), `37c8cbc` (Phase 7 Sprint D electron-builder Windows installer), `e44c117` (Phase 7 Sprint E Docs + Onboarding), `e6df7ba` (Phase 7 Sprint F Beta Ops), `798c5ff` (Phase 7 Sprint G Beta Distribution + Intake), `7ca4b9b` (Phase 7 Sprint H Beta Ops Automation).
-- Current objective: **Phase 8 RC preparation**. CONDITIONAL GO ratified by Director (supersedes prior EXTEND BETA). Beta closed with 4/10 criteria met, 0 bugs, 0 external testers. 6 accepted gaps carried to Phase 8 backlog (see `docs/PHASE8_KICKOFF.md`). No code changes required. Next: tag `v0.1.0-rc1`, create release notes, archive beta.
+- Current objective: **Phase 8 Sprint A COMPLETE**. Tagged `v0.1.0-rc1`. Release notes created (`docs/RELEASE_NOTES_v0.1.0-rc1.md`). Beta cycle archived (12 docs in `docs/beta/` marked [ARCHIVED]). `PHASE8_KICKOFF.md` items 1-4 DONE. 6 accepted gaps (GAP-01..06) tracked. Remaining backlog items 5-9 are deferred/opportunistic.
 - D0 telemetry table upgraded for direct exit-criteria tracking: explicit columns for C3/C6/C7/C8 in `WAVE2_DISTRIBUTION_LOG.md`.
 - Model catalog refresh completed (runtime + UI): deprecated `gemini-2.0-*` and `gemini-2.5-pro` removed from app paths. Active catalog now uses `gemini-2.5-flash`, `gemini-3-flash-preview`, `gemini-3.1-pro-preview`, `gemini-3.1-pro-preview-customtools`.
 - Routing updated for practical quota behavior: foreground=`gemini-2.5-flash`, background/fallback=`gemini-3-flash-preview`.
@@ -93,6 +93,12 @@ Do not duplicate full DEC or long rationale content.
   - Created `docs/PHASE8_KICKOFF.md` with 6 accepted gaps (GAP-01 through GAP-06), Phase 8 backlog, quality baseline, transition record.
   - Phase 7 CLOSED. Phase 8 ACTIVE.
   - Zero changes to `src/`.
+- **Phase 8 Sprint A — RC Tag + Release Notes + Beta Archive**:
+  - Created `docs/RELEASE_NOTES_v0.1.0-rc1.md` (quality baseline, features, gaps, architecture).
+  - Archived 12 beta docs (`docs/beta/*.md`) with [ARCHIVED] headers — evidence retained.
+  - Updated `PHASE8_KICKOFF.md`: items 1-4 marked DONE, status SPRINT A COMPLETE.
+  - Tagged `v0.1.0-rc1` (annotated) on commit with all Sprint A changes.
+  - Zero changes to `src/`.
 
 ## Validation Ledger (Latest)
 
@@ -152,15 +158,15 @@ PTY-dependent test (`test_terminal_blocked_execution.mjs`): blocked by `node-pty
 
 ## Pending (Priority Ordered)
 
-1. Tag `v0.1.0-rc1` on current commit.
-2. Create RC release notes (`docs/RELEASE_NOTES_v0.1.0-rc1.md`).
-3. Archive beta cycle (`docs/beta/` artifacts → reference status).
-4. Update PROJECT_MEMORY to Phase 8 final state after RC tag.
-5. Resolve MCP provider package (fallback still active).
-6. Resolve Gemini API billing/quota for production keys.
+1. ~~Tag `v0.1.0-rc1`~~ — **DONE**.
+2. ~~Create RC release notes~~ — **DONE**.
+3. ~~Archive beta cycle~~ — **DONE**.
+4. ~~Update PROJECT_MEMORY to Phase 8 final state~~ — **DONE**.
+5. Resolve MCP provider package (fallback still active) — deferred.
+6. Resolve Gemini API billing/quota for production keys — deferred.
 7. Test installer on second machine (GAP-02/03) — opportunistic.
 8. Code-signing certificate for installer — deferred.
-9. Validate Antigravity naming semantics for "3.1 Pro (High/Low)" against official API IDs.
+9. Validate Antigravity naming semantics for "3.1 Pro (High/Low)" against official API IDs — deferred.
 
 ## Known Risks
 
@@ -199,15 +205,15 @@ PTY-dependent test (`test_terminal_blocked_execution.mjs`): blocked by `node-pty
 
 ## Next Step (Exact)
 
-**Phase 8 — Release Candidate Preparation**. CONDITIONAL GO ratified. Execute `docs/PHASE8_KICKOFF.md`:
+**Phase 8 Sprint A COMPLETE**. `v0.1.0-rc1` tagged. All Sprint A deliverables done.
 
-1. Codex routes Phase 8 Sprint A packet (RC tag + release notes + beta archive).
-2. Claude executes: tag `v0.1.0-rc1`, create release notes, archive beta docs.
-3. No code changes unless a bug is discovered during RC validation.
-4. 6 accepted gaps tracked in `PHASE8_KICKOFF.md` — opportunistic resolution only.
+Remaining Phase 8 items (5-9 in PHASE8_KICKOFF.md) are deferred/opportunistic. No engineering action required unless:
+- User finds a bug on a second machine (triggers hotfix).
+- MCP provider package becomes available (triggers integration).
+- Code-signing certificate is obtained (triggers rebuild).
 
 ## Next Owner
 
-- **Codex (orchestrator)**: Route Phase 8 Sprint A packet (RC tag + release notes).
-- **Claude (implementer)**: Execute RC preparation per Codex packet.
-- **User (Director)**: Review RC release notes. Optionally test on second machine (GAP-02/03).
+- **User (Director)**: Sign-off on RC. Review `docs/RELEASE_NOTES_v0.1.0-rc1.md`. Optionally test on second machine.
+- **Codex (orchestrator)**: Route GA preparation if User signs off, or hotfix if bug found.
+- **Claude (implementer)**: Sprint A complete. Standby for hotfix or GA preparation.

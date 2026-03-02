@@ -1,4 +1,4 @@
-# KAIRO DESKTOP - Wave 2 Beta Execution Plan
+# KAIRO DESKTOP - Wave 2 Beta Execution Plan [ARCHIVED]
 
 Version: 1.0
 Date: 2026-03-01

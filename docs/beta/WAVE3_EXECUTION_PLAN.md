@@ -1,4 +1,4 @@
-# Wave 3 Execution Plan
+# Wave 3 Execution Plan [ARCHIVED — SUPERSEDED by CONDITIONAL GO]
 
 Date: 2026-03-01
 Author: [Proposed: Claude]

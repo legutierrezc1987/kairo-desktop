@@ -2,7 +2,7 @@
 
 Date: 2026-03-01
 Author: [Proposed: Claude]
-Status: ACTIVE
+Status: SPRINT A COMPLETE
 Decision Basis: D5_DECISION.md — CONDITIONAL GO ratified by Director
 
 ## Entry Conditions (Verified)
@@ -68,10 +68,10 @@ Phase 8 is **Release Candidate Preparation**. The goal is to produce a tagged `v
 
 | # | Item | Priority | Owner | Status |
 |---|------|----------|-------|--------|
-| 1 | Tag `v0.1.0-rc1` on current commit | High | Claude | Pending |
-| 2 | Create RC release notes (`docs/RELEASE_NOTES_v0.1.0-rc1.md`) | High | Claude | Pending |
-| 3 | Archive beta cycle (`docs/beta/` → reference, not active) | Medium | Claude | Pending |
-| 4 | Update PROJECT_MEMORY to Phase 8 final state | Medium | Claude | Pending |
+| 1 | Tag `v0.1.0-rc1` on current commit | High | Claude | **DONE** |
+| 2 | Create RC release notes (`docs/RELEASE_NOTES_v0.1.0-rc1.md`) | High | Claude | **DONE** |
+| 3 | Archive beta cycle (`docs/beta/` → reference, not active) | Medium | Claude | **DONE** |
+| 4 | Update PROJECT_MEMORY to Phase 8 final state | Medium | Claude | **DONE** |
 | 5 | Resolve MCP provider package (fallback still active) | Medium | Tribunal | Deferred |
 | 6 | Resolve Gemini API billing/quota for production keys | Medium | User | Deferred |
 | 7 | Test installer on second machine (GAP-02/03) | Low | User | Opportunistic |

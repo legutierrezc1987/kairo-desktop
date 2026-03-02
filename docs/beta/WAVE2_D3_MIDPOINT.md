@@ -1,4 +1,4 @@
-# Wave 2 — D3 Midpoint Assessment
+# Wave 2 — D3 Midpoint Assessment [ARCHIVED]
 
 Date: 2026-03-01
 Author: [Proposed: Claude]
