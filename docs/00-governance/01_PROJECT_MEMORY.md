@@ -1,8 +1,8 @@
 # PROJECT MEMORY (Single Living Context)
 
-Version: 3.61
+Version: 3.62
 Last Updated: 2026-03-02
-Status: GA RELEASED — v0.1.1 PUBLISHED + LOCAL DISTRIBUTION READY
+Status: GA RELEASED — v0.1.2 HOTFIX (terminal+chat stability)
 
 ## Editing Rule (MANDATORY)
 
@@ -23,11 +23,11 @@ Do not duplicate full DEC or long rationale content.
 
 ## Current Snapshot
 
-- Active phase: **Post-GA Maintenance** — `v0.1.1` released (hotfix). Phase 8 COMPLETE. All development phases (0-8) CLOSED.
-- Release tags: `v0.1.1` (hotfix), `v0.1.0` (GA), `v0.1.0-rc1` (RC).
+- Active phase: **Post-GA Maintenance** — `v0.1.2` hotfix committed. Phase 8 COMPLETE. All development phases (0-8) CLOSED.
+- Release tags: `v0.1.2` (hotfix, pending tag), `v0.1.1` (hotfix), `v0.1.0` (GA), `v0.1.0-rc1` (RC).
 - Installer v0.1.1: `kairo-desktop-0.1.1-setup.exe` (105.74 MB). SHA256: `21E1EAFFAD6D1EDAA1C4DB879A6ED43F99922E6210F6984FD4CF1C8372AF1D3E`.
 - Installer v0.1.0: `kairo-desktop-0.1.0-setup.exe` (105.71 MB). SHA256: `F584B8DA00C98C6446594A13C03F42B3ED00C01A840F9B13005D78FD7EB28C93`.
-- Current objective: **v0.1.1 released**. Terminal CWD follows active project. Maintenance/hotfix mode continues. Deferred backlog items (MCP provider, code-signing, second-machine test, Gemini billing) remain open for opportunistic resolution.
+- Current objective: **v0.1.2 committed**. Three stability fixes: input normalization (ANSI/zero-width stripping), terminal scrollback (5000 lines), chat stream timeout (120s). Maintenance/hotfix mode continues.
 - D0 telemetry table upgraded for direct exit-criteria tracking: explicit columns for C3/C6/C7/C8 in `WAVE2_DISTRIBUTION_LOG.md`.
 - Model catalog refresh completed (runtime + UI): deprecated `gemini-2.0-*` and `gemini-2.5-pro` removed from app paths. Active catalog now uses `gemini-2.5-flash`, `gemini-3-flash-preview`, `gemini-3.1-pro-preview`, `gemini-3.1-pro-preview-customtools`.
 - Routing updated for practical quota behavior: foreground=`gemini-2.5-flash`, background/fallback=`gemini-3-flash-preview`.
@@ -107,6 +107,12 @@ Do not duplicate full DEC or long rationale content.
   - Updated `PROJECT_MEMORY`: v3.57, status GA RELEASED — MAINTENANCE MODE.
   - Tagged `v0.1.0` (annotated) GA tag.
   - Zero changes to `src/`.
+- **Hotfix 0.1.2 — Terminal+Chat Stability**:
+  - Bug A: `normalizeInput()` in `command-classifier.ts` — strips ANSI CSI/OSC, zero-width Unicode, BOM, control chars before classification. Preserves CR/LF for chain injection detection. DEC-024 deny-by-default preserved.
+  - Bug B: `useTerminal.ts` — `scrollback: 5000`, `convertEol: true` in xterm Terminal constructor.
+  - Bug C: `CHAT_STREAM_TIMEOUT_MS = 120_000` in `constants.ts`. `orchestrator.ts` wraps `retryWithBackoff` with `Promise.race` timeout + `abortActiveStream()` in catch block. Reuses existing recall timeout pattern.
+  - 4 production files + 1 test regression fix + 1 new test file. IPC channels unchanged (49).
+  - Test: `test_hotfix_012.mjs` — 37/37 PASS. Regression: broker (57), sandbox (105), terminal_e2e (35), chat_e2e (40), rate_limit (66), workspace_cwd (27) — all PASS. `npx tsc --noEmit` exit 0.
 - **Hotfix 0.1.1 — Workspace/CWD Binding**:
   - Bug: Terminal CWD stuck on `process.cwd()`, not following active project. `PROJECT_CREATE` did not fire `onProjectLoaded`. TerminalPanel was project-unaware.
   - Fix: `terminal.service.ts` +`updateWorkspacePath()`/`getWorkspacePath()`. `index.ts` mutable `activeWorkspacePath`, updated on project load/create. `APP_GET_CWD` returns active workspace. `project.handlers.ts` fires `onProjectLoaded` on create. `TerminalPanel.tsx` subscribes to `projectStore`, shows "No project open" guard, respawns on switch via `key={activeProject.id}`.
@@ -162,10 +168,11 @@ Do not duplicate full DEC or long rationale content.
 | QA classify-beta-issues | `powershell -File scripts/qa/classify-beta-issues.ps1` | 3/3 PASS |
 | QA run-beta-day | `powershell -File scripts/qa/run-beta-day.ps1` | 7/7 PASS |
 | Hotfix workspace/CWD binding | `node tests/test_hotfix_workspace_cwd.mjs` | 27/27 PASS |
+| Hotfix 0.1.2 terminal+chat | `node tests/test_hotfix_012.mjs` | 37/37 PASS |
 | TypeScript strict | `npx tsc --noEmit` | exit 0 |
 | Electron-vite build | `npx electron-vite build` | PASS (main 216KB, preload 4KB, renderer 8340KB) |
 
-Non-sqlite runnable total: 2206 assertions / 0 failures (38 test files).
+Non-sqlite runnable total: 2243 assertions / 0 failures (39 test files).
 Note: The 3 extracted suites (test_tool_schema, test_system_prompt, test_model_router) verify the same contracts as T2/T3/T4 in test_safety_net_sprint_a — they do not add new unique assertions but provide standalone runnable coverage.
 SQLite-dependent tests (8 files): blocked by `ERR_DLOPEN_FAILED` (pre-existing `better-sqlite3` ABI mismatch in headless Node — requires `npm rebuild better-sqlite3`).
 PTY-dependent test (`test_terminal_blocked_execution.mjs`): blocked by `node-pty` ABI mismatch.
@@ -217,9 +224,10 @@ All development phases (0-8) COMPLETE. Remaining items are deferred/opportunisti
 
 ## Next Step (Exact)
 
-**v0.1.1 PUBLISHED + DISTRIBUTION READY** — pushed to `origin/master` + tags live on GitHub. Local distribution package at `Kairo_Desktop/dist/release-v0.1.1/` (installer + SHA256SUMS.txt + release notes). GitHub Release not created (`gh` CLI not installed — Director can create manually or install `gh`). All development phases (0-8) complete. Product is in maintenance/hotfix mode.
+**v0.1.2 committed** — 3 stability fixes (input normalization, terminal scrollback, chat stream timeout). Commit ready. Tag/build/push pending Director instruction.
 
 No engineering action required unless:
+- Director requests tag + build + push for v0.1.2.
 - User reports a bug (triggers hotfix sprint).
 - MCP provider package becomes available (triggers integration).
 - Code-signing certificate is obtained (triggers signed rebuild).

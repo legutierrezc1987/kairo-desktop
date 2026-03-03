@@ -40,6 +40,7 @@ import {
   SESSION_CUT_THRESHOLD_PERCENT,
   BRIDGE_BUFFER_TOKEN_TARGET,
   RECALL_QUERY_TIMEOUT_MS,
+  CHAT_STREAM_TIMEOUT_MS,
 } from '../../shared/constants'
 
 // ─── Port Interfaces (interface segregation — no circular imports) ────
@@ -423,14 +424,19 @@ export class Orchestrator {
         })
       }
 
-      await retryWithBackoff(streamOnce, {
+      const streamPromise = retryWithBackoff(streamOnce, {
         model: modelId,
         emitStatus: this._rateLimitEmitter ?? undefined,
       })
+      const timeoutPromise = new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error('Chat stream timeout — no response in 120s')), CHAT_STREAM_TIMEOUT_MS),
+      )
+      await Promise.race([streamPromise, timeoutPromise])
 
       return { success: true, data: { messageId } }
     } catch (error: unknown) {
-      // Reached on: "Cuota agotada" (all retries + fallback exhausted) or unexpected errors
+      // Abort any in-flight stream (timeout or exhaustion — prevent leaked HTTP connections)
+      abortActiveStream()
       const msg = error instanceof Error ? error.message : 'Unknown streaming error'
       sendChunk({ messageId, delta: '', done: true, error: msg })
       // Roll back user turn on final exhaustion

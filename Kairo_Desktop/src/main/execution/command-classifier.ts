@@ -29,12 +29,42 @@ function detectChainOperator(normalized: string): string | null {
 }
 
 /**
+ * Strip invisible / non-printable noise from raw terminal input.
+ * Removes ANSI escape sequences (CSI, OSC, bracketed paste markers),
+ * zero-width Unicode (U+200B/C/D, U+FEFF BOM), and control chars 0x00-0x1F
+ * except \t (0x09), \r (0x0D), \n (0x0A) — CR/LF are preserved so
+ * detectChainOperator can still catch CR/LF injection.
+ * Collapses multiple spaces into single space.
+ *
+ * SECURITY: Does NOT alter semantic command content — only cleans invisible
+ * transport noise. DEC-024 deny-by-default is preserved.
+ */
+function normalizeInput(raw: string): string {
+  let cleaned = raw
+  // 1. ANSI CSI sequences: ESC[ params final_byte (includes bracketed paste \x1b[200~ / \x1b[201~)
+  cleaned = cleaned.replace(/\x1b\[[0-9;?]*[A-Za-z~]/g, '')
+  // 2. ANSI OSC sequences: ESC] ... BEL or ST
+  cleaned = cleaned.replace(/\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)/g, '')
+  // 3. ANSI charset selection: ESC( or ESC) followed by designator
+  cleaned = cleaned.replace(/\x1b[()][A-Z0-9]/g, '')
+  // 4. Other bare ESC sequences
+  cleaned = cleaned.replace(/\x1b[^[\]()]/g, '')
+  // 5. Zero-width Unicode characters and BOM
+  cleaned = cleaned.replace(/[\u200B\u200C\u200D\uFEFF]/g, '')
+  // 6. Control characters 0x00-0x08, 0x0B, 0x0C, 0x0E-0x1F (preserve \t \r \n)
+  cleaned = cleaned.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F]/g, '')
+  // 7. Collapse multiple spaces into single space
+  cleaned = cleaned.replace(/ {2,}/g, ' ')
+  return cleaned
+}
+
+/**
  * Deterministic command classifier — DEC-024.
  * SECURITY: Classification is hardcoded pattern matching, NEVER LLM-inferred.
  * Priority: CHAIN_INJECTION > RED > GREEN > YELLOW > default RED (deny-by-default).
  */
 export function classifyCommand(rawCommand: string): ClassificationResult {
-  const command = rawCommand.trim()
+  const command = normalizeInput(rawCommand).trim()
   const normalized = command.toLowerCase()
   const timestamp = Date.now()
 

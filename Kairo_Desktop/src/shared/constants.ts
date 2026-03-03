@@ -139,6 +139,9 @@ export const RECALL_PERIODIC_INTERVAL = 8
 /** Timeout for a single recall query (ms) */
 export const RECALL_QUERY_TIMEOUT_MS = 10_000
 
+/** Timeout for a complete chat stream response (ms). Prevents indefinite hangs. */
+export const CHAT_STREAM_TIMEOUT_MS = 120_000
+
 // ─── Consolidation Engine Configuration (Phase 5 Sprint B, DEC-022) ──
 
 /** Number of SYNCED sources that triggers consolidation ("40-1 Rule") */

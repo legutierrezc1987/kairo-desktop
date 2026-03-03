@@ -548,7 +548,8 @@ test('T60: Orchestrator has setRateLimitEmitter method', () => {
 })
 
 test('T61: Orchestrator calls retryWithBackoff in handleStreamingChat', () => {
-  assert.ok(orchestratorSource.includes('await retryWithBackoff(streamOnce'))
+  // v0.1.2: retryWithBackoff is now wrapped in Promise.race (stream timeout)
+  assert.ok(orchestratorSource.includes('retryWithBackoff(streamOnce'))
 })
 
 test('T62: Orchestrator passes _rateLimitEmitter to retryWithBackoff', () => {

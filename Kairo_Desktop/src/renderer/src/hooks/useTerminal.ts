@@ -31,6 +31,8 @@ export function useTerminal(options: UseTerminalOptions): UseTerminalReturn {
       cursorBlink: true,
       fontFamily: 'Menlo, Monaco, "Courier New", monospace',
       fontSize: 13,
+      scrollback: 5000,
+      convertEol: true,
       theme: {
         background: '#0a0a0a',
         foreground: '#d4d4d4',
