@@ -1,8 +1,8 @@
 # PROJECT MEMORY (Single Living Context)
 
-Version: 3.62
+Version: 3.63
 Last Updated: 2026-03-02
-Status: GA RELEASED — v0.1.2 HOTFIX (terminal+chat stability)
+Status: GA RELEASED — v0.1.2 PUBLISHED (hotfix terminal+chat stability)
 
 ## Editing Rule (MANDATORY)
 
@@ -23,11 +23,12 @@ Do not duplicate full DEC or long rationale content.
 
 ## Current Snapshot
 
-- Active phase: **Post-GA Maintenance** — `v0.1.2` hotfix committed. Phase 8 COMPLETE. All development phases (0-8) CLOSED.
-- Release tags: `v0.1.2` (hotfix, pending tag), `v0.1.1` (hotfix), `v0.1.0` (GA), `v0.1.0-rc1` (RC).
+- Active phase: **Post-GA Maintenance** — `v0.1.2` hotfix released and published. Phase 8 COMPLETE. All development phases (0-8) CLOSED.
+- Release tags: `v0.1.2` (hotfix), `v0.1.1` (hotfix), `v0.1.0` (GA), `v0.1.0-rc1` (RC).
+- Installer v0.1.2: `kairo-desktop-0.1.2-setup.exe` (105.74 MB). SHA256: `C58DB9EADEF1D1A56E2EE2B65AE0433E6A884214347FE983B18256C3B131B32C`.
 - Installer v0.1.1: `kairo-desktop-0.1.1-setup.exe` (105.74 MB). SHA256: `21E1EAFFAD6D1EDAA1C4DB879A6ED43F99922E6210F6984FD4CF1C8372AF1D3E`.
 - Installer v0.1.0: `kairo-desktop-0.1.0-setup.exe` (105.71 MB). SHA256: `F584B8DA00C98C6446594A13C03F42B3ED00C01A840F9B13005D78FD7EB28C93`.
-- Current objective: **v0.1.2 committed**. Three stability fixes: input normalization (ANSI/zero-width stripping), terminal scrollback (5000 lines), chat stream timeout (120s). Maintenance/hotfix mode continues.
+- Current objective: **v0.1.2 published** to `origin/master` with tag `v0.1.2`. Local distribution package staged at `Kairo_Desktop/dist/release-v0.1.2/`. Maintenance/hotfix mode continues.
 - D0 telemetry table upgraded for direct exit-criteria tracking: explicit columns for C3/C6/C7/C8 in `WAVE2_DISTRIBUTION_LOG.md`.
 - Model catalog refresh completed (runtime + UI): deprecated `gemini-2.0-*` and `gemini-2.5-pro` removed from app paths. Active catalog now uses `gemini-2.5-flash`, `gemini-3-flash-preview`, `gemini-3.1-pro-preview`, `gemini-3.1-pro-preview-customtools`.
 - Routing updated for practical quota behavior: foreground=`gemini-2.5-flash`, background/fallback=`gemini-3-flash-preview`.
@@ -113,6 +114,7 @@ Do not duplicate full DEC or long rationale content.
   - Bug C: `CHAT_STREAM_TIMEOUT_MS = 120_000` in `constants.ts`. `orchestrator.ts` wraps `retryWithBackoff` with `Promise.race` timeout + `abortActiveStream()` in catch block. Reuses existing recall timeout pattern.
   - 4 production files + 1 test regression fix + 1 new test file. IPC channels unchanged (49).
   - Test: `test_hotfix_012.mjs` — 37/37 PASS. Regression: broker (57), sandbox (105), terminal_e2e (35), chat_e2e (40), rate_limit (66), workspace_cwd (27) — all PASS. `npx tsc --noEmit` exit 0.
+  - Release: installer `kairo-desktop-0.1.2-setup.exe` built, SHA256 sealed, tag `v0.1.2` created and pushed to origin.
 - **Hotfix 0.1.1 — Workspace/CWD Binding**:
   - Bug: Terminal CWD stuck on `process.cwd()`, not following active project. `PROJECT_CREATE` did not fire `onProjectLoaded`. TerminalPanel was project-unaware.
   - Fix: `terminal.service.ts` +`updateWorkspacePath()`/`getWorkspacePath()`. `index.ts` mutable `activeWorkspacePath`, updated on project load/create. `APP_GET_CWD` returns active workspace. `project.handlers.ts` fires `onProjectLoaded` on create. `TerminalPanel.tsx` subscribes to `projectStore`, shows "No project open" guard, respawns on switch via `key={activeProject.id}`.
@@ -126,7 +128,7 @@ Do not duplicate full DEC or long rationale content.
 | Consolidation engine test | `node tests/test_consolidation_engine.mjs` | 96/96 PASS |
 | Recall strategy test | `node tests/test_recall_strategy.mjs` | 59/59 PASS |
 | Approval test | `node tests/test_approval.mjs` | 75/75 PASS |
-| Broker test | `node tests/test_broker.mjs` | 58/58 PASS |
+| Broker test | `node tests/test_broker.mjs` | 57/57 PASS |
 | Chat history test | `node tests/test_chat_history.mjs` | 38/38 PASS |
 | Cut pipeline test | `node tests/test_cut_pipeline.mjs` | 31/31 PASS |
 | IPC parity test | `node tests/test_ipc_negative.mjs` | 60/60 PASS |
@@ -141,7 +143,7 @@ Do not duplicate full DEC or long rationale content.
 | Rate-limit handler test | `node tests/test_rate_limit.mjs` | 66/66 PASS |
 | Renderer Sprint B test | `node tests/test_renderer_sprint_b.mjs` | 119/119 PASS |
 | Renderer streaming test | `node tests/test_renderer_streaming.mjs` | 54/54 PASS |
-| Sandbox paths test | `node tests/test_sandbox_paths.mjs` | 106/106 PASS |
+| Sandbox paths test | `node tests/test_sandbox_paths.mjs` | 105/105 PASS |
 | Snapshot service test | `node tests/test_snapshot_service.mjs` | 18/18 PASS |
 | Streaming gateway test | `node tests/test_streaming_gateway.mjs` | 40/40 PASS |
 | Safety Net Sprint A test | `node tests/test_safety_net_sprint_a.mjs` | 107/107 PASS |
@@ -224,10 +226,9 @@ All development phases (0-8) COMPLETE. Remaining items are deferred/opportunisti
 
 ## Next Step (Exact)
 
-**v0.1.2 committed** — 3 stability fixes (input normalization, terminal scrollback, chat stream timeout). Commit ready. Tag/build/push pending Director instruction.
+**v0.1.2 PUBLISHED** — tag/build/push complete, installer + hash staged for distribution.
 
 No engineering action required unless:
-- Director requests tag + build + push for v0.1.2.
 - User reports a bug (triggers hotfix sprint).
 - MCP provider package becomes available (triggers integration).
 - Code-signing certificate is obtained (triggers signed rebuild).
@@ -235,6 +236,6 @@ No engineering action required unless:
 
 ## Next Owner
 
-- **User (Director)**: Distribute v0.1.1 installer from `Kairo_Desktop/dist/release-v0.1.1/`. Optionally install `gh` CLI and run `gh release create v0.1.1 --title "v0.1.1" --notes-file docs/RELEASE_NOTES_v0.1.1.md Kairo_Desktop/dist/release-v0.1.1/kairo-desktop-0.1.1-setup.exe` to create GitHub Release. Resolve billing/signing when ready.
+- **User (Director)**: Distribute v0.1.2 installer from `Kairo_Desktop/dist/release-v0.1.2/`. Optionally run `gh release create v0.1.2 --title "v0.1.2" --notes-file docs/RELEASE_NOTES_v0.1.2.md Kairo_Desktop/dist/release-v0.1.2/kairo-desktop-0.1.2-setup.exe` (if `gh` is available) or publish via GitHub UI.
 - **Codex (orchestrator)**: Route hotfix if bug found, or v0.2.0 planning if new features requested.
-- **Claude (implementer)**: GA complete. Standby for hotfix or next version planning.
+- **Claude (implementer)**: Standby for hotfix or next version planning.
