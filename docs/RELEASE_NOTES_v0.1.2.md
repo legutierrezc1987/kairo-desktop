@@ -60,7 +60,7 @@ Direct upgrade from v0.1.0 or v0.1.1. No database migration. No configuration ch
 ## SHA256
 
 ```
-TBD  kairo-desktop-0.1.2-setup.exe
+C58DB9EADEF1D1A56E2EE2B65AE0433E6A884214347FE983B18256C3B131B32C  kairo-desktop-0.1.2-setup.exe
 ```
 
-*Installer hash will be populated after build.*
+Installer size: 105.74 MB.
