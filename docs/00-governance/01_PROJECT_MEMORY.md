@@ -1,8 +1,8 @@
 # PROJECT MEMORY (Single Living Context)
 
-Version: 3.63
+Version: 3.64
 Last Updated: 2026-03-02
-Status: GA RELEASED — v0.1.2 PUBLISHED (hotfix terminal+chat stability)
+Status: GA RELEASED — v0.1.2 CLOSED (runtime validated)
 
 ## Editing Rule (MANDATORY)
 
@@ -115,6 +115,8 @@ Do not duplicate full DEC or long rationale content.
   - 4 production files + 1 test regression fix + 1 new test file. IPC channels unchanged (49).
   - Test: `test_hotfix_012.mjs` — 37/37 PASS. Regression: broker (57), sandbox (105), terminal_e2e (35), chat_e2e (40), rate_limit (66), workspace_cwd (27) — all PASS. `npx tsc --noEmit` exit 0.
   - Release: installer `kairo-desktop-0.1.2-setup.exe` built, SHA256 sealed, tag `v0.1.2` created and pushed to origin.
+  - Runtime validation (Director, installed app): RT-1 `dir` typed 5x PASS, RT-2 `dir` pasted 5x PASS, RT-3 scroll on long output PASS, RT-4 short chat prompt PASS, RT-5 long chat prompt PASS. All 5/5 runtime cases PASS.
+  - **v0.1.2 CLOSED** — code + build + runtime fully validated.
 - **Hotfix 0.1.1 — Workspace/CWD Binding**:
   - Bug: Terminal CWD stuck on `process.cwd()`, not following active project. `PROJECT_CREATE` did not fire `onProjectLoaded`. TerminalPanel was project-unaware.
   - Fix: `terminal.service.ts` +`updateWorkspacePath()`/`getWorkspacePath()`. `index.ts` mutable `activeWorkspacePath`, updated on project load/create. `APP_GET_CWD` returns active workspace. `project.handlers.ts` fires `onProjectLoaded` on create. `TerminalPanel.tsx` subscribes to `projectStore`, shows "No project open" guard, respawns on switch via `key={activeProject.id}`.
@@ -226,7 +228,7 @@ All development phases (0-8) COMPLETE. Remaining items are deferred/opportunisti
 
 ## Next Step (Exact)
 
-**v0.1.2 PUBLISHED** — tag/build/push complete, installer + hash staged for distribution.
+**v0.1.2 CLOSED** — code, build, and runtime validated by Director. All 3 bugs confirmed fixed in installed app.
 
 No engineering action required unless:
 - User reports a bug (triggers hotfix sprint).
