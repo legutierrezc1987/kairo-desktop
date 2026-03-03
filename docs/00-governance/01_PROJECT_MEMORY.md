@@ -1,8 +1,8 @@
 # PROJECT MEMORY (Single Living Context)
 
-Version: 3.59
+Version: 3.60
 Last Updated: 2026-03-02
-Status: GA RELEASED — v0.1.1 RELEASED (Hotfix packaged + tagged)
+Status: GA RELEASED — v0.1.1 PUBLISHED (pushed to origin + tags live)
 
 ## Editing Rule (MANDATORY)
 
@@ -217,7 +217,7 @@ All development phases (0-8) COMPLETE. Remaining items are deferred/opportunisti
 
 ## Next Step (Exact)
 
-**v0.1.1 RELEASED** (hotfix: workspace/CWD binding). All development phases (0-8) complete. Product is in maintenance/hotfix mode.
+**v0.1.1 PUBLISHED** — pushed to `origin/master` + tags `v0.1.1`, `v0.1.0`, `v0.1.0-rc1` live on GitHub. All development phases (0-8) complete. Product is in maintenance/hotfix mode.
 
 No engineering action required unless:
 - User reports a bug (triggers hotfix sprint).
@@ -227,6 +227,6 @@ No engineering action required unless:
 
 ## Next Owner
 
-- **User (Director)**: Distribute GA installer. Optionally test on second machine. Resolve billing/signing when ready.
+- **User (Director)**: Distribute v0.1.1 installer. Optionally create GitHub Release with attached binary. Resolve billing/signing when ready.
 - **Codex (orchestrator)**: Route hotfix if bug found, or v0.2.0 planning if new features requested.
 - **Claude (implementer)**: GA complete. Standby for hotfix or next version planning.
