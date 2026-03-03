@@ -1,8 +1,8 @@
 # PROJECT MEMORY (Single Living Context)
 
-Version: 3.60
+Version: 3.61
 Last Updated: 2026-03-02
-Status: GA RELEASED — v0.1.1 PUBLISHED (pushed to origin + tags live)
+Status: GA RELEASED — v0.1.1 PUBLISHED + LOCAL DISTRIBUTION READY
 
 ## Editing Rule (MANDATORY)
 
@@ -217,7 +217,7 @@ All development phases (0-8) COMPLETE. Remaining items are deferred/opportunisti
 
 ## Next Step (Exact)
 
-**v0.1.1 PUBLISHED** — pushed to `origin/master` + tags `v0.1.1`, `v0.1.0`, `v0.1.0-rc1` live on GitHub. All development phases (0-8) complete. Product is in maintenance/hotfix mode.
+**v0.1.1 PUBLISHED + DISTRIBUTION READY** — pushed to `origin/master` + tags live on GitHub. Local distribution package at `Kairo_Desktop/dist/release-v0.1.1/` (installer + SHA256SUMS.txt + release notes). GitHub Release not created (`gh` CLI not installed — Director can create manually or install `gh`). All development phases (0-8) complete. Product is in maintenance/hotfix mode.
 
 No engineering action required unless:
 - User reports a bug (triggers hotfix sprint).
@@ -227,6 +227,6 @@ No engineering action required unless:
 
 ## Next Owner
 
-- **User (Director)**: Distribute v0.1.1 installer. Optionally create GitHub Release with attached binary. Resolve billing/signing when ready.
+- **User (Director)**: Distribute v0.1.1 installer from `Kairo_Desktop/dist/release-v0.1.1/`. Optionally install `gh` CLI and run `gh release create v0.1.1 --title "v0.1.1" --notes-file docs/RELEASE_NOTES_v0.1.1.md Kairo_Desktop/dist/release-v0.1.1/kairo-desktop-0.1.1-setup.exe` to create GitHub Release. Resolve billing/signing when ready.
 - **Codex (orchestrator)**: Route hotfix if bug found, or v0.2.0 planning if new features requested.
 - **Claude (implementer)**: GA complete. Standby for hotfix or next version planning.
