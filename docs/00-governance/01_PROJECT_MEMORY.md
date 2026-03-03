@@ -1,8 +1,8 @@
 # PROJECT MEMORY (Single Living Context)
 
-Version: 3.58
-Last Updated: 2026-03-01
-Status: GA RELEASED — MAINTENANCE MODE (Hotfix 0.1.1 applied)
+Version: 3.59
+Last Updated: 2026-03-02
+Status: GA RELEASED — v0.1.1 RELEASED (Hotfix packaged + tagged)
 
 ## Editing Rule (MANDATORY)
 
@@ -23,9 +23,11 @@ Do not duplicate full DEC or long rationale content.
 
 ## Current Snapshot
 
-- Active phase: **Post-GA Maintenance** — `v0.1.0` released. Phase 8 COMPLETE. All development phases (0-8) CLOSED.
-- GA tags: `v0.1.0` (GA), `v0.1.0-rc1` (RC). Installer SHA256: `F584B8DA00C98C6446594A13C03F42B3ED00C01A840F9B13005D78FD7EB28C93`.
-- Current objective: **Product released + Hotfix 0.1.1 applied**. Terminal CWD now follows active project. Maintenance/hotfix mode continues. Deferred backlog items (MCP provider, code-signing, second-machine test, Gemini billing) remain open for opportunistic resolution.
+- Active phase: **Post-GA Maintenance** — `v0.1.1` released (hotfix). Phase 8 COMPLETE. All development phases (0-8) CLOSED.
+- Release tags: `v0.1.1` (hotfix), `v0.1.0` (GA), `v0.1.0-rc1` (RC).
+- Installer v0.1.1: `kairo-desktop-0.1.1-setup.exe` (105.74 MB). SHA256: `21E1EAFFAD6D1EDAA1C4DB879A6ED43F99922E6210F6984FD4CF1C8372AF1D3E`.
+- Installer v0.1.0: `kairo-desktop-0.1.0-setup.exe` (105.71 MB). SHA256: `F584B8DA00C98C6446594A13C03F42B3ED00C01A840F9B13005D78FD7EB28C93`.
+- Current objective: **v0.1.1 released**. Terminal CWD follows active project. Maintenance/hotfix mode continues. Deferred backlog items (MCP provider, code-signing, second-machine test, Gemini billing) remain open for opportunistic resolution.
 - D0 telemetry table upgraded for direct exit-criteria tracking: explicit columns for C3/C6/C7/C8 in `WAVE2_DISTRIBUTION_LOG.md`.
 - Model catalog refresh completed (runtime + UI): deprecated `gemini-2.0-*` and `gemini-2.5-pro` removed from app paths. Active catalog now uses `gemini-2.5-flash`, `gemini-3-flash-preview`, `gemini-3.1-pro-preview`, `gemini-3.1-pro-preview-customtools`.
 - Routing updated for practical quota behavior: foreground=`gemini-2.5-flash`, background/fallback=`gemini-3-flash-preview`.
@@ -215,14 +217,13 @@ All development phases (0-8) COMPLETE. Remaining items are deferred/opportunisti
 
 ## Next Step (Exact)
 
-**v0.1.0 GA RELEASED + Hotfix 0.1.1 applied** (workspace/CWD binding). All development phases (0-8) complete. Product is in maintenance/hotfix mode.
+**v0.1.1 RELEASED** (hotfix: workspace/CWD binding). All development phases (0-8) complete. Product is in maintenance/hotfix mode.
 
 No engineering action required unless:
 - User reports a bug (triggers hotfix sprint).
 - MCP provider package becomes available (triggers integration).
 - Code-signing certificate is obtained (triggers signed rebuild).
 - Gemini API billing/quota is resolved (enables full model range).
-- Installer rebuild needed to include hotfix 0.1.1 (requires `npm run build:win`).
 
 ## Next Owner
 

@@ -6,7 +6,6 @@
  * Phase 5 Sprint B: After successful upload, checks consolidation threshold.
  */
 
-import { readFile } from 'node:fs/promises'
 import type { UploadQueueService, QueueEntry } from '../services/upload-queue.service'
 import { UPLOAD_TIMEOUT_MS, SYNC_WORKER_INTERVAL_MS } from '../../shared/constants'
 import { shouldConsolidate, executeConsolidation, type ConsolidationPort, type ConsolidationResult } from '../memory/consolidation-engine'

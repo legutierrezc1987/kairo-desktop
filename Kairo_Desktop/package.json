@@ -1,6 +1,6 @@
 {
   "name": "kairo-desktop",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "IDE de escritorio con agente IA autónomo y memoria persistente infinita",
   "main": "./out/main/index.js",
   "author": "ORION OCG",

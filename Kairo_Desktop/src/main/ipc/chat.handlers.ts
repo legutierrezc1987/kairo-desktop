@@ -12,7 +12,7 @@ function isValidSendMessageRequest(data: unknown): data is SendMessageRequest {
 
 export function registerChatHandlers(
   orchestrator: Orchestrator,
-  getMainWindow: () => BrowserWindow | null,
+  _getMainWindow: () => BrowserWindow | null,
 ): void {
   // ── CHAT_SEND_MESSAGE: streaming dispatch (Phase 4 Sprint C) ──
   ipcMain.handle(IPC_CHANNELS.CHAT_SEND_MESSAGE, async (event, data: unknown) => {

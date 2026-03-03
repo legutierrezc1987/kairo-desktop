@@ -5,7 +5,7 @@ import { IPC_CHANNELS } from '@shared/ipc-channels'
 import type { IpcResult, FsReadFileResponse, FsWriteFileResponse, UndoPreviewResponse, UndoApplyResponse } from '@shared/types'
 
 export function useEditor() {
-  const { setFile, setLoading, setError, setSaving, markClean, content, activeFilePath } =
+  const { setFile, setLoading, setError, setSaving, markClean } =
     useEditorStore()
 
   const openFile = useCallback(

@@ -1,8 +1,8 @@
-import { useEffect, useRef, useCallback } from 'react'
+import { useEffect, useRef } from 'react'
 import { useSettingsStore } from '@renderer/stores/settingsStore'
 import { hasKairoApi, getKairoApiOrThrow } from '@renderer/lib/kairoApi'
 import { IPC_CHANNELS } from '@shared/ipc-channels'
-import type { IpcResult, GetSettingResponse, ModelId, VisibilityMode, SettingsState } from '@shared/types'
+import type { IpcResult, GetSettingResponse, VisibilityMode, SettingsState } from '@shared/types'
 import { CUSTOM_BUDGET_MIN, CUSTOM_BUDGET_MAX, normalizeModelId } from '@shared/constants'
 
 /** Setting keys used for global persistence */
